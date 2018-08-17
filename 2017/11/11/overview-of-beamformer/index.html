@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Microphone Array Processing," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="好久没更……过去一段时间接触了一下beamforming，连看论文加做实验，大概理出了一些头绪。初步理解beamforming就是对多路信号进行频域滤波，从而获取一路增强信号，所谓的增强就是最大可能的滤除噪声，同时保留我们期望的信号。比较经典的方法有：延时相加，Max-SNR，MVDR，GSC（LCMV）等等（详细可学习陈老师的麦克风阵列信号处理[2]一书）。学习期间会接触到一些非常频繁的概念，比">
+<meta name="keywords" content="Microphone Array Processing">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Overview of Beamformer">
+<meta property="og:url" content="http://www.funcwj.cn/2017/11/11/overview-of-beamformer/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="好久没更……过去一段时间接触了一下beamforming，连看论文加做实验，大概理出了一些头绪。初步理解beamforming就是对多路信号进行频域滤波，从而获取一路增强信号，所谓的增强就是最大可能的滤除噪声，同时保留我们期望的信号。比较经典的方法有：延时相加，Max-SNR，MVDR，GSC（LCMV）等等（详细可学习陈老师的麦克风阵列信号处理[2]一书）。学习期间会接触到一些非常频繁的概念，比">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-05-09T17:15:05.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Overview of Beamformer">
+<meta name="twitter:description" content="好久没更……过去一段时间接触了一下beamforming，连看论文加做实验，大概理出了一些头绪。初步理解beamforming就是对多路信号进行频域滤波，从而获取一路增强信号，所谓的增强就是最大可能的滤除噪声，同时保留我们期望的信号。比较经典的方法有：延时相加，Max-SNR，MVDR，GSC（LCMV）等等（详细可学习陈老师的麦克风阵列信号处理[2]一书）。学习期间会接触到一些非常频繁的概念，比">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/11/11/overview-of-beamformer/"/>
+
+
+
+
+
+  <title>Overview of Beamformer | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/11/11/overview-of-beamformer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Overview of Beamformer</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-11-11T23:39:20+08:00">
+                2017-11-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,987
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  8
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>好久没更……<br>过去一段时间接触了一下beamforming，连看论文加做实验，大概理出了一些头绪。初步理解beamforming就是对多路信号进行频域滤波，从而获取一路增强信号，所谓的增强就是最大可能的滤除噪声，同时保留我们期望的信号。比较经典的方法有：延时相加，Max-SNR，MVDR，GSC（LCMV）等等（详细可学习陈老师的麦克风阵列信号处理[2]一书）。学习期间会接触到一些非常频繁的概念，比如信噪比，相关系数矩阵，PSD（功率谱密度），steer vector，以及一些数学问题的求解方法，比如拉格朗日乘子法，广义特征值等问题，深层次的理解还是需要扎实的统计，矩阵，优化理论基础，相关概念以后可能会写一篇专做解释。</p>
+<p>我这里从DS（延迟相加）开始，引入频域beamforming的一般数学模型，再介绍GEV，MVDR，PMWF三种beamformer。虽然我的出发点和实验都是和NN结合来做的，但是本篇里面不牵扯到NN（神经网络）的东西，只说纯粹的信号处理。</p>
+<a id="more"></a>
+<p>延时相加（DS）方法是最简单的一种波束形成方法。它利用已知是麦克风阵列的拓扑结构，算出不同通道之间的相对延时，通过对多路信号进行时间上的同步和平均操作完成通道合并和增强效果。</p>
+<p>对于有$N$个麦克风的阵列，在$t$时刻，麦克风$n(n = {1, 2, \cdots, N})$处收集的信号$y_n(t)$可以表达为：</p>
+<script type="math/tex; mode=display">
+y_n(t) = x_n(t) + v_n(t)</script><p>$v_n(t)$表示该处噪声，$x_n(t)$表示声源到达麦克风的信号，考虑麦克风之间的空间分布，声源到达麦克风处的衰减和延迟是不同的，引入衰减因子$\alpha_n$和相对延时$\tau_n$，$x_n(t)$可以表示为：</p>
+<script type="math/tex; mode=display">
+x_n(t) = \alpha_n s(t - \tau_n)</script><p>$s$表示未知的声源信号。首先对多路信号进行延时操作：</p>
+<script type="math/tex; mode=display">
+y_n'(t) = y_n(t + \tau_n) = \alpha_ns(t) + v_n(t + \tau_n)</script><p>相加取平均获取DS方法的输出$z_{DS}(t)$：</p>
+<script type="math/tex; mode=display">
+z_{DS}(t) = \frac{1}{N} \sum_{n = 1}^N y_n'(t) = \frac{1}{N}\left[ \left(\sum_{n = 1}^N \alpha_n \right) s(t) + \sum_{n = 1}^N v_n(t + \tau_n) \right]</script><p>令$\alpha_{DS} = \sum_n \alpha_n, v_{DS}(t + \tau_n) = \sum_n v_n(t + \tau_n)$，定义输出信号的SNR：</p>
+<script type="math/tex; mode=display">
+\text{oSNR} = \alpha_{DS}^2 \frac{E[s(t)^2]}{E[v_{DS}(t + \tau_n)^2]} = \left( \sum_{n = 1}^N \alpha_n \right)^2 \frac{\sigma_s^2}{\sigma_{v_{DS}}^2}</script><p>以$s_1(t)$为参考，定义此处的信噪比：</p>
+<script type="math/tex; mode=display">
+\text{SNR} = \frac{\sigma_{x_1}^2}{\sigma_{v_1}^2} = \alpha_1^2 \frac{\sigma_s^2}{\sigma_{v_1}^2}</script><p>显然，期望的波束形成结果应该满足$\text{oSNR} &gt; \text{SNR}$。</p>
+<p>若$\alpha_i = 1, \sigma_{v_1}^2 = \sigma_{v_2}^2 = \cdots = \sigma_{v_n}^2$且$v_i(t)$之间互不相关（因此不同噪声信号之间的协方差为0），那么：</p>
+<script type="math/tex; mode=display">
+\sigma_{v_{DS}}^2 = \sum_{n = 1}^N \sigma_{v_n}^2 = N \sigma_{v_1}^2</script><p>故$\text{oSNR} = N \cdot \text{SNR}$。在DS方法中，准确的估计$\tau_n$十分重要，在线阵中，需要知道各个麦之间的间距$d$以及以及声源波面和线阵形成的夹角$\theta$。假设各麦间距相同，那么TDOA计算有简单的几何关系得到：</p>
+<script type="math/tex; mode=display">
+\tau_n = (n - 1)d \cos(\theta) / c</script><p>其中$c$表示声速。</p>
+<p>以上分析是在时域上进行的，上面的各个变量下标为$t$，DS首先需要做的是在时域上进行对齐，之后叠加取均值。若变换到频域，那么$y_n(t) = x_n(t) + v_n(t)$写为：</p>
+<script type="math/tex; mode=display">
+Y_n(\omega) = X_n(\omega) + V_n(\omega)</script><p>由$x_n(t) = \alpha_n s(t - \tau_n)$：</p>
+<script type="math/tex; mode=display">
+X_n(\omega) = \alpha_n \cdot X(\omega) \cdot e^{-j\omega\tau_n}</script><p>令：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{y}(\omega) &= [Y_1(\omega), Y_2(\omega), \cdots, Y_N(\omega)]^T \\
+\mathbf{d}(\omega) &= [\alpha_1e^{-j\omega\tau_1}, \alpha_2e^{-j\omega\tau_2}, \cdots, \alpha_Ne^{-j\omega\tau_N}]^T \\
+\mathbf{v}(\omega) &= [V_1(\omega), V_2(\omega), \cdots, V_N(\omega)]^T
+\end{align}</script><p>这里$\mathbf{d}(\omega)$称为steer vector。那么频域关系可以用向量形式描述为：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}(\omega) = \mathbf{d}(\omega) X(\omega) + \mathbf{v}(\omega)</script><p>在频域上，波束形成是要在每个频率点上操作，完成$\mathbf{y}(\omega)$到$Z(\omega)$的映射，这种映射关系通过设计滤波器$\mathbf{h}(\omega)$实现，即：</p>
+<script type="math/tex; mode=display">
+Z(\omega) = \mathbf{h}^H(\omega) \mathbf{y}(\omega)</script><p>注意，这里的$Z(\omega)$为数值，而$\mathbf{h}(\omega), \mathbf{y}(\omega)$为向量，实际的操作为：</p>
+<script type="math/tex; mode=display">
+Z(\omega) = \sum_{n = 1}^N \overline{H}_n(\omega) Y_n(\omega)</script><p>其中，$\mathbf{h}(\omega) = [H_1(\omega), H_2(\omega), \cdots, H_N(\omega)]^T$, $\overline{H}_n(\omega)$表示$H_n(\omega)$的共轭。</p>
+<p>从频域来看，DS设计的beamformer应该是：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}(\omega) = \frac{1}{N} [\alpha_1^{-1}e^{j\omega\tau_1}, \alpha_2^{-1} e^{j\omega\tau_2}, \cdots, \alpha_N^{-1} e^{j\omega\tau_N}]^T</script><p>使得$\mathbf{h}^H(\omega) \mathbf{d}(\omega) = 1$。</p>
+<p>更一般的表示，可令$\mathbf{x}(\omega) =  \mathbf{d}(\omega) X(\omega)$，则：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}(\omega) = \mathbf{d}(\omega) X(\omega) + \mathbf{v}(\omega) =\mathbf{x}(\omega) + \mathbf{v}(\omega)</script><p>带入$Z(\omega)$可知，滤波器同时作用于$\mathbf{x}(\omega)$和$\mathbf{v}(\omega)$：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}(\omega) = \mathbf{h}^H(\omega) \mathbf{x}(\omega) + \mathbf{h}^H(\omega) \mathbf{v}(\omega)</script><p>一般的可以将作用于前者的结果$\mathbf{h}^H(\omega) \mathbf{x}(\omega)$称为增强信号或者输出信号（desired speech），因为这是我们最终期望的结果，作用后者的结果$\mathbf{h}^H(\omega) \mathbf{v}(\omega)$称为残留噪声（residual noise）。显然，我们期望滤波器对前者产生增强效果，对后者产生削弱效应。</p>
+<p>再往下需要补充一个关于PSD（power spectrum density，功率谱密度）的定义，对于复数域的向量$\mathbf{v}(\omega)$，称：</p>
+<script type="math/tex; mode=display">
+\mathbf{\Phi}_{vv}(\omega) = E[\mathbf{v}(\omega) \mathbf{v}^H(\omega)]</script><p>为$\mathbf{v}(\omega)$的PSD。假设噪声和原始信号之间是不相关的，那么$\mathbf{x}(\omega), \mathbf{v}(\omega), \mathbf{y}(\omega)$之间的PSD满足如下关系：</p>
+<script type="math/tex; mode=display">
+\mathbf{\Phi}_{yy}(\omega) = \mathbf{\Phi}_{xx}(\omega) + \mathbf{\Phi}_{vv}(\omega)</script><p>对于$Z(\omega) =  \mathbf{h}^H(\omega) \mathbf{y}(\omega) =  \mathbf{h}^H(\omega) \mathbf{x}(\omega) +  \mathbf{h}^H(\omega) \mathbf{v}(\omega)​$，有：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{\Phi}_{zz}(\omega) &= \mathbf{h}^H(\omega) \mathbf{\Phi}_{yy}(\omega) \mathbf{h}(\omega) \\
+&= \mathbf{h}^H(\omega) \mathbf{\Phi}_{xx}(\omega) \mathbf{h}(\omega) + \mathbf{h}^H(\omega) \mathbf{\Phi}_{vv}(\omega) \mathbf{h}(\omega)
+\end{align}</script><p>在每个频率点$\omega​$上，定义一个局部信噪比（local SNR）:</p>
+<script type="math/tex; mode=display">
+\text{SNR}(\omega) = \frac{E \left[|\mathbf{h}^H(\omega) \mathbf{x}(\omega)|^2 \right]}{E\left[|\mathbf{h}^H(\omega) \mathbf{v}(\omega)|^2\right]} = \frac{\mathbf{h}^H(\omega) \mathbf{\Phi}_{yy}(\omega) \mathbf{h}(\omega) }{\mathbf{h}^H(\omega) \mathbf{\Phi}_{vv}(\omega) \mathbf{h}(\omega) } - 1</script><p>所谓GEV（Generalized Eigenvalue Decomposition） beamformer，就是要设计一个滤波器$\mathbf{h}(\omega)$，使得在频率点$\omega$处$\text{SNR}(\omega)$达到最大，即：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}_\text{GEV}(\omega) = \arg \max_{\mathbf{h}} \text{SNR}(\omega)</script><p>称之为GEV，是因为该极值求解问题是一个瑞利商问题，可以用广义特征值来求解，即$\mathbf{h}_\text{GEV}(\omega)$实际上就是$\mathbf{\Phi}_{vv}^{-1}(\omega)\mathbf{\Phi}_{yy}(\omega)$最大特征值对应的特征向量。在编程实现的时候，遍历每一个$\omega$就可以得到每个频率上对应的滤波系数了。</p>
+<p>接下来引入使用非常广泛的一种波束形成方法：MVDR（Minimum Variance Distortionless Response ）。它通过最小化残留噪声的能量，同时约束期望（方向）的信号不失真来实现。</p>
+<p>引入GEV的过程中，通过$\mathbf{x}(\omega)$将$\mathbf{d}(\omega) X(\omega)$整体看待，在DS中，$\mathbf{d}(\omega)$（steer vector）描述的是衰减因子和延时的综合作用，现在推广它的含义，用$\mathbf{d}(\omega)$描述声源到每一个麦克风的转移方程，那么：</p>
+<script type="math/tex; mode=display">
+Z(\omega) = \mathbf{h}^H(\omega) \mathbf{y}(\omega) = \mathbf{h}^H(\omega)\mathbf{d}(\omega) X(\omega) + \mathbf{h}^H(\omega) \mathbf{v}(\omega)</script><p>MVDR的求解问题可以表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}_\text{MVDR}(\omega) = \arg \min_{\mathbf{h}} E\left[ |\mathbf{h}(\omega)^H \mathbf{v}(\omega)|^2\right] \;\text{s.t} \;\;\mathbf{h}(\omega)^H \mathbf{d}(\omega) = 1</script><p>约束条件$\mathbf{h}(\omega)^H \mathbf{d}(\omega) = 1$可以保证MVDR滤波器在满足转移方程$\mathbf{d}(\omega)$的方向或者条件下，增强的信号不失真。同时也表示$\mathbf{d}(\omega)$需要估计或者已知。用拉格朗日乘子法得到$\mathbf{h}_\text{MVDR}$的数学表达式：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}_\text{MVDR} = \frac{\mathbf{\Phi}_{vv}^{-1}(\omega) \mathbf{d}^H(\omega)}{\mathbf{d}^H(\omega)\mathbf{\Phi}_{vv}^{-1}(\omega) \mathbf{d}^H(\omega)}</script><p>现在可以对MVDR的约束条件加以推广，MVDR约束信号不失真通过转移方程或者steer vector完成，约束residual noise通过获取最小化能量完成。如果定义一个参考信号/麦克风（reference microphone ）$r$，那么衡量信号的失真程度可以通过误差$\epsilon_r(\omega)$进行：</p>
+<script type="math/tex; mode=display">
+\epsilon_r(\omega) = X_r(\omega) - \mathbf{h}^H(\omega)  \mathbf{x}(\omega) = [\mathbf{u}_r - \mathbf{h}(\omega)]^H \mathbf{x}(\omega)</script><p>其中$\mathbf{u}_r = [0_1, 0_2, \cdots, 1_r, 0_{r + 1}, \cdots, 0_N]^T​$用于选择出第$r​$路参考信号。</p>
+<p>仿照MVDR，写下约束优化问题：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}(\omega) = \arg \min_{\mathbf{h}} E \left[ |\mathbf{h}^H(\omega) \mathbf{x}(\omega)|^2\right] \; \text{s.t} \;\; E\left[\epsilon_r(\omega)^2 \right] \leqslant \sigma^2(\omega)</script><p>该问题的解称之为PMWF（Parameterized Multichannel Wiener Filter ）:</p>
+<script type="math/tex; mode=display">
+\mathbf{h}_\text{PMWF}(\omega) = \left[\mathbf{\Phi}_{xx}(\omega) + \beta \cdot \mathbf{\Phi}_{vv}(\omega)\right]^{-1} \mathbf{\Phi}_{xx}(\omega)\mathbf{u}_r</script><p>$\beta = 1 / \gamma$，其中$\gamma$是拉格朗日乘子。利用$\mathbf{\Phi}_{xx}(\omega)$的秩为1（因为$\mathbf{\Phi}_{xx}(\omega) = \Phi_{ss}(\omega)\mathbf{d}(\omega)\mathbf{d}^H(\omega)$），可将解化简为以下形式：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}_\text{PMWF}(\omega) = \frac{\mathbf{\Phi}_{vv}^{-1}(\omega)\mathbf{\Phi}_{xx}(\omega)}{\beta + \lambda(\omega)} \mathbf{u}_r</script><p>其中$\lambda(\omega) = \text{tr}[\mathbf{\Phi}_{vv}^{-1}(\omega)\mathbf{\Phi}_{xx}(\omega)]$。其中的数学推导可以参见[1]。</p>
+<p>从编程的角度说，获取到不同beamformer的滤波系数$\mathbf{h}(\omega)$之后，就可以对多路的麦克风信号进行滤波和重建。假设谱中有$F$个频率点（bin），麦克风数量为$N$个，语音段帧数为$T$，在频率$f$上，滤波操作为：</p>
+<script type="math/tex; mode=display">
+\mathbf{s}(f)_{1 \times T} = \mathbf{h}(f)_{1 \times M} \mathbf{X}(f)_{M \times T}</script><p>遍历频率bin一次就可以得到滤波后的频谱$S_{F \times T}$，使用重叠相加即可对其进行重建。同样，计算PSD的时候，不同频率点之间的计算是完全不相关的，在每个频率上，将通道视为随机变量，计算相关系数矩阵，得到$R(f)_{M \times M}$即为PSD。</p>
+<p>参考文献：</p>
+<p>[1]. On Optimal Frequency-Domain Multichannel Linear Filtering for Noise Reduction<br>[2]. Microphone Array Signal Processing<br>[3]. Blind Acoustic Beamforming Based on Generalized Eigenvalue Decomposition<br>[4]. Performance Study of the MVDR Beamformer as a Function of the Source Incidence Angle</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/11/11/overview-of-beamformer/" title="Overview of Beamformer">http://www.funcwj.cn/2017/11/11/overview-of-beamformer/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Microphone-Array-Processing/" rel="tag"><i class="fa fa-tag"></i> Microphone Array Processing</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/08/deep-rnn/" rel="next" title="Deep RNN">
+                <i class="fa fa-chevron-left"></i> Deep RNN
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/05/internship-in-idst/" rel="prev" title="Internship in iDST">
+                Internship in iDST <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

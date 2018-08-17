@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近需要参考一下文本检索的思路，所以看了一下后缀自动机并做了实现。">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="后缀自动机之DAWG构造">
+<meta property="og:url" content="http://www.funcwj.cn/2017/05/28/dawg-const/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="最近需要参考一下文本检索的思路，所以看了一下后缀自动机并做了实现。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/nib1jc7hiwxlj50d2mfsuqmr/dawg_expand.jpg">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="后缀自动机之DAWG构造">
+<meta name="twitter:description" content="最近需要参考一下文本检索的思路，所以看了一下后缀自动机并做了实现。">
+<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/nib1jc7hiwxlj50d2mfsuqmr/dawg_expand.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/05/28/dawg-const/"/>
+
+
+
+
+
+  <title>后缀自动机之DAWG构造 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/05/28/dawg-const/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">后缀自动机之DAWG构造</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-28T03:28:11+08:00">
+                2017-05-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,657
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近需要参考一下文本检索的思路，所以看了一下后缀自动机并做了实现。<br><a id="more"></a></p>
+<p>定义：$\text{tail}(w)$表示词$w$中出现不止一次的最长后缀，比如 $\text{tail}(abcbc) = bc, \text{tail}(aaa) = aa, \text{tail}(aab) = \epsilon$。</p>
+<p>定义： 当满足如下条件时，$y$被称为$w$中的新左上下文的第一次出现。</p>
+<ol>
+<li>$w = w_1yw_2$</li>
+<li>$y$在$w_1y$中至少出现两次，而且除了最后一次之外，都必须和一个特定的前缀同时出现<br>比如$w = abcbc$中第二次出现的$bc$就是在新左上下文的第一次出现。</li>
+</ol>
+<p>那么：</p>
+<ol>
+<li>$wa$可以代表等价关系$\equiv_{wa}$上的一个等价类，它包含所有出现在$wa$子词集合中而不在$w$字词集合中的元素。</li>
+<li>对于$w$的一个子词$x$，如果$x$表示等价关系$\equiv_w$上的一个等价类，那么它表示$\equiv_{wa}$上的一个等价类。这俩个类中的成员在一下情况下是不同的（意思是如果不满足这两个条件那么这两个集合是相同的）：$x \equiv_{w} \text{tail}(wa)$并且$\text{tail}(wa)$是在新的左上下文的第一次出现。在这种情况下，等价类$[x]_w$可以被划分为两类：词长超过$\text{tail}(wa)$保留在$[x]_{wa}$中，其他的划分进一个新类$[\text{tail}(wa)]_{wa}$，用$\text{tail}(wa)$表示。</li>
+<li>在等价关系$\equiv_{wa}$上，除了1，2之外，再没有其他等价类。</li>
+</ol>
+<p>说明：上述表示有点抽象，举个例子，比如从$abcb \to abcbc$，拓展前后的划分表示如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">划分元素</th>
+<th style="text-align:center">end-set</th>
+<th style="text-align:center">代表元素 $x$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">a</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">a</td>
+</tr>
+<tr>
+<td style="text-align:center">ab</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">ab</td>
+</tr>
+<tr>
+<td style="text-align:center">c, bc, abc</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">abc</td>
+</tr>
+<tr>
+<td style="text-align:center">cb,bcb,abcb</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">abcb</td>
+</tr>
+<tr>
+<td style="text-align:center">b</td>
+<td style="text-align:center">2,4</td>
+<td style="text-align:center">b</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>拓展后：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">划分元素</th>
+<th style="text-align:center">end-set</th>
+<th style="text-align:center">代表元素 $x$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">a</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">a</td>
+</tr>
+<tr>
+<td style="text-align:center">ab</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">ab</td>
+</tr>
+<tr>
+<td style="text-align:center">abc</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">abc</td>
+</tr>
+<tr>
+<td style="text-align:center">cb,bcb,abcb</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">abcb</td>
+</tr>
+<tr>
+<td style="text-align:center">abcbc,bcbc,cbc</td>
+<td style="text-align:center">5</td>
+<td style="text-align:center">abcbc</td>
+</tr>
+<tr>
+<td style="text-align:center">b</td>
+<td style="text-align:center">2,4</td>
+<td style="text-align:center">b</td>
+</tr>
+<tr>
+<td style="text-align:center">c,bc</td>
+<td style="text-align:center">3,5</td>
+<td style="text-align:center">bc</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ol>
+<li>新增的等价类$[abcbc]_{wa}$包含了只在$abcbc$中出现的子串（相比拓展前多了${cbc, bcbc, abcbc}$三个子串）</li>
+<li>拓展前的等价类$[abc]_w$在拓展后的串中分裂成了两个划分，分别是$[bc]_{wa}$和$[abc]_{wa}$。令$x = abc$，那么拓展前，有$abc \equiv_{w} bc$（因为$abc$和$bc$在划分$[abc]_w$中），拓展后，$\text{tail}(abcbc) = bc$而且$bc$在$abcbc$中满足新的左上下文的第一次出现。所以要对$[x]_w$，即$[abc]_w$进行分裂。分裂规则是：词长超过$bc$即2的${abc}$被划分进$[abc]_wa$中，其他的被划分进新的划分$[bc]_{wa}$中。其他不满足分裂条件的$x = {a, b, ab}$保持不变，$[x]_w = [x]_{wa}$。</li>
+</ol>
+<p>上述过程定义了$D_w \to D_{wa}$的拓展过程，构造后缀自动机的思路是，首先一个字符一个字符的完成$D_W$的构造，之后再完成从$D_W \to M_W$的转换。</p>
+<p>定义：</p>
+<ol>
+<li>在$D_w$中，每个转移边要么是首要的，要么是次要的。</li>
+<li>如果$xa = y$，那么从$x$代表的等价类到$y$代表的等价类的转移边就是首要的，否则就是次要的。</li>
+<li>每个状态（除了初始状态）都有一个后缀指针，记录它在$T(w)$中的父节点。</li>
+<li>如果$x$表示一个等价类，那么用$SC(x)$表示从$x$开始的后缀链。它是一条从$x$到$T(w)$根节点的路径。</li>
+</ol>
+<p>那么</p>
+<ol>
+<li>在等价关系$\equiv_{w}$上可以表示等价类的任何子串$x$，$SC(x)$都将$x$的后缀划分成了$|SC(x)|$类。</li>
+<li>如果$w \ne \epsilon$，那么$D_w$宿节点的后缀节点指向$[\text{tail}(w)]_w$</li>
+<li>回溯从$D_w$的宿节点到源节点的后缀指针过程中，遇到的第一个含有$a$的转移的等价类肯定有一个到$[\text{tail}((wa))]_w$的$a$转移。如果没有遇到$a$转移，那么$a$只在$wa$中出现一次，因此$\text{tail}(wa) = \epsilon$。</li>
+<li>令$\text{tail}(wa) = xa$，那么$x$表示$\equiv_w$上的一个等价类，而且当且仅当从$[x]_w$到$[xa]_{w}$存在次要边的时候，$\text{tail}(wa)$是在左上下文的第一次出现。</li>
+</ol>
+<p>设计以上定义的目的是：</p>
+<ol>
+<li>在$D_w \to D_{wa}$过程中，后缀指针可以定义具体哪一个等价类需要分裂。</li>
+<li>通过次要转移的存在可以确认该等价类是否需要被分裂。</li>
+</ol>
+<p>下面给出$abc \to abcb \to abcbc$的拓展过程：</p>
+<center><img src="http://static.zybuluo.com/funcwj/nib1jc7hiwxlj50d2mfsuqmr/dawg_expand.jpg" width="500"></center>
+
+<p>上图中蓝色线条表示后缀指针，虚线表示次要边，实线表示首要边，宿节点默认为上一次拓展操作中添加的节点。<br>算法核心在于拓展节点和分裂节点两步，对于每一个新增字符$a$，拓展节点时，操作如下：</p>
+<ol>
+<li>新建一个节点$s$，建立一条从宿节点$e$到$s$的首要边，label为$a$。</li>
+<li>确定新建节点的后缀节点。从宿节点开始，沿着后缀节点一路回溯（经过的节点称为回溯节点），直到到达源节点（$0$号节点)或者后缀节点被确定时停止，分为以下三种情况处理：<br>2.1 回溯节点没有label为$a$的边，那么新建一条到$s$的次要边<br>2.2 回溯节点有一条label为$a$的首要边，那么$s$的后缀节点就是这条边的指向<br>2.3 回溯节点有一条label为$a$的次要边，那么对这条边上的父子节点执行分类操作，分裂的新状态就是$s$的后缀节点</li>
+<li>如果回溯完成，后缀节点还没确定，就设为源节点</li>
+<li>$s$成为新的宿节点</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{expand}(a): \\
+&\quad \quad e \xrightarrow{a}_{1} s \\
+&\quad \quad \text{suffix}[s] = \epsilon\\
+&\quad \quad p = \; e\\
+&\quad \quad \text{while} \; p \ne 0 \; \text{then} \\
+&\quad \quad \quad \quad p = \text{suffix}[p] \\
+&\quad \quad \quad \quad a \notin \text{label}(p \to *, * \in \deg(p)) \; \Rightarrow p \xrightarrow{a}_{2} s \\
+&\quad \quad \quad \quad p \xrightarrow{a}_1 q \Rightarrow \text{suffix}[s] = q \\
+&\quad \quad \quad \quad p \xrightarrow{a}_2 q \Rightarrow \text{suffix}[s] = \text{split}(p, q) \\
+&\quad \quad \text{suffix}[s] = \epsilon \Rightarrow \text{suffix}[s] = 0\\
+&\quad \quad  e = \; s
+\end{align}</script><p>分裂操作如下，对于父子节点$p, s$：</p>
+<ol>
+<li>新建一个子状态$c$</li>
+<li>将$p \to s$的次要边，更改为$p \to c$的首要边</li>
+<li>对于$s$所连接的节点，建立$c$到他们的次要边，label为$a$</li>
+<li>$c$的后缀节点更改为$s$的后缀节点，$s$的后缀节点更改为$c$</li>
+<li>从父节点$p$开始回溯，直到到达源节点。如果回溯节点存在和$s$的次要边，将它改为到$c$的次要边，继续回溯，否则停止回溯。</li>
+</ol>
+<script type="math/tex; mode=display">
+\begin{align}
+&\text{split}(p, s): \\
+&\quad  \quad  p \xrightarrow{a}_2 s \Rightarrow p \xrightarrow{a}_1 c \\
+&\quad  \quad  c \xrightarrow{a}_2 * \quad \text{for} \; * \in \deg(s) \\
+&\quad  \quad  \text{suffix}[c] = \text{suffix}[s] \\
+&\quad  \quad  \text{suffix}[s] = c\\
+&\quad  \quad  \text{while} \; p \ne 0 \; \text{then} \\
+&\quad  \quad  \quad  \quad p = \text{suffix}[p] \\
+&\quad  \quad  \quad  \quad p \xrightarrow{a}_2 s \Rightarrow p \xrightarrow{a}_2 c \quad \text{or break}\\
+&\quad  \quad  \text{return} \; c
+\end{align}</script><p>以上图作为分析</p>
+<script type="math/tex; mode=display">
+\begin{align}
+abc \to abcb:& \quad  0 \xrightarrow{b}_{2} 2 \Rightarrow \text{suffix}[4] = 5 =  \text{split}(0, 2) \notag \\
+abcb \to abcbc:& \quad  5 \xrightarrow{c}_{2} 3 \Rightarrow \text{suffix}[6] = 7 =  \text{split}(5, 3) \notag
+\end{align}</script><p>对于$\text{split}(0, 2)$：</p>
+<script type="math/tex; mode=display">
+0 \xrightarrow{b}_{2} 2 \Rightarrow 0 \xrightarrow{b}_{1} 5 \\
+2 \xrightarrow{c}_1 3 \Rightarrow 5 \xrightarrow{c}_2 3 \\
+\text{suffix}[5] = \text{suffix}[2] = 0 \\
+\text{suffix}[2] = 5</script><p>对于$\text{split}(5, 3)$：</p>
+<script type="math/tex; mode=display">
+5 \xrightarrow{c}_{2} 3 \Rightarrow 5 \xrightarrow{c}_{1} 7 \\
+3 \xrightarrow{b}_1 4 \Rightarrow 7 \xrightarrow{c}_2 4 \\
+\text{suffix}[7] = \text{suffix}[3] = 0 \\
+\text{suffix}[3] = 7 \\
+0 \xrightarrow{c}_{2} 3 \Rightarrow 0 \xrightarrow{c}_{2} 7</script><p>以上仅仅是完成了$D_w$的在线构造，但是$D_w$还有简化的空间，后续还有相应的算法完成$D_w \to M_w$的转换，代码照着伪代码的思路写就行了，相比理论而言，简洁很多。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/05/28/dawg-const/" title="后缀自动机之DAWG构造">http://www.funcwj.cn/2017/05/28/dawg-const/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/28/wfst-kernel/" rel="next" title="WFST核心算法">
+                <i class="fa fa-chevron-left"></i> WFST核心算法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/01/splay-tree/" rel="prev" title="伸展树">
+                伸展树 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

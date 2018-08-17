@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本篇主要解释我在学习ivector中遇到的一些比较困惑的点。在kaldi的nnet3中传统声学模型加上ivector已经成为online模型的标配。对于在线模型的特征提取，传统的方法采取全局和滑动窗的CMVN对输入特征进行归一化，而kaldi推荐的方案是使用ivector加上原始声学特征（参见论文A time delay neural network architecture for effici">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ivector的初步了解">
+<meta property="og:url" content="http://www.funcwj.cn/2017/07/27/learn-about-ivector/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="本篇主要解释我在学习ivector中遇到的一些比较困惑的点。在kaldi的nnet3中传统声学模型加上ivector已经成为online模型的标配。对于在线模型的特征提取，传统的方法采取全局和滑动窗的CMVN对输入特征进行归一化，而kaldi推荐的方案是使用ivector加上原始声学特征（参见论文A time delay neural network architecture for effici">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ivector的初步了解">
+<meta name="twitter:description" content="本篇主要解释我在学习ivector中遇到的一些比较困惑的点。在kaldi的nnet3中传统声学模型加上ivector已经成为online模型的标配。对于在线模型的特征提取，传统的方法采取全局和滑动窗的CMVN对输入特征进行归一化，而kaldi推荐的方案是使用ivector加上原始声学特征（参见论文A time delay neural network architecture for effici">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/07/27/learn-about-ivector/"/>
+
+
+
+
+
+  <title>ivector的初步了解 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/07/27/learn-about-ivector/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ivector的初步了解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-27T22:46:07+08:00">
+                2017-07-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,548
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本篇主要解释我在学习ivector中遇到的一些比较困惑的点。在kaldi的nnet3中传统声学模型加上ivector已经成为online模型的标配。对于在线模型的特征提取，传统的方法采取全局和滑动窗的CMVN对输入特征进行归一化，而kaldi推荐的方案是使用ivector加上原始声学特征（参见论文A time delay neural network architecture for efficient modeling of long temporal contexts）。</p>
+<a id="more"></a>
+<h3 id="supervector"><a href="#supervector" class="headerlink" title="supervector"></a>supervector</h3><p>超向量是一个比较重要的概念，在说话人识别和自适应中被广泛使用。对于一个GMM，一般将它的均值向量连接成的向量称为supervector。若特征维度为$F$，混合高斯数目为$C$，那么超向量的长度即为$F \times C$。它被认为包含了一个说话人相关的所有信息，后续要引出的本征音，联合因子分析（JFA）等方法也是从超向量的分解的角度来切入的。</p>
+<h3 id="UBM和MAP"><a href="#UBM和MAP" class="headerlink" title="UBM和MAP"></a>UBM和MAP</h3><p>在训练ivector的提取器之前，需要训练一个UBM，那么就产生了两个问题，UBM是什么以及UBM起到什么作用，UBM如何训练等等。</p>
+<p>UBM翻译为统一背景模型，它是一个包含很多分量的GMM（文献中一般分量个数为2048）。在说话人识别任务中，如果我们对每一个说话人的特征用一个GMM来建模，那么，得到的一系列GMM就是说话人相关的。而UBM用来对说话人无关的信息进行建模。为什么需要说话人无关的模型呢？因为我们可以认为说话人相关的建模目标可以通过训练数据和一种适应方法修正UBM达到。而这种适应/调节方法称为MAP（最大后验概率），UBM在其中作为先验模型。最终得出的结论是，相比针对每一个说话人训练一个GMM，从一个好的UBM出发进行adaptation的方法表现的更好。</p>
+<p>对于说话人数据${\mathbf{x}_1, \mathbf{x}_2, \cdots, \mathbf{x}_T}$，对于含有$C$个分量的UBM，观测$\mathbf{x}_i$来自第$c$个分量的概率记为：</p>
+<script type="math/tex; mode=display">
+\gamma_i^c = \frac{\pi_c \mathcal{N}_c(\mathbf{x}_i|\Theta_c)}{\sum_{c = 1}^C \pi_c \mathcal{N}_c(\mathbf{x}_i|\Theta_c)}</script><p>由此可以得到每个分量的零阶，一阶和二阶统计量，分别记为：</p>
+<script type="math/tex; mode=display">
+N_c = \sum_{i = 1}^T \gamma_i^c \\
+\mathbf{F}_c = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \\
+\mathbf{S}_c = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \mathbf{x}_i^T</script><p>MAP按照如下更新方法调整UBM中的统计参数（Bayesian adaptation）：</p>
+<script type="math/tex; mode=display">
+\pi'_c = [\alpha_c N_c / T + (1 - \alpha_c)\pi_c]\beta \\
+\mu'_c = \alpha_c E_c(\mathbf{x}) + (1 - \alpha_c)\mu_c \\
+\mathbf{\Sigma}'_c = \alpha_c E_c(\mathbf{x}^2) + (1 - \alpha_c)(\mathbf{\Sigma}_c + \mu_c\mu_c^T) - \mu'_c \mu'^T_c</script><p>其中</p>
+<script type="math/tex; mode=display">
+E_c(\mathbf{x}) = \mathbf{F}_c / N_c \\
+E_c(\mathbf{x}^2) = \mathbf{S}_c / N_c \\
+\alpha_c = N_c / (N_c + r)</script><p>$r$一般在$C = 2048$时取16，$\beta$用来保证$\sum_{c = 1}^C\pi’_c = 1$。$\alpha_c$这个量用来表示UBM受新数据影响的程度。比如$\alpha_c \to 1$时，更新公式中原来的参数受到屏蔽，更多的依赖新一轮的统计信息，因而更加的偏向说话人相关的概率模型。</p>
+<p>把adaptation得到的模型均值取出来进行拼接得到的超向量再加上一些后处理方法，比如cos距离或者SVM分类，就可以搭建最基本的说话人系统了。</p>
+<h3 id="supervector的分解"><a href="#supervector的分解" class="headerlink" title="supervector的分解"></a>supervector的分解</h3><p>上面提到，既然supervector可以作为一个很好的说话人特征，那么就可以着手对其进行集中分析了。目前形成的体系是对说话人相关的超向量$\mathbf{s}$视为以下几个部分的叠加：</p>
+<ol>
+<li>说话人/信道无关的分量</li>
+<li>说话人相关的分量</li>
+<li>信道相关的分量</li>
+<li>其余动态分量</li>
+</ol>
+<p>用公式可以表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{s} = \mathbf{m}_0 + \mathbf{m}_{spk} + \mathbf{m}_{chn} + \mathbf{m}_{res}</script><p>其中说话人/信道无关的分量可以用UBM的超向量来表示。对于剩下的三个分量的处理，目前形成的方法主要有本征音（Eigenvoice），本征信道（Eigenchannel），联合因子分析（JFA），ivector等几种方法，它们对应的分解形式如下：</p>
+<ul>
+<li><p>Eigenvoice针对说话人信息</p>
+<script type="math/tex; mode=display">\mathbf{s} = \mathbf{m}_0 + \mathbf{V}\mathbf{y}</script></li>
+<li><p>Eigenchannel针对信道信息</p>
+<script type="math/tex; mode=display">\mathbf{s} = \mathbf{m}_0 + \mathbf{D}\mathbf{z} + \mathbf{U}\mathbf{x}</script></li>
+<li><p>JFA结合了Eigenvoice和Eigenchannel</p>
+<script type="math/tex; mode=display">\mathbf{s} = \mathbf{m}_0 + \mathbf{V}\mathbf{y} + \mathbf{D}\mathbf{z} + \mathbf{U}\mathbf{x}</script></li>
+<li><p>ivector将Eigenvoice和Eigenchannel两个空间合并为一个统一变化空间进行分析</p>
+<script type="math/tex; mode=display">\mathbf{s} = \mathbf{m}_0 + \mathbf{T}\mathbf{w}</script></li>
+</ul>
+<p>$\mathbf{w}$即是传说中的ivector。我这里重点关注它和Engenvoice，一来是目前ivector已经被广泛应用，二是$\mathbf{T}$矩阵的训练和$\mathbf{V}$的训练过程相同，只需要将训练集合中的每个句子都视为不同的说话人即可。ivector这里也有如下几个疑问：</p>
+<ol>
+<li>$\mathbf{T}$矩阵如何训练</li>
+<li>$\mathbf{w}$如何计算</li>
+<li>ivector怎么用</li>
+</ol>
+<h3 id="ivector的计算"><a href="#ivector的计算" class="headerlink" title="ivector的计算"></a>ivector的计算</h3><p>注：这部分没有加上说话人的下表$s$，在下一部分“$\mathbf{T}$矩阵的训练”中再添加下标。</p>
+<p>ivector计算和训练过程中有这样的一个假设，即$\mathbf{w}$服从正态分布$\mathcal{N}(\mathbf{w}; \mathbf{0}, \mathbf{I})$，基于这个假设，可以得到如下如下推论：</p>
+<blockquote>
+<p>$\mathbf{w}$在说话人数据$\mathcal{X}$上满足高斯分布，即 $p(\mathbf{w}|\mathcal{X}) = \mathcal{N}(\mathbf{w}|\mathbf{L}^{-1}\mathbf{T}^T\mathbf{\Sigma}^{-1}\mathbf{F}, \mathbf{L}^{-1})$，其中：</p>
+<script type="math/tex; mode=display">
+\mathbf{L} = \mathbf{I} + \mathbf{T}^T\mathbf{\Sigma}^{-1}\mathbf{N}\mathbf{T}</script></blockquote>
+<p>用$\mathbf{N}_{c}, \mathbf{F}_{c}$表示数据集合$\mathcal{X}$上第c个分量的零阶和归一化的一阶统计量：</p>
+<script type="math/tex; mode=display">
+\mathbf{N}_{c} = \sum_{i = 1}^T \gamma_i^c \\
+\mathbf{F}_{c} = \sum_{i = 1}^T \gamma_i^c (\mathbf{x}_i - \mu_c)\\</script><p>$\mu_c，\Sigma_c$为UBM中第$c$个分量的均值和方差。那么$\mathbf{N}, \mathbf{F}$表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{N}_{CF \times CF} = 
+\begin{vmatrix}
+\mathbf{N}_1\mathbf{I} &  &  &\\
+ & \mathbf{N}_2\mathbf{I} &  & \\
+ &  & \cdots & \\
+ &  &  & \mathbf{N}_c\mathbf{I}\\
+\end{vmatrix} \quad
+\mathbf{F}_{CF \times 1} = 
+\begin{vmatrix}
+\mathbf{F}_1\\
+\mathbf{F}_2\\
+\cdots\\
+\mathbf{F}_c\\
+\end{vmatrix} \\</script><p>$\mathbf{\Sigma}$定义为：</p>
+<script type="math/tex; mode=display">
+\mathbf{\Sigma}_{CF \times CF} = 
+\begin{vmatrix}
+\Sigma_1 &  &  &\\
+ & \Sigma_2 &  & \\
+ &  & \cdots & \\
+ &  &  & \Sigma_c\\
+\end{vmatrix}</script><p>$\mathbf{T}$是需要训练的，它的维度是$CF \times R$，因而计算出来的$\mathbf{L}$维度为$R \times R$。要计算的ivector就是分布$p(\mathbf{w}|\mathcal{X})$的均值，加上说话人下标$s$，写成：</p>
+<script type="math/tex; mode=display">
+\mathbf{w}_s = \mathbf{L}_s^{-1}\mathbf{T}^T\mathbf{\Sigma}^{-1}\mathbf{F}_s</script><p>$\mathbf{w}_s$的维度为$R \times 1$。分布$p(\mathbf{w}|\mathcal{X})$的均值和方差是如何得出的？它的处理思路是这样的，应用贝叶斯公式可以将该条件分布写成：</p>
+<script type="math/tex; mode=display">
+p(\mathbf{w}|\mathcal{X}) = \frac{p(\mathcal{X} | \mathbf{w})p(\mathbf{w})}{p(\mathcal{X})} \propto p(\mathcal{X} | \mathbf{w}) \mathcal{N}(\mathbf{w}| \mathbf{0}, \mathbf{I})</script><p>$p(\mathcal{X} | \mathbf{w})$也是可以推出的，由此就可以得到现在看到的$\mathbf{w}$的分布结果了。所以在训练出$\mathbf{T}$矩阵之后，就可以求出所谓的ivector了。</p>
+<h3 id="T矩阵的训练"><a href="#T矩阵的训练" class="headerlink" title="T矩阵的训练"></a>T矩阵的训练</h3><p>在ivector中$\mathbf{T}$矩阵的训练过程和JFA以及Eigenvoice里面的$\mathbf{V}$矩阵的训练过程类似。训练过程如下：</p>
+<ul>
+<li>E步：<script type="math/tex; mode=display">
+\mathbf{C}_c = \sum_{s} \mathbf{F}_{c, s} \mathbf{w}_s^T \\
+\mathbf{A}_c = \sum_{s} N_{c, s} (\mathbf{L}_s^{-1} + \mathbf{w}_s \mathbf{w}_s^T)</script></li>
+<li>M步：<script type="math/tex; mode=display">
+\mathbf{T} = 
+\begin{vmatrix}
+\mathbf{T}_1 \\
+\mathbf{T}_2 \\
+\cdots \\
+\mathbf{T}_C \\
+\end{vmatrix} =
+\begin{vmatrix}
+\mathbf{C}_1 \mathbf{A}_1^{-1} \\
+\mathbf{C}_2 \mathbf{A}_2^{-1} \\
+\cdots \\
+\mathbf{C}_C \mathbf{A}_C^{-1} \\
+\end{vmatrix}</script></li>
+</ul>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><ul>
+<li>Speaker recognition by machines and humans A tutorial review</li>
+<li>Comparison of background normalization methods for text-independent speaker verification</li>
+<li>Eigenvoice modeling with sparse training data</li>
+<li>Front-End Factor Analysis forSpeaker Verification</li>
+<li>Speaker recognition by machines and humans A tutorial review</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/07/27/learn-about-ivector/" title="ivector的初步了解">http://www.funcwj.cn/2017/07/27/learn-about-ivector/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/25/parallel-training-by-ng/" rel="next" title="使用自然梯度的神经网络并行训练【译】">
+                <i class="fa fa-chevron-left"></i> 使用自然梯度的神经网络并行训练【译】
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/28/kaldi-ivector-extract-1/" rel="prev" title="kaldi中ivector的提取【一】">
+                kaldi中ivector的提取【一】 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#supervector"><span class="nav-number">1.</span> <span class="nav-text">supervector</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UBM和MAP"><span class="nav-number">2.</span> <span class="nav-text">UBM和MAP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#supervector的分解"><span class="nav-number">3.</span> <span class="nav-text">supervector的分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ivector的计算"><span class="nav-number">4.</span> <span class="nav-text">ivector的计算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#T矩阵的训练"><span class="nav-number">5.</span> <span class="nav-text">T矩阵的训练</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文献"><span class="nav-number">6.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

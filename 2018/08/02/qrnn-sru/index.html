@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ML," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。 RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：  \mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \m">
+<meta name="keywords" content="ML">
+<meta property="og:type" content="article">
+<meta property="og:title" content="From QRNN">
+<meta property="og:url" content="http://www.funcwj.cn/2018/08/02/qrnn-sru/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。 RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：  \mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \m">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.funcwj.cn/img/QRNN.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/img/tdnn-demo.png">
+<meta property="og:image" content="http://www.funcwj.cn/img/fsmn.jpg">
+<meta property="og:updated_time" content="2018-08-02T15:27:15.381Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="From QRNN">
+<meta name="twitter:description" content="最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。 RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：  \mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \m">
+<meta name="twitter:image" content="http://www.funcwj.cn/img/QRNN.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2018/08/02/qrnn-sru/"/>
+
+
+
+
+
+  <title>From QRNN | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/08/02/qrnn-sru/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">From QRNN</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-02T23:12:58+08:00">
+                2018-08-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2,085
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  8
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。</p>
+<p>RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \mathbf{h}_{t - 1})</script><p>$\mathcal{C}$可以用于表示LSTM，GRU这类cell逻辑。如果具体展开的话，和$x$相关的计算，在每个时间步上没有依赖，因此可以一次计算完毕（即form成矩阵的形式），涉及到$h$相关的计算时，因为$h_{t}$需要等待$h_{t-1}$，因此，整个序列上的$h$推断过程需要串行进行（step by step）。QRNN这类方案的出发点都是对$h$的计算进行局部的依赖解除（但是不能完全解除，否则就不是传统意义上的循环结构了，因此必然存在recurrent逻辑），从而加速inference过程。<br><a id="more"></a></p>
+<p>LSTM结构中，每一个门状态的计算都需要依赖$h_{t - 1}$，导致门状态计算时$h_{t - 1}$相关的矩阵运算必须串行进行。QRNN将门状态的计算化简为仅仅对当前输入依赖，即$x_{[t - k + 1 \cdots t]}$，$k$是可配置参数，论文中称为filter width，理解为门输入的context就行，在QRNN的开源实现（<a href="https://github.com/salesforce/pytorch-qrnn" target="_blank" rel="external">pytorch-qrnn</a>）中，$k$只支持1和2，用$\mathbf{g}_t$表示门$g$（$g = {z, f, o}$）在$t$时刻的状态值，$\sigma$表示对应的激活函数，那么门状态的计算统一可以用下式表示：</p>
+<script type="math/tex; mode=display">
+\mathbf{g}_t = \sigma(\mathbf{W}_g * \mathbf{x}_{[t - k +1 \cdots t]}) \tag{1}</script><p>不像LSTM那样存在对$h$的依赖，因此，可以一次计算出所有时刻的门状态值$\mathbf{G}$：</p>
+<script type="math/tex; mode=display">
+\mathbf{G} = \sigma(\mathbf{W}_g * \mathbf{X}_s) \tag{2}</script><p>$\mathbf{X}_s$表示根据$k$拼帧的结果。需要注意的是，实现的时候，$*$用一个线性层就行了，并没有像论文中所说的卷积操作。</p>
+<p>以上是QRNN的parallel部分，不可缺少的recurrent部分，QRNN中称为“dynamic average pooling”，描述cell之间的依赖关系，这部分和LSTM &amp; GRU很像，以fo-pooling为例：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{c}_t &= \mathbf{f}_t \odot \mathbf{c}_{t - 1} + (1 - \mathbf{f}_t) \odot \mathbf{z}_{t - 1} \\
+\mathbf{h}_t  &= \mathbf{o}_t \odot \mathbf{c}_t
+\end{align}</script><p>这部分的计算量集中在Hadamard Product（逐元素相乘）上，相比原始RNN/LSTM中的矩阵乘法，加上在CUDA上的优化，recurrent部分的计算效率得到了极大的提升。</p>
+<p>总结一下QRNN的设计思路，将门状态的计算独立到循环逻辑之外，仅仅保留cell的循环依赖，宏观上就是高计算量的部分parallel进行，小计算量的部分串行计算。这时候再看论文中的QRNN的Block diagrams就很容易体会其中的思想了：</p>
+<p><img src="/img/QRNN.jpg" ,="" width="300"></p>
+<p>红色区域表示$(2)$式的计算，一次将门状态计算完毕，之后用”dynamic average pooling“层计算recurrent依赖。</p>
+<p>SRU和QRNN中$k = 1$的结构十分相似，思路上也都是解除门状态的依赖关系。不添加highway的情况下只设置一个forget门，网络结构写成：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\hat{\mathbf{x}_t} &= \mathbf{W}_x \mathbf{x}_t \\
+ \mathbf{f}_t  &= \sigma(\mathbf{W}_f \mathbf{x}_t  + \mathbf{b}_f) \\
+ \mathbf{c}_t &= \mathbf{f}_t \odot \mathbf{c}_{t - 1} + (1 - \mathbf{f}_t) \odot \hat{\mathbf{x}_t}  \\
+ \mathbf{h}_t  &= g(\mathbf{c}_t)
+ \end{align}</script><p>可以看出$\mathbf{f}_t$的计算逻辑也是基于当前输入的一个线性层激活层。</p>
+<p><a href="https://arxiv.org/abs/1807.02291" target="_blank" rel="external">SRNN</a>（Spliced Recurrent Neural Networks）的逻辑是把长序列划分成若干的等长的子序列，再将每个子序列的最后一个状态视为新的序列进行划分，直到新形成的序列长度不能被继续划分为子序列为止。循环过程在每个子序列中进行，并用每个子序列的最后一个状态值初始化父序列的state。由于同一层的每个子序列之间被强制分割，断开了时间上的依赖性，因此可以并行计算状态值。</p>
+<p>根据论文中的结论，如果处理的序列足够长，SRNN的效率提升是惊人的。 当然是否所有任务都满足训练序列越长越好，还需要具体的实验对比。在ASR任务中，我本人并不倾向于选择过长的序列进行训练。</p>
+<p>最后我再说一下TDNN[4]和FSMN[5]，这是很早以前我就想写一点的东西。这两种结构在ASR中被广泛应用，对识别率的提升做出了巨大的贡献。由于本质上他们是前馈结构，因此，在训练和推断的效率上相比RNN具有巨大的优势，对于ASR这种在实际应用中对实时要求较高的任务上，这一点就显得尤为重要。</p>
+<p>TDNN(Time Delay)的历史十分久远[1]，近年来JHU那边主推，并在kaldi的nnet2/3上做了实现，得到了大规模的尝试和应用。它的思想用四个词来表述就行，即层间拼帧。一般的DNN结构，如果要增加输入信息量，只在输入层做拼帧，但是通常不会拼帧过多，否则会导致输入层参数量过大，因此限制了网络的输入信息量。如果同时允许隐层拼帧，那么在多层叠加的情况下，网络输入的context就可以得到扩展，同时也可以保证每一层的参数量不会十分巨大，如果画出整个TDNN的依赖关系图，会得到一种类似金字塔的结构，如下：</p>
+<p><img src="/img/tdnn-demo.png" ,="" width="500"></p>
+<p>以上图为例，输出$t$时刻的后验，输入的context为$[-13, +9]$。</p>
+<p>实际熟悉kaldi的人也知道，tdnn层实际配置的时候当成对线性层的一种扩展，添加了拼帧选项而已，可以放在任意网络结构中间，CNN和LSTM等。同时拼帧允许sub-sampling，以上图的layer 2为例子，context为$[-1, +2]$，相比$[-1,0,+1,+2]$，减少了隐层的参数量的同时保证了网络的context。</p>
+<p>FSMN的思想来源于信号处理中，一个无限冲击响应可以用高阶的有限冲击响应来近似。它的隐层输入来源于两部分，一部分来自上层的输入，另一部分来自一个称为memory block的结构，写为：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}_t^{\ell + 1} = f(\mathbf{W}^\ell \mathbf{h}_t^\ell + \mathbf{\tilde{W}}^\ell \mathbf{\tilde{h}}_t^\ell + \mathbf{b}^{\ell})</script><p>其中$ \mathbf{\tilde{h}}_t^\ell$表示$\ell$层的memory block，有两种计算方式：</p>
+<script type="math/tex; mode=display">
+\mathbf{\tilde{h}}_t^\ell = \sum_{c = -M}^N \alpha_{c + M} \mathbf{h}_{t + c}^\ell \tag{3} \\</script><p>被称为sFSMN（scalar encoding FSMN）以及</p>
+<script type="math/tex; mode=display">
+\mathbf{\tilde{h}}_t^\ell = \sum_{c = -M}^N \mathbf{c}_{c + M} \odot \mathbf{h}_{t + c}^\ell \tag{4}</script><p>称为vFSMN（vector encoding FSMN）。$N &gt; 0$时，类似于双向RNN的逻辑。从$(3,4)$式可以看出，memory block强制存储下了若干时刻的记忆块，并用于当前时刻的输入，记忆长度以当前时刻为参考为$M + N$。由于最终的输入是记忆块加权和的形式，因此，FSMN的隐层维度同样不会过大。用信号流图来表示因果系统下memory block的计算如下：</p>
+<p><img src="/img/fsmn.jpg" ,="" width="400"></p>
+<p>FSMN后续还有相关实验，包括deep FSMN和compact FSMN等等，有兴趣的读者可以参阅一下下面的参考文献。</p>
+<blockquote>
+<p>[1]. Zhang S, Jiang H, Xiong S, et al. Compact Feedforward Sequential Memory Networks for Large Vocabulary Continuous Speech Recognition[C]//INTERSPEECH. 2016: 3389-3393. </p>
+<p>[2]. Zhang S, Lei M, Yan Z, et al. Deep-FSMN for Large Vocabulary Continuous Speech Recognition[J]. arXiv preprint arXiv:1803.05030, 2018. </p>
+</blockquote>
+<p>最后总结一下，RNN的耗时来自时间轴上的展开过程，原始的LSTM和GRU，门状态的计算存在时间上的依赖，矩阵乘法无法并行。QRNN和SRU的思路都是将门状态的依赖关系解除，放到循环外解决，只保留cell state的时间依赖。FSMN和TDNN虽然是前馈结构，但是通过结构上的设计，强制网络获得额外的context信息，相比RNN在效率上具有很大优势，相比传统的DNN/CNN更加适用于long context建模，在ASR任务上均取得了巨大的成功，其中阿里的线上模型已经由LC-BLSTM替换为FSMN，充分体现了其在ASR和工业界的价值。</p>
+<p>参考文献：</p>
+<p>[1]. Bradbury J, Merity S, Xiong C, et al. Quasi-recurrent neural networks[J]. arXiv preprint arXiv:1611.01576, 2016.<br>[2]. Lei T, Zhang Y. Training rnns as fast as cnns[J]. arXiv preprint arXiv:1709.02755, 2017.<br>[3]. Waibel A, Hanazawa T, Hinton G, et al. Phoneme recognition using time-delay neural networks[M]//Readings in speech recognition. 1990: 393-404.<br>[4]. Peddinti V, Povey D, Khudanpur S. A time delay neural network architecture for efficient modeling of long temporal contexts[C]//Sixteenth Annual Conference of the International Speech Communication Association. 2015.<br>[5]. Zhang S, Liu C, Jiang H, et al. Feedforward sequential memory networks: A new structure to learn long-term dependency[J]. arXiv preprint arXiv:1512.08301, 2015. </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2018/08/02/qrnn-sru/" title="From QRNN">http://www.funcwj.cn/2018/08/02/qrnn-sru/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ML/" rel="tag"><i class="fa fa-tag"></i> ML</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/08/simple-wiener-filter/" rel="next" title="Introduction to Wiener Filter">
+                <i class="fa fa-chevron-left"></i> Introduction to Wiener Filter
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

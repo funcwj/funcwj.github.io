@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对kaldi中Online-Decoder的分析">
+<meta property="og:url" content="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/9tmr6q0vmlio8o2p4uaw8m3d/token-struct.jpg">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="对kaldi中Online-Decoder的分析">
+<meta name="twitter:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
+<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/"/>
+
+
+
+
+
+  <title>对kaldi中Online-Decoder的分析 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">对kaldi中Online-Decoder的分析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-02T22:57:44+08:00">
+                2017-08-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  4,457
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  18
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的权值。解码过程中，声学模型的后验概率需要实时计算得出（特征+声学模型）。理解解码过程需要弄清以下几个方面：<br><a id="more"></a></p>
+<p><img src="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png" alt="decoding-shotcut.png-163.9kB"></p>
+<ul>
+<li>解码过程中使用到的数据结构及其拓扑关系</li>
+<li>解码过程中的剪枝策略（个人觉得这部分比较抽象）</li>
+<li>解码过程中的特征供给</li>
+</ul>
+<p>下面是以<code>LatticeFasterOnlineDecoder</code>为分析对象的一些记录。</p>
+<h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><p>解码过程是一帧一帧进行的，在约束图（解码图）中，$t$时刻可以到达的状态必然是由$t - 1$时刻的状态出发的，也就是说，信息流从$t - 1$时刻向$t$时刻传递。如果不考虑效率问题，将每个时刻可能到达的状态按照时间展开，那么就可以得到一颗巨大的树。每一个从根节点到叶子节点的路径都可以理解为一条可能路径，只不过有的出现概率高，有的低而已。</p>
+<p>用token表示上述过程中描述的信息，那么每一时刻，每一状态维护一个token，在$t \in [0, T]$时刻，新的一轮token由$t - 1$时刻的token和解码图的路径约束共同形成。kaldi中token用结构体<code>Token</code>来描述，同一时刻的token通过<code>next</code>指针相连，从该时刻可以传递到的状态用<code>ForwardLink</code>描述，前一时刻的token由<code>HashList&lt;StateId, Token*&gt;</code>描述（这是一个kaldi自己实现的模板，其中的Hash元素本质上是使用链表连接的，但是也可以像Hash表一样随机获取），而整个解码过程中每一时刻产生的token（相当于上面说的树）用<code>std::vector&lt;TokenList&gt;</code>描述，下标为当前帧数，<code>TokenList</code>相当于一个<code>Token</code>的链表头，通过它可以依次获取到相应时刻的所有活跃token，具体的成员及其含义如下：</p>
+<ul>
+<li><p>Token</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Token</span> &#123;</span></div><div class="line">    BaseFloat tot_cost;     <span class="comment">// 到该状态的累计cost</span></div><div class="line">    BaseFloat extra_cost; </div><div class="line">    ForwardLink *links;     <span class="comment">// 也是一个链表，因为由该token可以到达下一时刻的token不止一个</span></div><div class="line">    Token *next;            <span class="comment">// 指向同一时刻的下一个token</span></div><div class="line">    Token *backpointer;     <span class="comment">// 指向上一时刻的最佳token，相当于一个回溯指针，</span></div><div class="line">                            <span class="comment">// 到达该状态的token可能会有很多，但只取最优的一个</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</li>
+<li><p>ForwardLink</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ForwardLink</span> &#123;</span></div><div class="line">    Token *next_tok;    <span class="comment">// 这条链接指向的token</span></div><div class="line">    Label ilabel;       <span class="comment">// 这下面的四个量取自解码图中的跳转/弧/边，因为每一个状态</span></div><div class="line">    Label olabel;       <span class="comment">// 维护一个token，那么token到token之间的连接信息和状态到状态之间的信息</span></div><div class="line">    BaseFloat graph_cost;       <span class="comment">// 应该保持一致，所以会有输入（tid），输出，权值（就是graph_cost）</span></div><div class="line">    BaseFloat acoustic_cost;    <span class="comment">// acoustic_cost就是tid对应的pdf_id的在声学模型中的后验</span></div><div class="line">    ForwardLink *next;          <span class="comment">// 链表结构，指向下一个</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</li>
+<li><p>TokenList</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TokenList</span> &#123;</span></div><div class="line">  Token *toks;        <span class="comment">// 同一时刻的token链表头</span></div><div class="line">  <span class="keyword">bool</span> must_prune_forward_links;  <span class="comment">// 这两个是Lattice剪枝标记</span></div><div class="line">  <span class="keyword">bool</span> must_prune_tokens;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>这几部分的关系可以用下图描述：</p>
+<center><img src="http://static.zybuluo.com/funcwj/9tmr6q0vmlio8o2p4uaw8m3d/token-struct.jpg"></center>
+
+<p>另一个重要的数据结构是kaldi中自己实现的<code>HashList</code>，一个类似于跳表的数据结构，里面维护的元素本质上以链表的形式相连，同时通过一个Hash表建立索引。元素和哈希通过<code>Elem</code>和<code>HashBucket</code>实现：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Elem</span> &#123;</span></div><div class="line">    I key;      <span class="comment">// State</span></div><div class="line">    T val;      <span class="comment">// Token</span></div><div class="line">    Elem *tail; <span class="comment">// 链表，指向下一个元素</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">HashBucket</span> &#123;</span></div><div class="line">    <span class="keyword">size_t</span> prev_bucket;     <span class="comment">// 指向前一个桶的下标，类似静态链表的索引方法</span></div><div class="line">    Elem *last_elem;        <span class="comment">// 指向挂在该桶上的最后一个元素，找到他就可以索引该桶上所有元素了</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>整个哈希结结构存在容器<code>std::vector&lt;HashBucket&gt; buckets_</code>中，通过<code>SetSize()</code>可以分配<code>buckets_</code>的大小。需要注意的是，前一个<code>HashBucket</code>的<code>last_elem.tail</code>指向当前<code>HashBucket</code>的第一个元素。其他重要的变量如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Elem *list_head_;   <span class="comment">// Elem链表会不断释放，分配，该变量记录链表头部</span></div><div class="line">Elem *freed_head_;  <span class="comment">// 记录空闲链表的头部，分配新的Elem就是从该头部取出一个空闲Elem</span></div><div class="line"><span class="keyword">size_t</span> bucket_list_tail_;   <span class="comment">// 当前活跃的最后一个桶的下标</span></div><div class="line"><span class="keyword">size_t</span> hash_size_;          <span class="comment">// 当前活跃的桶的个数</span></div></pre></td></tr></table></figure></p>
+<p>该数据结构的操作逻辑如下：</p>
+<ol>
+<li><p>获取当前活跃的所有元素<code>Elem</code><br>只需要返回<code>list_head</code>即可，通过链表的遍历即可访问到所有活跃元素（即上一时刻的State和对应的Token）。</p>
+</li>
+<li><p>如何遍历Hash<br>通过<code>bucket_list_tail_</code>获取到最后一个活跃桶下标，通过<code>HashBucket.prev_bucket</code>访问到前一个，直到访问到-1标记结束位为止。</p>
+</li>
+<li><p>如何清空Hash<br>清空Hash只需要将相应的标记置为“空”即可，不需要实际释放元素内存。对于Hash而言，遍历一遍，将<code>HashBucket.last_elem</code>置为<code>NULL</code>，<code>bucket_list_tail_</code>置为-1，对于<code>Elem</code>而言，将链表头部<code>list_head_</code>置为<code>NULL</code>即可。</p>
+</li>
+<li><p>如何删除元素<br>将需要删除的元素从<code>list_head_</code>中插入到<code>freed_head_</code>中，采用头插法（插入<code>freed_head_</code>头部）</p>
+</li>
+<li><p>如何查找元素<br>首先通过哈希函数对<code>Key</code>哈希到下标，定位到具体的bucket，之后，根据之前提到的关系：“前一个<code>HashBucket</code>的<code>last_elem.tail</code>指向当前<code>HashBucket</code>的第一个元素<code>*first_elem</code>”，就可以在链表头尾之间遍历查询了。</p>
+</li>
+<li><p>如何增加元素<br>如果<code>freed_head_</code>不为空，那么意味着存在可用的空闲元素，将<code>free_head_</code>指向的元素返回，并后移一位即可，如何已经耗尽，那么新分配一批（默认是1024个）<code>Elem</code>赋给<code>free_head_</code>，重复之前的过程即可。</p>
+</li>
+<li><p>如何插入元素<br>首先拿出一个空闲的元素，赋值为相应的<code>Key/Value</code>，使用<code>Key</code>哈希到bucket的下标：</p>
+</li>
+</ol>
+<ul>
+<li>如果该桶不为空，将该元素插入到当前桶的尾部即可</li>
+<li>若该桶为空，需要将<code>bucket_list_tail_</code>指向该桶，还要修正该桶的<code>prev_bucket</code>（指向修改前的<code>bucket_list_tail_</code>）以及<code>last_elem</code>（指向该元素）。</li>
+</ul>
+<p>如果调用<code>toks = HashList.Clear()</code>，那么拿到的<code>toks</code>实际上是被置为<code>NULL</code>之前的<code>HashList.list_head_</code>的值，也就是清空前哈希的链表结构，这时候由于<code>HashList</code>已经重置过了，所以<code>toks</code>成为了前一状态产生的哈希/<code>Elem</code>链表的唯一引用。之后再对<code>HashList</code>操作都不会干扰到<code>toks</code>。因此，可以用<code>toks</code>来替代<code>prev_toks</code>，清空之后的<code>HashList</code>代替<code>cur_toks</code>。由于我们只需要遍历<code>toks</code>，用一下token中的信息，使用完之后，通过<code>Delete</code>函数，就可以将<code>toks</code>中的元素插入到<code>HashList.free_head_</code>中，实现内存的回收。</p>
+<h2 id="解码逻辑"><a href="#解码逻辑" class="headerlink" title="解码逻辑"></a>解码逻辑</h2><p>解码的逻辑非常简单，在解码正式开始之前调用<code>InitDecoding()</code>做一些初始化的工作，之后就是不断接受新的音频数据，调用<code>AdvanceDecoding()</code>（每一次<code>DecodableInterface</code>中的新的可用特征一次解码完毕），直至音频输入终止，调用<br><code>FinalizeDecoding()</code>结束解码。</p>
+<p>在<code>AdvanceDecoding()</code>中，对于每一帧调用<code>ProcessEmitting()</code>和<code>ProcessNonemitting()</code>，后者处理<code>ilabel == 0</code>的token传递（考虑到解码图中每一个状态均有自环，所以可以肯定的是，自环的输入label必然不能为空，否则就会陷入死循环）。每隔几帧剪一次枝。主要逻辑代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 解码到没有为止</span></div><div class="line"><span class="comment">// NumFramesDecoded(): active_toks_.size() - 1</span></div><div class="line"><span class="keyword">while</span> (NumFramesDecoded() &lt; target_frames_decoded) &#123;</div><div class="line">    <span class="comment">// 剪枝：默认25</span></div><div class="line">    <span class="keyword">if</span> (NumFramesDecoded() % config_.prune_interval == <span class="number">0</span>) &#123;</div><div class="line">        PruneActiveTokens(config_.lattice_beam * config_.prune_scale);</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 这里active_toks_扩充一个空间</span></div><div class="line">    BaseFloat cost_cutoff = ProcessEmitting(decodable);</div><div class="line">    ProcessNonemitting(cost_cutoff);</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>下面对每个函数块逐一分析：</p>
+<h3 id="ProcessEmitting"><a href="#ProcessEmitting" class="headerlink" title="ProcessEmitting"></a>ProcessEmitting</h3><p>这部分代码主要实现两个功能，一个是token信息沿着输入不为空的弧上的传递，另一个就是若干剪枝阈值的评估。这部分的剪枝有两层，第一层决前一时刻的token能否继续存在，也就是说，如果前一时刻某一个token的<code>tot_cost</code>相比最好的token的<code>tok_cost</code>差的太多，那么它就没有必要继续传递下去了（这条路径概率过低）。第二层决定前一时刻的token是否能将信息沿着解码图中的路径约束传递到当前时刻，这一步需要预估一个当前时刻的最优权值，如果token沿着某条弧转移过来过低于我们这个预估的值，那么也不允许它传递（因为就算传递了，也会在下一时刻的第一层剪枝中被剪掉）。</p>
+<p>解释一下所谓的beam，beam的含义是，允许过滤项和最优项之间的差距在beam之内。解码过程中的cost越低越优，因此，当得出所谓的<code>best_cost</code>之后，往往将<code>best_cost + beam</code>最为剪枝的阈值。</p>
+<p>代码中将上述第一层剪枝的阈值命名为<code>cur_cutoff</code>，第二层剪枝阈值命名为<code>next_cutoff</code>。第一层剪枝阈值的计算在函数<code>GetCutoff()</code>中实现，这个函数不只计算出前一时刻的剪枝阈值，同时得出前一时刻token链表中token的个数，最佳token，以及估计<code>next_cutoff</code>需要的<code>adaptive_beam</code>。</p>
+<p>考虑到解码中允许设置<code>--max-active(default = MAX_INT)</code>和<code>--min-active(default = 200)</code>，不同的设置在<code>GetCutoff()</code>中的计算逻辑不同，因为<code>beam</code>本身就是一个容差估计（只是这种估计并没有什么参照标准），但是现在有新的约束条件（token数目）约束了，因而需要结合在这种约束下的估计值选一个。分如下两种情况：</p>
+<ol>
+<li><p>假设没有约束，即某一时刻的token数目没有限制，那么使用<code>beam</code>作为容差（默认为16），即：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cur_cutoff = best_weight + config_.beam; <span class="comment">// default config_.beam = 16.0</span></div><div class="line">adaptive_beam = config_.beam;</div></pre></td></tr></table></figure>
+</li>
+<li><p>存在$[N_{min}, N_{max}]$约束：<br>那么令$C_{min}$(<code>max_active_cutoff</code>)和$C_{max}$(<code>min_active_cutoff</code>)分别为token链中第max-active和min-active小的cost。显然，前者小于后者（约束更紧）。用$W_{best}$表示<code>best_weight</code>，$b$表示<code>config_.beam</code>:<br>那么<code>cur_cutoff</code>取$\min_{2nd}(W_{best} + b, C_{min}, C_{max})$。如果结果是$W_{best} + b$，那么和情况1结果保持一致，否则<code>adaptive_beam</code>计算如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// config_.beam_delta = 0.5</span></div><div class="line">adaptive_beam = cur_cutoff - best_weight + config_.beam_delta;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>因此，<code>adaptive_beam</code>的作用是作为<code>next_cutoff</code>的<code>beam</code>替代，在<code>--min-active/--max-active</code>形成约束力的时候。</p>
+<p>对于<code>next_cutoff</code>，使用上一时刻最优token前向传递产生的cost（加上<code>adaptive_beam</code>）作为初始值。之后在处理token第二层剪枝过程中，如果传递形成的新的cost高于<code>next_cutoff</code>，则不予传递，否则产生新的token。若<code>tot_cost + adaptive_beam &lt; next_cutoff</code>，则更新<code>next_cutoff</code>。这部分代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">for</span> (Elem *e = final_toks, *e_tail; e != <span class="literal">NULL</span>; e = e_tail) &#123;</div><div class="line">    StateId state = e-&gt;key;</div><div class="line">    Token *tok = e-&gt;val;</div><div class="line">    <span class="keyword">if</span> (tok-&gt;tot_cost &lt;=  cur_cutoff) &#123;</div><div class="line">        <span class="keyword">for</span> (fst::ArcIterator&lt;fst::Fst&lt;Arc&gt; &gt; aiter(fst_, state);</div><div class="line">           !aiter.Done();</div><div class="line">           aiter.Next()) &#123;</div><div class="line">            <span class="comment">// 遍历状态的连接弧</span></div><div class="line">            <span class="keyword">const</span> Arc &amp;arc = aiter.Value();</div><div class="line">            <span class="keyword">if</span> (arc.ilabel != <span class="number">0</span>) &#123;</div><div class="line">                BaseFloat ac_cost = cost_offset -</div><div class="line">                    decodable-&gt;LogLikelihood(frame, arc.ilabel),</div><div class="line">                    graph_cost = arc.weight.Value(),</div><div class="line">                    cur_cost = tok-&gt;tot_cost,</div><div class="line">                    tot_cost = cur_cost + ac_cost + graph_cost;</div><div class="line">                <span class="comment">// 剪枝</span></div><div class="line">                <span class="keyword">if</span> (tot_cost &gt; next_cutoff) <span class="keyword">continue</span>;</div><div class="line">                <span class="comment">// 继续更新，这是一个不断估计的过程</span></div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (tot_cost + adaptive_beam &lt; next_cutoff)</div><div class="line">                    next_cutoff = tot_cost + adaptive_beam; </div><div class="line">                <span class="comment">// 一开始调用时tok_已经是空的了。这一步产生的是新的tok</span></div><div class="line">                Token *next_tok = FindOrAddToken(arc.nextstate,</div><div class="line">                                               frame + <span class="number">1</span>, tot_cost, tok, <span class="literal">NULL</span>);</div><div class="line">                <span class="comment">// 把当前时刻的新token加入上一时刻的前向链表中</span></div><div class="line">                tok-&gt;links = <span class="keyword">new</span> ForwardLink(next_tok, arc.ilabel, arc.olabel,</div><div class="line">                                           graph_cost, ac_cost, tok-&gt;links);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 下一个element</span></div><div class="line">    e_tail = e-&gt;tail;</div><div class="line">    <span class="comment">// 从链表中拿掉/回收</span></div><div class="line">    toks_.Delete(e);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>函数<code>FindOrAddToken()</code>的作用是创建新的token（当前时刻）或者更新已有token的参数（<code>tot_cost</code>或者回溯指针等等）。因为同一个状态可能会有不同的token带着不同的<code>tot_cost</code>到达，但是只保留最优的一个。之前也说过，新建的token以链表形式相连，头部挂在<code>std::vector&lt;TokenList&gt; active_toks_</code>中：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">FindOrAddToken(StateId state, int32 frame_plus_one, BaseFloat tot_cost,</div><div class="line">            Token *backpointer, <span class="keyword">bool</span> *changed) &#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">    Token *&amp;toks = active_toks_[frame_plus_one].toks;   <span class="comment">// 注意引用，实际修改了</span></div><div class="line">    Elem *e_found = toks_.Find(state);</div><div class="line">    <span class="keyword">if</span> (e_found == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">const</span> BaseFloat extra_cost = <span class="number">0.0</span>;</div><div class="line">        <span class="comment">// NULL表示暂时没有forwardlinks，t时刻只能形成t-1时刻的前向链表</span></div><div class="line">        <span class="comment">// 头插法：这里new_tok.next = toks</span></div><div class="line">        <span class="comment">// 这里的new_tok暂时不释放的</span></div><div class="line">        Token *new_tok = <span class="keyword">new</span> Token (tot_cost, extra_cost, <span class="literal">NULL</span>, toks, backpointer);</div><div class="line">        toks = new_tok; </div><div class="line">        num_toks_++;    <span class="comment">// 整个解码过程中的token数目</span></div><div class="line">        <span class="comment">// 插入hash中维护，维护的是Elem，删除它不会释放token</span></div><div class="line">        toks_.Insert(state, new_tok);</div><div class="line">        <span class="keyword">if</span> (changed) *changed = <span class="literal">true</span>;</div><div class="line">        <span class="keyword">return</span> new_tok;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><code>active_toks_</code>也是一个十分重要的变量，它的大小是逐渐增加的，每一次调用<code>ProcessEmitting()</code>都会扩充一次。整个解码器用它的大小来追溯已经处理了的总帧数：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">inline</span> int32 <span class="title">NumFramesDecoded</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> active_toks_.size() - <span class="number">1</span>; &#125;</div></pre></td></tr></table></figure></p>
+<p>假设现在处理的是第frame帧（frame从0开始计数），那么要获得该帧产生的token链表，<code>active_toks_</code>的index应该是frame + 1。</p>
+<h3 id="ProcessNonemitting"><a href="#ProcessNonemitting" class="headerlink" title="ProcessNonemitting"></a>ProcessNonemitting</h3><p>从函数名可以看出，这一步处理的当前帧下输入为$\epsilon$的跳转/弧，也就是说没有声学的观测概率。这部分代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">ProcessNonemitting(BaseFloat cutoff) &#123;</div><div class="line">    KALDI_ASSERT(!active_toks_.empty());</div><div class="line">    <span class="comment">// active_toks_在ProcessEmitting()中已经扩容了/+1，所以要访问</span></div><div class="line">    <span class="comment">// 当前帧需要-2</span></div><div class="line">    int32 frame = <span class="keyword">static_cast</span>&lt;int32&gt;(active_toks_.size()) - <span class="number">2</span>;</div><div class="line">    KALDI_ASSERT(queue_.empty());</div><div class="line">    <span class="comment">// push当前时刻到达的状态</span></div><div class="line">    <span class="comment">// toks_.GetList()获取的是在ProcessEmitting()中新产生的token</span></div><div class="line">    <span class="comment">// 也就是当前时刻的token</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> Elem *e = toks_.GetList(); e != <span class="literal">NULL</span>;  e = e-&gt;tail)</div><div class="line">        queue_.push_back(e-&gt;key);</div><div class="line">    <span class="comment">// queue_中存储的是由当前时刻token对应的状态出发，可以通过空跳转</span></div><div class="line">    <span class="comment">// 到达的所有状态</span></div><div class="line">    <span class="keyword">while</span> (!queue_.empty()) &#123;</div><div class="line">        StateId state = queue_.back();</div><div class="line">        queue_.pop_back();</div><div class="line"></div><div class="line">        Token *tok = toks_.Find(state)-&gt;val;</div><div class="line">        BaseFloat cur_cost = tok-&gt;tot_cost;</div><div class="line">        <span class="keyword">if</span> (cur_cost &gt; cutoff)</div><div class="line">          <span class="keyword">continue</span>;</div><div class="line">        <span class="comment">// 一般而言，当前时刻的token没有前向链表</span></div><div class="line">        tok-&gt;DeleteForwardLinks();</div><div class="line">        tok-&gt;links = <span class="literal">NULL</span>;</div><div class="line">        <span class="keyword">for</span> (fst::ArcIterator&lt;fst::Fst&lt;Arc&gt; &gt; aiter(fst_, state);</div><div class="line">             !aiter.Done();</div><div class="line">             aiter.Next()) &#123;</div><div class="line">            <span class="keyword">const</span> Arc &amp;arc = aiter.Value();</div><div class="line">            <span class="comment">// ilabel == 0表示non-emitting</span></div><div class="line">            <span class="keyword">if</span> (arc.ilabel == <span class="number">0</span>) &#123;  <span class="comment">// propagate nonemitting only...</span></div><div class="line">                BaseFloat graph_cost = arc.weight.Value(),</div><div class="line">                tot_cost = cur_cost + graph_cost;   <span class="comment">// acoustic_cost = 0</span></div><div class="line">                <span class="keyword">if</span> (tot_cost &lt; cutoff) &#123;</div><div class="line">                    <span class="keyword">bool</span> changed;</div><div class="line">                    Token *new_tok = FindOrAddToken(arc.nextstate, </div><div class="line">                                                    frame + <span class="number">1</span>, tot_cost,</div><div class="line">                                                    tok, &amp;changed);</div><div class="line">                    <span class="comment">// ilabel == 0则acoustic_cost = 0</span></div><div class="line">                    <span class="comment">// tok指的是当前时刻的token</span></div><div class="line">                    tok-&gt;links = <span class="keyword">new</span> ForwardLink(new_tok, <span class="number">0</span>, arc.olabel,</div><div class="line">                                               graph_cost, <span class="number">0</span>, tok-&gt;links);</div><div class="line">                    <span class="comment">// 形成新的token或者更新了权值，说明新状态可到达</span></div><div class="line">                    <span class="keyword">if</span> (changed) queue_.push_back(arc.nextstate);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>总体而言，解码过程就是不断的对一帧处理可观测跳转和空跳转，在拓展token的过程中执行剪枝策略，并将每一时刻的token链保存在<code>active_tok_</code>中，用于最终形成Lattice。</p>
+<h3 id="PruneActiveTokens"><a href="#PruneActiveTokens" class="headerlink" title="PruneActiveTokens"></a>PruneActiveTokens</h3><p>除了在token传递过程中执行剪枝，kaldi还会每隔几帧执行一次<code>PruneActiveTokens</code>操作。该操作虽然也会删掉一些不必要的token，但是阈值的计算是在<code>active_toks_</code>中进行的（存在时间跨度）。首先执行<code>PruneForwardLinks()</code>，剪去一些token的前向指针，之后会调用<code>PruneTokensForFrame()</code>，将前向链接为空的token删去。</p>
+<p>在<code>PruneForwardLinks()</code>中，对于当前时刻的每一个token，程序会遍历其ForwardLinks，算出每一条link和最优路径的cost差/距离<code>link_extra_cost</code>，如果差距过大（大于<code>lattice_beam</code>）就剪掉该link。<code>token-&gt;extra_cost</code>置为所有前向链接的<code>link_extra_cost</code>中最小的一个（如果前向链接被删完了，<code>token-&gt;extra_cost</code>会被置为无穷）。在下一步的<code>PruneTokensForFrame()</code>就是通过<code>token-&gt;extra_cost</code>来断定该token是否有前向链接的。整个搜索过程是一个时间轴上的回溯过程，即从当前时刻向初始时刻0开始。这里需要注意一个顺序问题，比如在$t - 1$时刻执行<code>PruneForwardLinks()</code>，需要用到$t$时刻的token信息，因此这里的执行顺序应该是先执行$t$时刻的Links剪枝，再执行$t + 1$时刻的Token剪枝。<code>PruneForwardLinks()</code>核心操作代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line">PruneForwardLinks(int32 frame_plus_one, <span class="keyword">bool</span> *extra_costs_changed,</div><div class="line">                    <span class="keyword">bool</span> *links_pruned, BaseFloat delta) &#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">    <span class="keyword">bool</span> changed = <span class="literal">true</span>; <span class="comment">// 新的tok_extra_cost - 旧的tok_extra_cost &gt; 1.0 ?</span></div><div class="line">    <span class="keyword">while</span> (changed) &#123;</div><div class="line">        changed = <span class="literal">false</span>;</div><div class="line">        <span class="comment">// 当前时刻的每一个token</span></div><div class="line">        <span class="keyword">for</span> (Token *tok = active_toks_[frame_plus_one].toks;</div><div class="line">            tok != <span class="literal">NULL</span>; tok = tok-&gt;next) &#123;</div><div class="line"></div><div class="line">            ForwardLink *link, *prev_link = <span class="literal">NULL</span>;</div><div class="line">            BaseFloat tok_extra_cost = <span class="built_in">std</span>::numeric_limits&lt;BaseFloat&gt;::infinity();</div><div class="line">            <span class="comment">// 对于每一个token的每一个前向链接</span></div><div class="line">            <span class="comment">// tok_extra_cost 取最小的link_extra_cost</span></div><div class="line">            <span class="keyword">for</span> (link = tok-&gt;links; link != <span class="literal">NULL</span>; ) &#123;</div><div class="line">                Token *next_tok = link-&gt;next_tok;</div><div class="line">                <span class="comment">// extra_cost 初始化的时候为0</span></div><div class="line">                <span class="comment">// 和最优路径的差距</span></div><div class="line">                <span class="comment">// (tok-&gt;tot_cost + link-&gt;acoustic_cost + link-&gt;graph_cost)</span></div><div class="line">                <span class="comment">// - next_tok-&gt;tot_cost &gt;= 0</span></div><div class="line">                BaseFloat link_extra_cost = next_tok-&gt;extra_cost +</div><div class="line">                    ((tok-&gt;tot_cost + link-&gt;acoustic_cost + link-&gt;graph_cost)</div><div class="line">                    - next_tok-&gt;tot_cost);</div><div class="line">                <span class="comment">// 超过了阈值，删掉link</span></div><div class="line">                <span class="keyword">if</span> (link_extra_cost &gt; config_.lattice_beam) &#123;</div><div class="line">                    ForwardLink *next_link = link-&gt;next;</div><div class="line">                    <span class="keyword">if</span> (prev_link != <span class="literal">NULL</span>) prev_link-&gt;next = next_link;</div><div class="line">                    <span class="keyword">else</span> tok-&gt;links = next_link;</div><div class="line">                    <span class="keyword">delete</span> link;</div><div class="line">                    link = next_link;</div><div class="line">                    *links_pruned = <span class="literal">true</span>;   <span class="comment">// 表示有link删除，可能产生没有link的token了</span></div><div class="line">                &#125; <span class="keyword">else</span> &#123;   <span class="comment">// 更新tok_extra_cost，保留link</span></div><div class="line">                    <span class="keyword">if</span> (link_extra_cost &lt; <span class="number">0.0</span>) &#123;    <span class="comment">// 正常不会这样</span></div><div class="line">                        <span class="keyword">if</span> (link_extra_cost &lt; <span class="number">-0.01</span>)</div><div class="line">                            KALDI_WARN &lt;&lt; <span class="string">"Negative extra_cost: "</span> &lt;&lt; link_extra_cost;</div><div class="line">                        link_extra_cost = <span class="number">0.0</span>;</div><div class="line">                    &#125; <span class="comment">// keep最小的</span></div><div class="line">                    <span class="keyword">if</span> (link_extra_cost &lt; tok_extra_cost)</div><div class="line">                        tok_extra_cost = link_extra_cost;</div><div class="line">                    <span class="comment">// 指向没有被删除的最后一个</span></div><div class="line">                    prev_link = link;</div><div class="line">                    link = link-&gt;next; <span class="comment">// 下一个link</span></div><div class="line">                &#125;</div><div class="line">            &#125; <span class="comment">// ForwardLink循环结束</span></div><div class="line">            <span class="comment">// delta默认1.0</span></div><div class="line">            <span class="comment">// 新的tok_extra_cost - 旧的tok_extra_cost &gt; 1.0</span></div><div class="line">            <span class="keyword">if</span> (<span class="built_in">fabs</span>(tok_extra_cost - tok-&gt;extra_cost) &gt; delta)</div><div class="line">                changed = <span class="literal">true</span>;</div><div class="line">            tok-&gt;extra_cost = tok_extra_cost;</div><div class="line">            <span class="comment">// 要么+infinity 要么 &lt;= lattice_beam_</span></div><div class="line">            <span class="comment">// +infinity就会被剪掉</span></div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 曾经有一次是true，它就是true</span></div><div class="line">        <span class="comment">// extra_costs_changed表示tok-&gt;extra_cost更新了</span></div><div class="line">        <span class="comment">// 因此前一时刻的tokens的extra_cost也需要重新计算了</span></div><div class="line">        <span class="keyword">if</span> (changed) *extra_costs_changed = <span class="literal">true</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><code>PruneForwardLinks()</code>会在两中情况下被执行：</p>
+<ol>
+<li>在<code>active_toks_</code>中有新的<code>TokenList</code>被拓展，因为初始化的时候<code>must_prune_forward_links</code>和<code>must_prune_tokens</code>为<code>true</code>。</li>
+<li>下一时刻的<code>TokenList</code>中，有<code>token</code>的<code>extra_cost</code>变化了，所以之前时刻都需要重新计算。<br><code>PruneActiveTokens()</code>的核心代码如下：<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">PruneActiveTokens(BaseFloat delta) &#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">    <span class="keyword">for</span> (int32 f = cur_frame_plus_one - <span class="number">1</span>; f &gt;= <span class="number">0</span>; f--) &#123;</div><div class="line">        <span class="keyword">if</span> (active_toks_[f].must_prune_forward_links) &#123;</div><div class="line">        <span class="keyword">bool</span> extra_costs_changed = <span class="literal">false</span>, links_pruned = <span class="literal">false</span>;</div><div class="line">        PruneForwardLinks(f, &amp;extra_costs_changed, &amp;links_pruned, delta);</div><div class="line">        <span class="comment">// extra_costs_changed表示f时刻的token-&gt;extra_cost发生了变化</span></div><div class="line">        <span class="comment">// 因此之前时刻的token-&gt;extra_cost的需要相应的重新计算</span></div><div class="line">        <span class="keyword">if</span> (extra_costs_changed &amp;&amp; f &gt; <span class="number">0</span>)</div><div class="line">            active_toks_[f<span class="number">-1</span>].must_prune_forward_links = <span class="literal">true</span>;</div><div class="line">        <span class="comment">// links_pruned 表示是否有link被剪掉了</span></div><div class="line">        <span class="keyword">if</span> (links_pruned)</div><div class="line">            active_toks_[f].must_prune_tokens = <span class="literal">true</span>;</div><div class="line">        <span class="comment">// 剪完了</span></div><div class="line">        active_toks_[f].must_prune_forward_links = <span class="literal">false</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// f + 1 != cur_frame_plus_one - 1 还没有ForwordLink</span></div><div class="line">        <span class="comment">// f + 1时刻</span></div><div class="line">        <span class="keyword">if</span> (f+<span class="number">1</span> &lt; cur_frame_plus_one &amp;&amp;</div><div class="line">            active_toks_[f+<span class="number">1</span>].must_prune_tokens) &#123;</div><div class="line">            PruneTokensForFrame(f+<span class="number">1</span>);</div><div class="line">            active_toks_[f+<span class="number">1</span>].must_prune_tokens = <span class="literal">false</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="特征供给"><a href="#特征供给" class="headerlink" title="特征供给"></a>特征供给</h2><p>这部分会和ivector的在线提取放在一起，说明kaldi对Online-Feature的包装。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/" title="对kaldi中Online-Decoder的分析">http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/28/kaldi-ivector-extract-1/" rel="next" title="kaldi中ivector的提取【一】">
+                <i class="fa fa-chevron-left"></i> kaldi中ivector的提取【一】
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/13/sequence-training/" rel="prev" title="Sequence Training in ASR">
+                Sequence Training in ASR <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据结构"><span class="nav-number">1.</span> <span class="nav-text">数据结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解码逻辑"><span class="nav-number">2.</span> <span class="nav-text">解码逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ProcessEmitting"><span class="nav-number">2.1.</span> <span class="nav-text">ProcessEmitting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ProcessNonemitting"><span class="nav-number">2.2.</span> <span class="nav-text">ProcessNonemitting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PruneActiveTokens"><span class="nav-number">2.3.</span> <span class="nav-text">PruneActiveTokens</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特征供给"><span class="nav-number">3.</span> <span class="nav-text">特征供给</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

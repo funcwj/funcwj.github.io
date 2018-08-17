@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用自然梯度的神经网络并行训练【译】">
+<meta property="og:url" content="http://www.funcwj.cn/2017/07/25/parallel-training-by-ng/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用自然梯度的神经网络并行训练【译】">
+<meta name="twitter:description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/07/25/parallel-training-by-ng/"/>
+
+
+
+
+
+  <title>使用自然梯度的神经网络并行训练【译】 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/07/25/parallel-training-by-ng/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">使用自然梯度的神经网络并行训练【译】</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-25T00:15:55+08:00">
+                2017-07-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  5,281
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  19
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本篇是对论文 <a href="https://arxiv.org/abs/1410.7455" target="_blank" rel="external">Parallel training of DNNs with Natural Gradient and Parameter Averaging</a>前几个部分的翻译。</p>
+<a id="more"></a>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>我们描述了一种在kaidi语音识别工具中使用的一种面向多核，多GPU机器的神经网络训练框架。为了尽可能与硬件无关，我们需要一种方法来使用多台机器，而不会产生过多的网络流量。这里使用的方法是周期性的平均网络参数（每一或者两分钟），然后将平均之后的参数重新分布到机器上进行进一步的训练。每台机器都只能看见自己的训练数据。本身来说，这种方法并不能很好的工作。但是，我们有另外一种方法，就是正确且有效的实现了针对随机梯度下降的自然梯度，它可以允许我们的周期性平均方法工作的很好，并且极大的提高了在单个机器上的SGD收敛程度。</p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>神经网络的并行训练一般是数据并行和模型并行的结合。一般的数据并行的方法是每个minibatch交换一下模型参数。这里我们介绍的并行训练框架使用了不同的数据并行方式：我们在不同的机器上有多个执行SGD的进程，每隔几分钟平均一下模型参数并且将他们重新分布到各自的机器上。这对于大规模的语音识别系统训练是非常有效的，但是在我们的例子中，只有和我们实现的有效的自然梯度随机梯度下降结合起来工作的才比较好。考虑到DNN的非收敛性，在这篇文章中我们不解释为什么参数平均可以工作的很好，或者为什么NG-SGD作用很大。这篇文章的要点在于描述我们的方法，并且从经验上说明他们工作的很好。这篇文章的重要性在于，我们展现了当增加GPU数量时，可以收获线性的加速效果，在没有平凡的数据传输的情况下。</p>
+<p>在第二部分我们描述了问题的设置，就是DNN在语音识别中的应用-虽然我们的点子比这更加宽泛。在第三部分我们介绍了并行训练方法。在第四部分我们描述了在自然梯度方法背后更加一般的点子，虽然大部分技术细节都被放在了附录部分。在这篇文章中我们不给出任何证明，但是我们在第五部分讨论一些我们认为可以但是证明不了的东西。第六部分有带有/不带有自然梯度和并行的SGD收敛性的实验。我们在第七部分做总结。</p>
+<p>NG-SGD有两个版本，一个是简单的版本，还有一个在线版本。技术细节分别在附录A和B。附录C有关于我们DNN实现的背景知识。</p>
+<h2 id="问题设置"><a href="#问题设置" class="headerlink" title="问题设置"></a>问题设置</h2><p>在训练语音识别的DNN模型时，直接的问题就是将向量$\mathbf{x} \in \mathbf{R}^D$分类为离散的label（$y \in \mathcal{Y}$）。维度$D$常常数以百计。$\mathbf{x}$是从声学信号中提取的短时谱特性，$\mathcal{Y}$是CD-phone聚类之后绑定的HMM状态，正常情况下，5000左右是典型的。每一对$(\mathbf{x}, y)$对应于音频数据的一帧。帧长和帧移一般是25ms和100/s，$\mathbf{x}$含有几个相邻上下文的谱信息。我们最终不是只对这个$y$感兴趣，而是所有$y$的log概率$\log p(y|\mathbf{x})$，因为我们要将它作为在维特比搜索算法中的权值，用来生成最大概率的词序列。训练的目标函数是在所有训练集上的帧，给出$\mathbf{x}$时$y$出现的概率：$\sum_{i}\log(y_i|\mathbf{x}_i)$。由于我们要最小化这个目标，我们使用SGD这个方法有点轻微的用词不当，它是梯度上升。监督标记$y$由训练语料的抄本生成的HMM模型进行维特比对齐得到。</p>
+<h2 id="带参数平均的SGD"><a href="#带参数平均的SGD" class="headerlink" title="带参数平均的SGD"></a>带参数平均的SGD</h2><h3 id="参数平均概览"><a href="#参数平均概览" class="headerlink" title="参数平均概览"></a>参数平均概览</h3><p>在我们的训练中参数平均十分简单。我们有$N$个机器（比如$N = 4$），每一个机器独自的在训练数据的随机子集上运行，我们允许它们的参数逐渐的发散。在每个机器训练完一定数量$K$的数据时（典型的$K = 400000$）。我们平均所有进程的参数，之后将结果重新分发（实际中，我们通过在GridEngine，或者在我们使用的任何管理系统中生成新的作业）。重复这个过程直到完成在全部数据上的若干轮训练，比如说10轮。</p>
+<p>我们将训练的外部迭代定义为每个作业处理完$K$批数据的时间。那么每一轮外部迭代的次数和训练数据量和$K$有关。</p>
+<p>我们发现给并行的SGD流程设置一个有效的学习率是非常有用的，因为学习率$\eta_t$被每个独立的作业使用，需要除以作业数$N$。当我们为了获得线性的加速而增加作业量$N$时，我们需要按比例的增大学习率以保证有效的学习率不变。这个概念是我们进行参数平均时，任何一个SGD作业的参数更新被稀释为$N$倍造成的。</p>
+<p>我们将其设置为参数平均而不是将各个作业的参数变化相加的原因是稳定性考虑。试想这样一种情形，在参数空间中某些方向的Hessian矩阵非常大（我们的学习率也足够大），以至于SGD在执行完$K$个样本时，随机梯度下降已经到达了平衡点。假如有四个作业，那么处理完$K$个样本之后将参数变化量相加，得到的参数不再接近于平衡态，而是在相反的方向，相对于起始点三倍远的地方。显然这会导致模型发散。</p>
+<h3 id="我们SGD实现的其他方面"><a href="#我们SGD实现的其他方面" class="headerlink" title="我们SGD实现的其他方面"></a>我们SGD实现的其他方面</h3><p>在这里我们提供一些关于SGD实现上的其他方面的一些细节的特性，即用来避免模型发散的学习率调度策略和强制最大参数变化量。</p>
+<p>还有一些其他的和主题并不直接相关的我们放在附录C中，即基于CPU和GPU的SGD（C.1），数据随机化（C.2），一般模型平均（C.4），混合分量，子空间（C.5），输入数据的正则化（C.6），参数初始化（C.7），序列训练（C.8）以及使用i-vector的在线解码。</p>
+<h4 id="学习率调度"><a href="#学习率调度" class="headerlink" title="学习率调度"></a>学习率调度</h4><p>（Senior et al., 2013）中指出，在训练DNN的声学模型时，学习率的指数衰减效果很好，我们也独立的发现了这一现象。通常在训练阶段，我们使用指数衰减将学习率调小10倍。除非特殊说明，我们这里提到的实验，学习率初始设置为0.01，到0.001停止。我们提前说明训练的论数，典型的在4到20之间（如果数据更多，轮数就少一些）。</p>
+<p>需要说明的是我们这里的实验都没有独立的针对SGD和NG-SGD调整学习率（我们只是使用了以前在NG-SGD上表现比较好的值），我们在过去也做过拓展性的实验，在小数据集上，学习率是独立调整的。最终在所有的情况下，我们发现NG-SGD是有帮助的。现在在大规模数据集上不方便做这些重复了。</p>
+<h4 id="最大参数变化"><a href="#最大参数变化" class="headerlink" title="最大参数变化"></a>最大参数变化</h4><p>在深度学习上SGD训练阶段，常见的问题是参数会突然变的很大，目标函数也会变成负无穷。这被称为参数发散。常见的方法是减小学习率重新训练，但是这十分的不方便。为了避免这种情况，我们更改了SGD程序，在每个minbatch上强制一个最大的参数变化量。这样的限制在训练的早期比较活跃，尤其在趋向于输出层的层中。我们在附录C.3中做了进一步说明。</p>
+<h2 id="针对SGD的自然梯度"><a href="#针对SGD的自然梯度" class="headerlink" title="针对SGD的自然梯度"></a>针对SGD的自然梯度</h2><p>这节描述我们对SGD的自然梯度修正，我们通过一个对称正定矩阵，即对Fisher矩阵的逆的估计来缩放梯度。</p>
+<p>从技术上讲，自然梯度是指在黎曼参数表面，沿着常规参数空间中的弯曲路径走一步。它极难计算，但是，前面的工作（Yang &amp; Amari, 1998; Roux et al., 2007）已经使用了“自然梯度”来描述像我们这样的方法，即使用一个Fisher矩阵的估计作为学习率矩阵，因此我们跟随着他们，称呼我们的方法为“自然梯度”。</p>
+<h3 id="我们可以在SGD中将常量的学习率替换为一个矩阵"><a href="#我们可以在SGD中将常量的学习率替换为一个矩阵" class="headerlink" title="我们可以在SGD中将常量的学习率替换为一个矩阵"></a>我们可以在SGD中将常量的学习率替换为一个矩阵</h3><p>在SGD中，学习率常常被假设为一个常量$\eta_t$，伴随着时间减少，更新等式如下：</p>
+<script type="math/tex; mode=display">\boldsymbol{\theta}_{t + 1} = \boldsymbol{\theta}_{t} + \eta_t\mathbf{g}_t</script><p>其中$\mathbf{g}_t$是目标函数在时刻$t$的梯度（从一个训练样本或者minibatch获得）。然而，将这个标量用一个对称正定矩阵替换是可能的，我们可以改写上式为：</p>
+<script type="math/tex; mode=display">\boldsymbol{\theta}_{t + 1} = \boldsymbol{\theta}_{t} + \eta_t\mathbf{E}_t\mathbf{g}_t</script><p>其中$\mathbf{E}_t$是学习率的矩阵分量，为了证明方便，我们没有把$\eta_t$合并到$\mathbf{E}_t$中去。$\mathbf{E}_t$随机是可被接受的：如果我们用可以提前获知的正常数限制$\mathbf{E}_t$的特征值的上下限，那么在给出$\boldsymbol{\theta}$时的$\mathbf{g}_t$和$\mathbf{E}_t$是独立采样的，我们可以证明在某些条件被满足的情况下的收敛性，就像使用一个标量的学习率一样（Bottou, 1998, Sec. 4.2.2）。</p>
+<p>总的来说，学习率矩阵不是一个当前处理的样本数据的函数，否则它可能会阻止收敛到一个局部最优解。举一个例子，对于特定类型的训练数据，较小的矩阵将通过对该数据进行加权来明确地偏差学习。</p>
+<h3 id="Fisher矩阵的逆是一个合适学习率矩阵"><a href="#Fisher矩阵的逆是一个合适学习率矩阵" class="headerlink" title="Fisher矩阵的逆是一个合适学习率矩阵"></a>Fisher矩阵的逆是一个合适学习率矩阵</h3><p>在和自然梯度这个点子相关的统计学习理论中，有理由可以说明为什么我们可以将$\mathbf{E}_t$设置为Fisher矩阵的逆。比如（Murata &amp; Amari, 1999）和（Roux et al., 2007）。Fisher矩阵是在我们要学习一个分布时最直接的定义，而不是分类问题，比如我们现在处理的这个。设想$x$，这个我们要对它的分布建模的变量，它可能是离散的，连续的，$f(x;\boldsymbol{\theta})$是给出$\boldsymbol{\theta}$时$x$的可能性。Fisher信息矩阵$\mathcal{I}(\boldsymbol{\theta})$被定义为log概率对参数偏导的二阶矩。</p>
+<script type="math/tex; mode=display">\frac{\partial}{\partial \boldsymbol{\theta}} \log f(x;\boldsymbol{\theta})</script><p>以上偏导在信息论中称为“score”。在某些情况下，Fisher矩阵和Hessian是相同的。很明显为什么Hessian的逆可以称为一个很好的梯度下降方向。这些条件十分严格，包括正确的模型，$\boldsymbol{\theta}$是基于可以描述正确的数据分布的值的。但是即使这些条件不适用，Fisher矩阵在某种意义上也是和Hessian相同的，也就是说，它在参数变换的情况下也随之变换，因此它的逆依旧是学习率矩阵的一个很好的选择。</p>
+<p>将Fisher信息矩阵的概念推广到预测问题$p(y;x,\boldsymbol{\theta})$上也是非常容易的。假设我们已经知道了$x$的分布$q(x)$，那么$p(y, x; \boldsymbol{\theta}) = q(x)p(y;x, \boldsymbol{\theta})$。不难看出“score”就等于$\frac{\partial}{\partial \boldsymbol{\theta}} \log f(x;y, \boldsymbol{\theta})$，因为$q(x)$不依赖$\boldsymbol{\theta}$，所以没有关于$q(x)$的表达式了。在计算Fisher矩阵时计算的期望是在$x$和$y$联合分布上的期望。这个结论在（Roux et al., 2007, Section 3）中同样存在。</p>
+<p>更一般的来说，对于任意的目标函数，不一定得是log概率或者log似然，我们都可以计算出一个类似于Fisher矩阵的东西，在变量变化时，它的变换方式和Hessian矩阵类似，比如，它的逆也可以是一个学习率矩阵的合理选择。</p>
+<h3 id="在实际中我们需要估计Fisher矩阵"><a href="#在实际中我们需要估计Fisher矩阵" class="headerlink" title="在实际中我们需要估计Fisher矩阵"></a>在实际中我们需要估计Fisher矩阵</h3><p>对于大规模的问题，比如参数量达到百万的语音识别问题，即使一次Fisher矩阵的求逆也是不切实际的因为它的时间复杂度是$O(n^3)$的。但是处理它的分解形式还是可以的。之前也有文献在这方面。在（Roux et al., 2007）中，Fisher矩阵被分解成多个对角阵，其中每个阵使用一个低秩的矩阵估计。这个对角阵的点子在（Bastian et al., 2011）也被研究了，每一个阵对应一个权值矩阵，我们的方法也是用的类似的思想。在未发表的手稿（Yang &amp; Amari, 1997）中（有些材料说1998年发表了），作者尝试去证明在一些假设下，对于单个隐层的神经网络的Fisher矩阵是一个Kronecker积的形式。虽然我们考虑的网络形式比他们更加通用，Kronecker积同样出现在我们Fisher矩阵的分解中。</p>
+<p>需要说明的是，不进行分解也是可以使用NG的，只是每一轮的时间代价会剧增，可以看一下（Pascanu &amp; Bengio, 2013）中的例子，他们使用阶段牛顿法近似Fisher矩阵的逆。</p>
+<h3 id="Fisher矩阵的分解"><a href="#Fisher矩阵的分解" class="headerlink" title="Fisher矩阵的分解"></a>Fisher矩阵的分解</h3><p>我们的分解形式是这样的：对于一个有$I$个权值矩阵的神经网络，我们把Fisher矩阵划分为$I$对角阵，每一个对应一个权值矩阵。考虑Fisher矩阵第$i$个对角块，它对应的权值矩阵是$\boldsymbol{W}_i$，在这里我们假设没有单独的偏置存在。那么第$i$块Fisher矩阵可以视为两个对称正定矩阵$\boldsymbol{A}_i$，$\boldsymbol{B}_i$的Kronecker积，其中$\boldsymbol{A}_i$的维度是$\boldsymbol{W}_i$的行数，$\boldsymbol{A}_i$的维度是$\boldsymbol{W}_i$的列数。我们进一步将$\boldsymbol{A}_i$和$\boldsymbol{B}_i$分解为一个低秩的对称矩阵和单位矩阵的倍数的和，那么Fisher矩阵$\boldsymbol{F}$可以被写为：</p>
+<script type="math/tex; mode=display">\boldsymbol{F} = \text{diag}(\boldsymbol{A}_1 \otimes \boldsymbol{B}_1, \boldsymbol{A}_2 \otimes \boldsymbol{B}_2, \dots, \boldsymbol{A}_I \otimes \boldsymbol{B}_I)</script><p>其中$\boldsymbol{A}_i$，$\boldsymbol{B}_i$以 $\lambda\boldsymbol{I} + \boldsymbol{X}\boldsymbol{X}^T$的形式分解。$\boldsymbol{A}_i$，$\boldsymbol{B}_i$在Kronecker积中的顺序取决于矩阵的存储形式，行主序的还是列主序。实际中我们不显式的处理Kronecker积或者向量化的权值矩阵，所以这个选择不重要。不难证明如果Fisher矩阵可以被这么分解，那么它的逆也可以以同样的形式分解。</p>
+<h3 id="我们如何估计Fisher矩阵"><a href="#我们如何估计Fisher矩阵" class="headerlink" title="我们如何估计Fisher矩阵"></a>我们如何估计Fisher矩阵</h3><p>我们有两种方法估计Fisher矩阵的分解形式</p>
+<ul>
+<li>简单方法：我们从一个minibatch里面拿一些其他的数据来估计Fisher矩阵。这样做十分高效，细节在附录A中。</li>
+<li>在线方法：我们从之前所有的minibatch中估计Fisher矩阵。时间较远的minibatch使用一个遗忘因子来减少权重。细节在附录B中。</li>
+</ul>
+<p>我们通常使用在线方法，因为在GPU上它跑的很快，模型学习的也很快。这可能是因为它对Fisher矩阵的估计是比较干净的。我们描述简单方法是因为它更加好懂，可以帮助我们启发在线方法。</p>
+<h3 id="向量操作"><a href="#向量操作" class="headerlink" title="向量操作"></a>向量操作</h3><p>虽然我们描述Fisher矩阵是一个Kronecker积的形式，但是在我们没有显式的实现它。</p>
+<p>假设我们当前一次训练一批/个数据。那么SGD按照如下方法更新第$i$个权值矩阵：</p>
+<script type="math/tex; mode=display">\boldsymbol{W}_{it} = \boldsymbol{W}_{i(t-1)} + \eta_t\boldsymbol{x}_{it}\boldsymbol{y}_{it}^T</script><p>$\boldsymbol{x}_{it}$是目标函数的偏导，$\boldsymbol{y}_{it}$是权值作用的输入。这个公式最初存在BP算法中。</p>
+<p>在我们的自然梯度下降算法中，这被改写成：</p>
+<script type="math/tex; mode=display">\boldsymbol{W}_{it} = \boldsymbol{W}_{i(t-1)} + \eta_t\boldsymbol{A}_{it}^{-1}\boldsymbol{x}_{it}\boldsymbol{y}_{it}^T\boldsymbol{B}_{it}^{-1}</script><p>其中$\boldsymbol{A}_{it}$和$\boldsymbol{B}_{it}$是Fisher矩阵的因子。很容易表明，这相当于将参数阶乘以由A和B量形成的Fisher矩阵的倒数。</p>
+<h3 id="minibatch的操作"><a href="#minibatch的操作" class="headerlink" title="minibatch的操作"></a>minibatch的操作</h3><p>如果不是一次训练一批数据，而是minibatch个数据。那么上一节中的向量$\boldsymbol{x}_{it}$和$\boldsymbol{y}_{it}$就相应的变成了矩阵$\boldsymbol{X}_{it}, \boldsymbol{Y}_{it}$，那么更新公式写为：</p>
+<script type="math/tex; mode=display">\boldsymbol{W}_{it} = \boldsymbol{W}_{i(t-1)} + \eta_t\boldsymbol{X}_{it}\boldsymbol{Y}_{it}^T</script><p>注意，我们没有像有些作者一样，将梯度除以minibatch的大小，这样可以更加容易的独立的调minibatch的大小和学习率。NG的更新公式为：</p>
+<script type="math/tex; mode=display">\boldsymbol{W}_{it} = \boldsymbol{W}_{i(t-1)} + \eta_t\bar{\boldsymbol{X}}_{it}\bar{\boldsymbol{Y}}_{it}^T</script><p>其中带横杠的参数表示修正过的$\boldsymbol{X}，\boldsymbol{Y}$。在在线版本中可以写为：</p>
+<script type="math/tex; mode=display">
+\bar{\boldsymbol{X}}_{it} = \boldsymbol{X}_{it} \boldsymbol{A}_{it}^{-1}\\
+\bar{\boldsymbol{Y}}_{it} = \boldsymbol{Y}_{it} \boldsymbol{B}_{it}^{-1}</script><p>在简单方法中，由于$\boldsymbol{A},\boldsymbol{B}$是从minibatch中的其他元素估计的，所以我们不能这么写（每行单独的乘法），附录A中有高效的实现。</p>
+<p>从编程的角度说，我们可以这么描述NG的接口：</p>
+<ul>
+<li>简单方法：给出一个minibatch$\boldsymbol{X}_{it}$，每一行是minibatch的一个元素，我们通过每个样本来估计Fisher矩阵，并乘以他们的逆，返回修正过的$\bar{\boldsymbol{X}}_{it}$</li>
+<li>在线方法：给出一个minibatch$\boldsymbol{X}_{it}$和前一次的Fisher矩阵因子估计，计算$\bar{\boldsymbol{X}}_{it} = \boldsymbol{X}_{it} \boldsymbol{A}_{i(t-1)}^{-1}$，之后更新$\boldsymbol{A}_{it}$</li>
+</ul>
+<p>以上接口对于$\boldsymbol{Y}$和$\boldsymbol{B}$执行流程和$\boldsymbol{X}$和$\boldsymbol{A}$是一样的。对于一个minibatch，我们调用接口$2I$次：每个权值矩阵两次。</p>
+<h3 id="因子调整"><a href="#因子调整" class="headerlink" title="因子调整"></a>因子调整</h3><p>在两个NG方法中，我们想阻止Fisher矩阵极大的影响整体的更新，相比于标准的SGD。对此有几点原因：</p>
+<ul>
+<li>在训练的早期，$\boldsymbol{x}$和$\boldsymbol{y}$的量可以非常小，甚至是0，这会导致Fisher矩阵的逆很大甚至是无穷。</li>
+<li>常规的收敛防御技术要求学习率矩阵的矩阵分量应具有预先知道的常数的上下限的特征值，但是我们不确定我们使用的Fisher矩阵是否是不变的。</li>
+<li>从经验的角度来看，如果使用不调整的Fisher矩阵，我们很难阻止参数发散。</li>
+</ul>
+<p>我们的方法是调整$\bar{\boldsymbol{X}}_{it}$和$\bar{\boldsymbol{Y}}_{it}$的量，使得它们的Frobenius范数和输入$\boldsymbol{X}_{it}$和$\boldsymbol{Y}_{it}$一样，我们会在附录中介绍它。</p>
+<p>因子调整会引入证明上的微小的问题，那就是每一个样本都会影响它们自己的学习率矩阵了（通过缩放矩阵的缩放因子）。我们之前也提过，虽然使用单个样例的学习率也是允许的，但是在实际问题中这不是一个问题，因为我们基本上不适用小于100的minibatch大小。</p>
+<h3 id="使用单位矩阵平滑Fisher矩阵"><a href="#使用单位矩阵平滑Fisher矩阵" class="headerlink" title="使用单位矩阵平滑Fisher矩阵"></a>使用单位矩阵平滑Fisher矩阵</h3><p>在两种方法中，我们通过在转置之前给Fisher矩阵加上一个单位矩阵的倍数来平滑它。在简单方法中，这是必要的，因为通常从minibatch中估计的Fisher矩阵都不是满秩的。在在线方法中不是必要的，因为Fisher矩阵的分解已经包含了加上单位矩阵这一操作。但是我们发现通过加上单位矩阵的倍数这一操作，比如对简单方法而言，我们可以调高SGD方法的收敛性。在两种情况下，平滑操作实现如下，如果$\boldsymbol{S} \in \boldsymbol{R}^{D \times D}$是一个从$\boldsymbol{x}$或者$\boldsymbol{y}的协方差中估计的$Fisher矩阵因子，那么我们使用$\boldsymbol{S} + \beta\boldsymbol{I}$来代替Fisher矩阵因子$\boldsymbol{A}$或者$\boldsymbol{B}$，其中</p>
+<script type="math/tex; mode=display">\beta = \frac{\alpha}{D}\max(\text{tr}(\boldsymbol{S}), \epsilon)</script><p>$\epsilon = 10^{-20}$用来防止平滑的$\boldsymbol{S}$值为0。也就是说，我们通过将单位矩阵缩放$\alpha$乘以$\boldsymbol{S}$的对角元素的平均值倍来平滑Fisher矩阵。我们在调参实验中发现，在大部分情况下，$\alpha = 4$对于两种方法，甚至是$\boldsymbol{S}$中存在影响不大的噪声时是合适的，比如minibatch比较大时。我们的理解是，$\alpha$相当大时，我们在$\boldsymbol{x}$和$\boldsymbol{y}$的值协相关性比较大的方向上使用了一个比正常情况小的学习率，在其他方向上使用了一个相对稳定的学习率。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/07/25/parallel-training-by-ng/" title="使用自然梯度的神经网络并行训练【译】">http://www.funcwj.cn/2017/07/25/parallel-training-by-ng/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/24/BP-for-dense/" rel="next" title="全连接神经网络的BP推导">
+                <i class="fa fa-chevron-left"></i> 全连接神经网络的BP推导
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/27/learn-about-ivector/" rel="prev" title="ivector的初步了解">
+                ivector的初步了解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#摘要"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题设置"><span class="nav-number">3.</span> <span class="nav-text">问题设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#带参数平均的SGD"><span class="nav-number">4.</span> <span class="nav-text">带参数平均的SGD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#参数平均概览"><span class="nav-number">4.1.</span> <span class="nav-text">参数平均概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我们SGD实现的其他方面"><span class="nav-number">4.2.</span> <span class="nav-text">我们SGD实现的其他方面</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#学习率调度"><span class="nav-number">4.2.1.</span> <span class="nav-text">学习率调度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最大参数变化"><span class="nav-number">4.2.2.</span> <span class="nav-text">最大参数变化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#针对SGD的自然梯度"><span class="nav-number">5.</span> <span class="nav-text">针对SGD的自然梯度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#我们可以在SGD中将常量的学习率替换为一个矩阵"><span class="nav-number">5.1.</span> <span class="nav-text">我们可以在SGD中将常量的学习率替换为一个矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fisher矩阵的逆是一个合适学习率矩阵"><span class="nav-number">5.2.</span> <span class="nav-text">Fisher矩阵的逆是一个合适学习率矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在实际中我们需要估计Fisher矩阵"><span class="nav-number">5.3.</span> <span class="nav-text">在实际中我们需要估计Fisher矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fisher矩阵的分解"><span class="nav-number">5.4.</span> <span class="nav-text">Fisher矩阵的分解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#我们如何估计Fisher矩阵"><span class="nav-number">5.5.</span> <span class="nav-text">我们如何估计Fisher矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向量操作"><span class="nav-number">5.6.</span> <span class="nav-text">向量操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#minibatch的操作"><span class="nav-number">5.7.</span> <span class="nav-text">minibatch的操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#因子调整"><span class="nav-number">5.8.</span> <span class="nav-text">因子调整</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用单位矩阵平滑Fisher矩阵"><span class="nav-number">5.9.</span> <span class="nav-text">使用单位矩阵平滑Fisher矩阵</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

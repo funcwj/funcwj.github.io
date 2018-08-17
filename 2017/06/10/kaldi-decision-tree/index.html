@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="三音素状态绑定这部分通过以下四个步骤完成，分别对应acc-tree-stats，cluster-phones，compile-question，build-tree：  统计量累计 音素聚类 问题集生成 决策树构建">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kaldi中的决策树">
+<meta property="og:url" content="http://www.funcwj.cn/2017/06/10/kaldi-decision-tree/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="三音素状态绑定这部分通过以下四个步骤完成，分别对应acc-tree-stats，cluster-phones，compile-question，build-tree：  统计量累计 音素聚类 问题集生成 决策树构建">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/44csyyw51i4w9ghgd7n000hb/question_demo.png">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kaldi中的决策树">
+<meta name="twitter:description" content="三音素状态绑定这部分通过以下四个步骤完成，分别对应acc-tree-stats，cluster-phones，compile-question，build-tree：  统计量累计 音素聚类 问题集生成 决策树构建">
+<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/44csyyw51i4w9ghgd7n000hb/question_demo.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/06/10/kaldi-decision-tree/"/>
+
+
+
+
+
+  <title>kaldi中的决策树 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/06/10/kaldi-decision-tree/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">kaldi中的决策树</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-10T22:08:45+08:00">
+                2017-06-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  3,408
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  16
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>三音素状态绑定这部分通过以下四个步骤完成，分别对应<code>acc-tree-stats</code>，<code>cluster-phones</code>，<code>compile-question</code>，<code>build-tree</code>：</p>
+<ol>
+<li>统计量累计</li>
+<li>音素聚类</li>
+<li>问题集生成</li>
+<li>决策树构建</li>
+</ol>
+<a id="more"></a>
+<h2 id="统计量累计"><a href="#统计量累计" class="headerlink" title="统计量累计"></a>统计量累计</h2><p>累计统计量在<code>acc-tree-stats.cc</code>中的<code>AccumulateTreeStats</code>函数中完成，接受一个transition model，特征序列和对应的对齐信息，输出统计量表示。</p>
+<p>统计量的结构表示：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 如果EventKeyType表示position信息，那么EventValueType表示该位置上的phone_id</span></div><div class="line"><span class="comment">// 如果EventKeyType为kPdfClass，那么EventValueType为对应的pdf_class</span></div><div class="line"><span class="comment">// pair&lt;EventKeyType, EventValueType&gt;组合为一个vector表示成一个EventType</span></div><div class="line"><span class="comment">// 一般单因素，1+1，三因素，3+1</span></div><div class="line"><span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::pair&lt;EventKeyType, EventValueType&gt; &gt; EventType;</div><div class="line"><span class="built_in">std</span>::<span class="built_in">map</span>&lt;EventType, GaussClusterable*&gt; tree_stats;</div></pre></td></tr></table></figure></p>
+<p>统计量的具体信息在<code>GaussClusterable</code>里面，里面维护的是特征计数，特征向量和其平方和：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// n</span></div><div class="line"><span class="keyword">double</span> count_;</div><div class="line"><span class="comment">// stats_(0) =&gt; X1 + X2 + ... + Xn</span></div><div class="line"><span class="comment">// stats_(1) =&gt; X1^2 + X2^2 + ... + Xn^2</span></div><div class="line">Matrix&lt;<span class="keyword">double</span>&gt; stats_;</div></pre></td></tr></table></figure></p>
+<p>在后续聚类操作的时候，用到了一个<code>Objf</code>函数计算似然值，函数逻辑是：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">BaseFloat GaussClusterable::Objf() <span class="keyword">const</span> &#123;</div><div class="line">    <span class="keyword">size_t</span> dim = stats_.NumCols();</div><div class="line">    Vector&lt;<span class="keyword">double</span>&gt; vars(dim);</div><div class="line">    <span class="keyword">double</span> objf_per_frame = <span class="number">0.0</span>;</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> d = <span class="number">0</span>; d &lt; dim; d++) &#123;</div><div class="line">        <span class="comment">// default var_floor_ = 0.01</span></div><div class="line">        double mean(stats_(0, d) / count_), var = stats_(1, d) / count_ - mean * mean, </div><div class="line">        floored_var = <span class="built_in">std</span>::max(var, var_floor_);</div><div class="line">        vars(d) = floored_var;</div><div class="line">        objf_per_frame += <span class="number">-0.5</span> * var / floored_var;</div><div class="line">    &#125;</div><div class="line">    objf_per_frame += <span class="number">-0.5</span> * (vars.SumLog() + M_LOG_2PI * dim);</div><div class="line">    <span class="keyword">return</span> objf_per_frame * count_;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>和推出来的似然函数保持一致：</p>
+<script type="math/tex; mode=display">
+L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s^t\right] \\
+= -\frac{1}{2}\left(D\log 2\pi + \log|\Sigma| + D \right)\sum_t \sum_{s \in S} \gamma_s^t</script><p>对$\gamma_s^t$的理解：</p>
+<ol>
+<li>为什么似然函数用上式表示</li>
+<li>$t$时刻的观测是否来自状态$s$，那么$\gamma^t$最多是一个one-hot的向量</li>
+<li>$t$时刻的观测是否来自状态$s$的概率</li>
+</ol>
+<p>该过程通过如下几步进行。</p>
+<ul>
+<li>把对齐信息按照音素划分，一行tid对应一个音素，存在<code>std::vector&lt;std::vector&lt;int32&gt; &gt;</code>里面。<br>注意一下，原始的对齐信息默认应该是进行过重新排序的，就是将自环放在出环之后。</li>
+</ul>
+<p>比如对于Transition Model如下（部分）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div></pre></td><td class="code"><pre><div class="line">Transition-state 1: phone = SIL hmm-state = 0 pdf = 0</div><div class="line"> Transition-id = 1 p = 0.952097 [self-loop]</div><div class="line"> Transition-id = 2 p = 0.01 [0 -&gt; 1]</div><div class="line"> Transition-id = 3 p = 0.01 [0 -&gt; 2]</div><div class="line"> Transition-id = 4 p = 0.0279074 [0 -&gt; 3]</div><div class="line">Transition-state 2: phone = SIL hmm-state = 1 pdf = 1</div><div class="line"> Transition-id = 5 p = 0.921613 [self-loop]</div><div class="line"> Transition-id = 6 p = 0.0531309 [1 -&gt; 2]</div><div class="line"> Transition-id = 7 p = 0.01 [1 -&gt; 3]</div><div class="line"> Transition-id = 8 p = 0.0152566 [1 -&gt; 4]</div><div class="line">Transition-state 3: phone = SIL hmm-state = 2 pdf = 2</div><div class="line"> Transition-id = 9 p = 0.0146723 [2 -&gt; 1]</div><div class="line"> Transition-id = 10 p = 0.96533 [self-loop]</div><div class="line"> Transition-id = 11 p = 0.01 [2 -&gt; 3]</div><div class="line"> Transition-id = 12 p = 0.01 [2 -&gt; 4]</div><div class="line">Transition-state 4: phone = SIL hmm-state = 3 pdf = 3</div><div class="line"> Transition-id = 13 p = 0.01 [3 -&gt; 1]</div><div class="line"> Transition-id = 14 p = 0.01 [3 -&gt; 2]</div><div class="line"> Transition-id = 15 p = 0.928052 [self-loop]</div><div class="line"> Transition-id = 16 p = 0.0519551 [3 -&gt; 4]</div><div class="line">Transition-state 5: phone = SIL hmm-state = 4 pdf = 4</div><div class="line"> Transition-id = 17 p = 0.957834 [self-loop]</div><div class="line"> Transition-id = 18 p = 0.0421665 [4 -&gt; 5]</div><div class="line">...</div><div class="line">Transition-state 9: phone = ONE hmm-state = 0 pdf = 8</div><div class="line"> Transition-id = 25 p = 0.865902 [self-loop]</div><div class="line"> Transition-id = 26 p = 0.134098 [0 -&gt; 1]</div><div class="line">Transition-state 10: phone = ONE hmm-state = 1 pdf = 9</div><div class="line"> Transition-id = 27 p = 0.921862 [self-loop]</div><div class="line"> Transition-id = 28 p = 0.078138 [1 -&gt; 2]</div><div class="line">Transition-state 11: phone = ONE hmm-state = 2 pdf = 10</div><div class="line"> Transition-id = 29 p = 0.936872 [self-loop]</div><div class="line"> Transition-id = 30 p = 0.0631278 [2 -&gt; 3]</div><div class="line">...</div><div class="line">Transition-state 24: phone = SIX hmm-state = 0 pdf = 23</div><div class="line"> Transition-id = 55 p = 0.90631 [self-loop]</div><div class="line"> Transition-id = 56 p = 0.0936895 [0 -&gt; 1]</div><div class="line">Transition-state 25: phone = SIX hmm-state = 1 pdf = 24</div><div class="line"> Transition-id = 57 p = 0.783409 [self-loop]</div><div class="line"> Transition-id = 58 p = 0.216591 [1 -&gt; 2]</div><div class="line">Transition-state 26: phone = SIX hmm-state = 2 pdf = 25</div><div class="line"> Transition-id = 59 p = 0.931359 [self-loop]</div><div class="line"> Transition-id = 60 p = 0.0686414 [2 -&gt; 3]</div><div class="line">Transition-state 27: phone = SEVEN hmm-state = 0 pdf = 26</div><div class="line"> Transition-id = 61 p = 0.916657 [self-loop]</div><div class="line"> Transition-id = 62 p = 0.0833432 [0 -&gt; 1]</div><div class="line">Transition-state 28: phone = SEVEN hmm-state = 1 pdf = 27</div><div class="line"> Transition-id = 63 p = 0.886809 [self-loop]</div><div class="line"> Transition-id = 64 p = 0.113191 [1 -&gt; 2]</div><div class="line">Transition-state 29: phone = SEVEN hmm-state = 2 pdf = 28</div><div class="line"> Transition-id = 65 p = 0.898122 [self-loop]</div><div class="line"> Transition-id = 66 p = 0.101878 [2 -&gt; 3]</div><div class="line">...</div><div class="line">Transition-state 33: phone = NINE hmm-state = 0 pdf = 32</div><div class="line"> Transition-id = 73 p = 0.842715 [self-loop]</div><div class="line"> Transition-id = 74 p = 0.157285 [0 -&gt; 1]</div><div class="line">Transition-state 34: phone = NINE hmm-state = 1 pdf = 33</div><div class="line"> Transition-id = 75 p = 0.78074 [self-loop]</div><div class="line"> Transition-id = 76 p = 0.21926 [1 -&gt; 2]</div><div class="line">Transition-state 35: phone = NINE hmm-state = 2 pdf = 34</div><div class="line"> Transition-id = 77 p = 0.902379 [self-loop]</div><div class="line"> Transition-id = 78 p = 0.0976208 [2 -&gt; 3]</div></pre></td></tr></table></figure></p>
+<p>那么tid序列可以为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">74 73 73 73 73 76 75 75 75 75 75 75 78 77 77 77 77 77 77 77 77 77 77 77 77 77 77 62 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 64 63 63 63 63 63 63 63 63 63 63 63 63 63 63 66 65 65 26 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 4 1 1 1 1 1 16 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 18 56 58 57 57 60 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 26 25 25 25 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 29 29</div></pre></td></tr></table></figure></p>
+<p>按照音素划分之后，得到：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">11 =&gt; [74 73 73 73 73 76 75 75 75 75 75 75 78 77 77 77 77 77 77 77 77 77 77 77 77 77 77 ]</div><div class="line">9 =&gt; [62 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 64 63 63 63 63 63 63 63 63 63 63 63 63 63 63 66 65 65 ]</div><div class="line">3 =&gt; [26 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 ]</div><div class="line">1 =&gt; [4 1 1 1 1 1 16 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 18 ]</div><div class="line">8 =&gt; [56 58 57 57 60 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 ]</div><div class="line">3 =&gt; [26 25 25 25 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 29 29 ]</div></pre></td></tr></table></figure></p>
+<ul>
+<li>对于每一条对齐信息，获取三音素和<code>pdf_class</code>的<code>EventType</code>事件类型，并累加其对应的<code>GaussClusterable</code>统计量。比如说对于以上对齐信息，可以得到音素序列<code>11-9-3-1-8-3</code>三音素的划分和<code>EventType</code>表示如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">0-11-9  =&gt; (0:0  1:11 2:9)</div><div class="line">11-9-3  =&gt; (0:11 1:9  2:3)</div><div class="line">9-3-1   =&gt; (0:9  1:3  2:1)</div><div class="line">3-1-8   =&gt; (0:3  1:1  2:8)</div><div class="line">1-8-3   =&gt; (0:1  1:8  2:3)</div><div class="line">8-3-0   =&gt; (0:8  1:3  2:0)</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>对于每一种三音素划分，添加<code>pdf_class</code>即状态信息，并累计统计量，比如对于三音素<code>0-11-9</code>对应的统计量累计过程如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">tree_stats(0:0 1:11 2:9 kPdfClass:0) += AddStats([74 73 73 73 73])</div><div class="line">tree_stats(0:0 1:11 2:9 kPdfClass:1) += AddStats([76 75 75 75 75 75 75])</div><div class="line">tree_stats(0:0 1:11 2:9 kPdfClass:2) += AddStats([78 77 77 77 77 77 77 77 77 77 77 77 77 77 77])</div></pre></td></tr></table></figure></p>
+<p>其他三音素类推。</p>
+<p>该过程执行完毕之后，将tree_stats信息写到磁盘中，实际就是<code>EventType</code>和<code>GaussClusterable</code>信息。</p>
+<h2 id="音素聚类"><a href="#音素聚类" class="headerlink" title="音素聚类"></a>音素聚类</h2><p>音素聚类在<code>cluster-phones.cc</code>中的<code>AutomaticallyObtainQuestions</code>中完成，接受统计信息和<code>set.int</code>，输出音素聚类情况，也就是所谓的问题集。</p>
+<h3 id="聚类过程"><a href="#聚类过程" class="headerlink" title="聚类过程"></a>聚类过程</h3><p>音素聚类主要进行如下几步操作</p>
+<ul>
+<li><p>状态过滤<br>默认只保留中间状态（<code>pdf_class = 1</code>）的统计量，这部分代码在<code>FilterStatsByKey</code>中，操作完毕之后，<code>stats</code>转为如下形式（<code>vector</code>存储）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">(0:0  1:11 2:9 kPdfClass:1) =&gt; C1</div><div class="line">(0:11 1:9  2:3 kPdfClass:1) =&gt; C2</div><div class="line">(0:9  1:3  2:1 kPdfClass:1) =&gt; C3</div><div class="line">...</div><div class="line">(0:8  1:3  2:0 kPdfClass:1) =&gt; C6</div></pre></td></tr></table></figure>
+</li>
+<li><p>音素划分<br>按中间位置（<code>P == 1</code>）音素对统计量进行划分，累加，划分之后的统计量以phone_id为索引，这部分代码在<code>SplitStatsByKey</code>和<code>SumStatsVec</code>中实现，完成之后，统计量转换为如下形式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">phone_id    GaussClusterable</div><div class="line">    1           C4</div><div class="line">    3        C3 + C6</div><div class="line">    8           C5</div><div class="line">    9           C2</div><div class="line">    11          C1</div></pre></td></tr></table></figure>
+</li>
+<li><p>按音素集合累加<br>由于在set.int中，可能是多个音素共享一个HMM的，但是他们的phone_id是不同的，所以，需要把这些共享HMM的音素对应的统计量做一个合并，存到<code>std::vector&lt;Clusterable*&gt;</code>之中。完成之后，vector的长度和set.int文件的行数相同。</p>
+</li>
+<li><p>决策树聚类<br>这部分在函数<code>TreeCluster</code>中完成，输入按音素集合累加之后的<code>std::vector&lt;Clusterable*&gt;</code>。聚类过程使用决策树+KMeans，KMeans算法主要目的是生成获取似然提升的划分方案。内在逻辑在“TreeClusterer的聚类逻辑”中介绍，最终目的是要获取如下信息，以生成问题集（即聚类结果）：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; assignments;  </div><div class="line"><span class="comment">// assignment of phones to clusters. dim == summed_stats.size().</span></div><div class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; clust_assignments;  </div><div class="line"><span class="comment">// Parent of each cluster.  Dim == #clusters.</span></div><div class="line">int32 num_leaves;  </div><div class="line"><span class="comment">// number of leaf-level clusters. == leaf_node_.size()</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>获取问题集合<br>这部分在函数<code>ObtainSetsOfPhones</code>中实现。函数接受上面决策树聚类得到的三个统计量以及<code>phone_sets</code>（即从set.int读出来的<code>std::vector&lt;std::vector&lt;int32&gt; &gt;</code>），输出一个<code>std::vector&lt;std::vector&lt;int32&gt; &gt;</code>类型的问题集/音素聚类结果。该部分依次完成如下操作：</p>
+<ol>
+<li>根据<code>assignments</code>，对<code>phone_sets</code>进行重新组合，每一类（cluster）对应一组phone_id，因为决策树可能把不同行的音素集划分为同一类了。</li>
+<li>根据<code>clust_assignments</code>，组合出所有非叶子节点对应的phone_id，实际上就是其子节点phone_id之和，也就是要得到决策树上每一个节点音素id集合</li>
+<li>补上原始<code>phone_sets</code>内的向量（暂时不理解），去空</li>
+</ol>
+</li>
+</ul>
+<p>最后将该聚类结果输入到文本question.int中，注意，实际看到的question.int可能还加上了一部分extra_question.int，比如在hkust中就是。展示question.int如下（不是完整的，加工自hkust，把set.int中每一行用对应的行号表示）</p>
+<center><img src="http://static.zybuluo.com/funcwj/44csyyw51i4w9ghgd7n000hb/question_demo.png" width="600"></center>
+
+<h3 id="TreeClusterer的聚类逻辑"><a href="#TreeClusterer的聚类逻辑" class="headerlink" title="TreeClusterer的聚类逻辑"></a>TreeClusterer的聚类逻辑</h3><p>聚类过程通过<code>TreeClusterer</code>完成，下面主要分析<code>TreeClusterer</code>的聚类逻辑。</p>
+<p>根据决策树理论，每一次节点分裂都是需要找到最大似然提升的方案，但是由于事先的这些音素统计量并没有标记信息，即无法根据标记信息制定划分方案，所以，一般采用无监督的方法进行二分类，取其最大的似然提升方案，kaldi中用到了KMeans聚类算法给出一次划分方案。</p>
+<ul>
+<li>决策树初始化<br>初始化给决策树建立根节点，并执行一次最优划分<code>FindBestSplit</code>。决策树由一系列<code>Node</code>构成，其中维护了其自身和叶子节点的统计信息。节点信息表示如下：<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Node</span> &#123;</span></div><div class="line">    <span class="keyword">bool</span> is_leaf;</div><div class="line">    int32 index;  <span class="comment">// index into leaf_nodes or nonleaf_nodes as applicable.</span></div><div class="line">    Node *parent;</div><div class="line">    Clusterable *node_total;  <span class="comment">// sum of all data with this node.</span></div><div class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></div><div class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Clusterable*&gt; points;</div><div class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; point_indices; <span class="comment">// index of points</span></div><div class="line">        BaseFloat best_split;</div><div class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Clusterable*&gt; clusters;  <span class="comment">// [branch_factor]... if we do split.</span></div><div class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; assignments;  <span class="comment">// assignments of points to clusters.</span></div><div class="line">    &#125; leaf;</div><div class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Node*&gt; children;  <span class="comment">// vector of size branch_factor.   if non-leaf.</span></div><div class="line">    <span class="comment">// pointers not owned here but in vectors leaf_nodes_, nonleaf_nodes_.</span></div><div class="line">  &#125;;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p><code>FindBestSplit</code>总是在节点的<code>points</code>数据上执行最优划分，划分结果存储在<code>clusters</code>和<code>assignments</code>中。<code>assignments</code>表示<code>point_id</code>属于哪一个<code>cluster</code>。划分成功的话，将获得的最大似然提升和节点信息放在一个优先队列中。</p>
+<ul>
+<li><p>最优划分逻辑<br>一次KMeans分类操作定义在<code>ClusterKMeansOnce</code>中，迭代<code>cfg.num_iters</code>次返回结果（了解KMeans原理就知道为什么这么做了）。<br>一次最优节点分裂<code>FindBestSplit</code>执行一次<code>ClusterKMeans</code>，<code>ClusterKMeans</code>具体操作是执行<code>cfg.num_tries</code>次<code>ClusterKMeansOnce</code>，找到最大获得最大似然提升的方案。</p>
+</li>
+<li><p>聚类逻辑<br>聚类采取BFS逻辑，不断的取出获取最大似然提升的节点，扩展子节点并在其子节点进行最优划分（这部分操作定义在<code>DoSplit</code>之中，主要是将父节点的<code>leaf</code>信息转移到新建子节点之中，并对子节点执行<code>FindBestSplit</code>），直至队列为空或者叶子节点达到上界，注意，这里的上界一般设为<code>phone_sets</code>的行数，假设set.int中有48组音素，那么聚类结果一定不大于48。</p>
+<p>  在函数<code>DoSplit</code>中，需要完成以下操作：</p>
+<ol>
+<li>根据父节点的<code>leaf.assignments</code>划分结果，初始化子节点的<code>leaf.points</code>和<code>leaf.point_indices</code></li>
+<li>根据父节点的<code>leaf.clusters</code>，初始化子节点的<code>node_total</code></li>
+<li>给子节点的<code>index</code>编号，左节点继承父节点编号，在<code>leaf_nodes_</code>中替换父节点，右节点赋值为<code>leaf_nodes_.size()</code>，加入<code>leaf_nodes_</code>。</li>
+<li>将父节点标记为非叶子节点，<code>index</code>赋值为非叶子节点的编号<code>nonleaf_nodes_.size()</code>并加入<code>nonleaf_nodes_</code></li>
+<li>清空父节点的<code>leaf</code>信息。</li>
+</ol>
+</li>
+<li><p>生成聚类信息<br><code>num_leaves_out</code>就是叶子节点的个数，其次主要就是要获取<code>assignments</code>和<code>clust_assignments</code>两类信息。<br><code>assignments</code>是音素集合id到决策树中叶子节点id的映射关系，只需要遍历所有叶子节点，每一次将对应叶子节点的<code>point_indices</code>集合中元素下标处赋值为叶子节点id即可。<br><code>clust_assignments</code>用来维护节点之间的父子关系，长度为叶子节点和非叶子节点个数之和。由于节点<code>index</code>都是从0开始的，所以会有冲突。kaldi中把非叶子节点通过<code>clust_assignments.size() - 1 - nonleaf_index</code>映射到区间<code>[leaf_nodes_.size(), clust_assignments.size()]</code></p>
+</li>
+</ul>
+<h2 id="问题编译"><a href="#问题编译" class="headerlink" title="问题编译"></a>问题编译</h2><p>该部分接受topo文件和question.int输出编译好的问题集，实际就是<code>Questions</code>这个类结构。定义在<code>compile-question.cc</code>中。<code>Questions</code>维护了<code>EventKeyType</code>和其对应的<code>QuestionsForKey</code>集合，其中<code>QuestionsForKey</code>表示对于特定<code>EventKeyType</code>的查询问题集。事实上，输出的问题集包含以下信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">EventKeyType          QuestionsForKey</div><div class="line">    0             PhoneQuestions(question.int)</div><div class="line">    1             PhoneQuestions(question.int)</div><div class="line">    2             PhoneQuestions(question.int)</div><div class="line">kPdfClass            PdfClassQuestion</div></pre></td></tr></table></figure></p>
+<p>其中<code>pdfClassQuestion</code>根据每个HMM建模的状态数而不同：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">MaxNumPdfclasses        PdfClassQuestion</div><div class="line">       3                  [[0] [0 1]]</div><div class="line">       5          [[0] [0 1] [0 1 2] [0 1 2 3]]</div></pre></td></tr></table></figure></p>
+<h2 id="决策树构建"><a href="#决策树构建" class="headerlink" title="决策树构建"></a>决策树构建</h2><p>未完待续……</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/06/10/kaldi-decision-tree/" title="kaldi中的决策树">http://www.funcwj.cn/2017/06/10/kaldi-decision-tree/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/08/general-indexation-of-weighted-automata/" rel="next" title="加权自动机的索引构造">
+                <i class="fa fa-chevron-left"></i> 加权自动机的索引构造
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/12/about-attention-model/" rel="prev" title="关于attention机制">
+                关于attention机制 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#统计量累计"><span class="nav-number">1.</span> <span class="nav-text">统计量累计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#音素聚类"><span class="nav-number">2.</span> <span class="nav-text">音素聚类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#聚类过程"><span class="nav-number">2.1.</span> <span class="nav-text">聚类过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TreeClusterer的聚类逻辑"><span class="nav-number">2.2.</span> <span class="nav-text">TreeClusterer的聚类逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题编译"><span class="nav-number">3.</span> <span class="nav-text">问题编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#决策树构建"><span class="nav-number">4.</span> <span class="nav-text">决策树构建</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

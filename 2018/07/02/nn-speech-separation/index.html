@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Speech Separation," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
+<meta name="keywords" content="Speech Separation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Speech Separation - DPCL &amp; uPIT">
+<meta property="og:url" content="http://www.funcwj.cn/2018/07/02/nn-speech-separation/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.funcwj.cn/images/upit-experiments.png">
+<meta property="og:updated_time" content="2018-07-08T14:17:32.877Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Speech Separation - DPCL &amp; uPIT">
+<meta name="twitter:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/upit-experiments.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2018/07/02/nn-speech-separation/"/>
+
+
+
+
+
+  <title>Speech Separation - DPCL & uPIT | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/07/02/nn-speech-separation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Speech Separation - DPCL & uPIT</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-02T22:05:53+08:00">
+                2018-07-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2,089
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  8
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。</p>
+<p>首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在T-F域上。TF-mask被定义的前提通常是信号仅仅为加性混叠（分离任务，混叠信号为说话人，增强任务，混叠信号为语音和加性噪声），因此广泛应用于分离，增强，而非解混响等任务中。不做区分，定义混叠信号如下：</p>
+<script type="math/tex; mode=display">
+\mathbf{x} = \mathbf{s}_1 + \mathbf{s}_2 + \cdots \mathbf{s}_N + \mathbf{n}</script><a id="more"></a>
+<p>其中$\mathbf{s}_i$表示第$i$个说话人，$\mathbf{n}$表示加性噪声。变换到短时频域上：</p>
+<script type="math/tex; mode=display">
+\mathbf{X} = \mathbf{S}_1 + \mathbf{S}_2 + \cdots \mathbf{S}_N + \mathbf{N} \tag{1}</script><p>其中$\mathbf{S}_i = \text{STFT}(\mathbf{s}_i), \mathbf{N} = \text{STFT}(\mathbf{n}) \in \mathbf{C}^{T \times F}$。</p>
+<blockquote>
+<p>注：$\text{STFT}$表示短时傅里叶变换，其实这里面讲究的东西还是蛮多的，由于我也不确认我的每处理解都十分准确，因此这里不做仔细挖掘。但是有几个概念需要说明一下：</p>
+<p>短时傅里叶变换之后的结果$\mathbf{S}$在复数域，我们将$|\mathbf{S}|$称为幅度谱（Magnitude Spectrum），$|\mathbf{S}|^2$称为功率谱（Power Spectrum），$\angle \mathbf{S}$称为相位谱。</p>
+</blockquote>
+<p>使用mask的初衷是，希望通过TF-mask $\mathbf{M}_i$，最大程度还原出希望的语音信号$\mathbf{s}_i$。使用mask还原出的语音信号定义为（在“语音增强mask方法”中我也提到了）：</p>
+<script type="math/tex; mode=display">
+\mathbf{s}'_i = \text{iSTFT}(\mathbf{X} \odot \mathbf{M}_i) \tag{2}</script><p>得到还原的信号之后，根据不同的任务，就可以使用SNR，SDR或者WER来衡量质量高低了，一般在分离中使用SDR（signal distortion rate）指标。</p>
+<p>目前常用的mask种类有IBM（binary mask），IAM（amplitude mask），IRM（ratio mask），PSM（phase sensitive mask），定义如下：</p>
+<ul>
+<li><p>IBM：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{IBM}}^i = \left(\bigwedge_{n \ne i}^{N} |\mathbf{S}_i | > |\mathbf{S}_n|\right) \wedge \left(|\mathbf{S}_i | > |\mathbf{N}|\right)</script></li>
+<li><p>IAM：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{IAM}}^i = \frac{|\mathbf{S}_i|}{|\mathbf{X}|}</script></li>
+<li><p>IRM：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{IRM}}^i = \frac{|\mathbf{S}_i|}{\sum_{i = 1}^N|\mathbf{S}_i| + |\mathbf{N}|}</script></li>
+<li><p>PSM：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{IAM}}^i = \frac{|\mathbf{S}_i| \cos(\angle \mathbf{X} - \angle \mathbf{S}_i )}{|\mathbf{X}|}</script></li>
+</ul>
+<p>其中，$ \mathbf{M}_{\text{IBM}}^i \in {0, 1}，\mathbf{M}_{\text{IRM}}^i \in [0, 1]$，范围均被限定，PSM可能出现负值。</p>
+<p>在wsj0-mix2数据集上，上面四种mask oracle的分离效果如下（SDR）</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Mask</th>
+<th style="text-align:center">FM</th>
+<th style="text-align:center">FF</th>
+<th style="text-align:center">MM</th>
+<th style="text-align:center">FF/MM</th>
+<th style="text-align:center">AVG</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">IAM</td>
+<td style="text-align:center">12.49</td>
+<td style="text-align:center">12.73</td>
+<td style="text-align:center">11.58</td>
+<td style="text-align:center">11.88</td>
+<td style="text-align:center">12.19</td>
+</tr>
+<tr>
+<td style="text-align:center">IBM</td>
+<td style="text-align:center">12.94</td>
+<td style="text-align:center">13.20</td>
+<td style="text-align:center">12.04</td>
+<td style="text-align:center">12.35</td>
+<td style="text-align:center">12.65</td>
+</tr>
+<tr>
+<td style="text-align:center">IRM</td>
+<td style="text-align:center">12.86</td>
+<td style="text-align:center">13.14</td>
+<td style="text-align:center">11.96</td>
+<td style="text-align:center">12.27</td>
+<td style="text-align:center">12.57</td>
+</tr>
+<tr>
+<td style="text-align:center">PSM</td>
+<td style="text-align:center">15.79</td>
+<td style="text-align:center">16.03</td>
+<td style="text-align:center">14.90</td>
+<td style="text-align:center">15.20</td>
+<td style="text-align:center">15.50</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>可以看出，oracle的情况下，PSM的优势确实很明显。</p>
+<h3 id="Label-Permutation"><a href="#Label-Permutation" class="headerlink" title="Label Permutation"></a>Label Permutation</h3><p>label的置换问题是使用监督性学习解决说话人无关的语音分离问题首先要解决的问题。在增强任务中，我们只需要学习到speech的mask，而分离任务中，则需要学习到多个说话人的mask，由此引入了训练过程中的label置换问题。</p>
+<p>置换问题怎么理解？假设网络结构存在两个线性层输出$\mathbf{m}_1$和$\mathbf{m}_2$，对应的label为$s_1, s_2$。这样就存在两种匹配方式，即$\mathbf{m}_1 \to s_1, \mathbf{m}_2 \to s_2$和$\mathbf{m}_1 \to s_2, \mathbf{m}_2 \to s_1$。由此拓展下去，$N$个说话人存在$N!$种对应方式。传统的训练方法，输出和label之间的对应关系是固定的，以增强网络为例，一个对应speech，另一个对应noise，网络收敛之后，label对应speech的输出speech的mask，对应noise的输出noise的mask。在分离任务中，训练语料存在多个说话人（多余网络输出个数），因此，不可能将网络的输出和确定的说话人对应起来，故而无法组织训练。</p>
+<p>相关理解可以参考<a href="https://www.zhihu.com/question/268773643/answer/414532531" target="_blank" rel="external">如何理解语音分离中的置换问题（permutaiton problem）</a></p>
+<p>DPCL和uPIT就是从两个角度入手解决label的置换问题的。</p>
+<h3 id="DPCL"><a href="#DPCL" class="headerlink" title="DPCL"></a>DPCL</h3><p>Deep Clustering没有正面和label permutation硬怼，而是绕过了这个问题，尝试将每个TF-bin映射到一个高维的特征上，使得其可以更好的被区分开来。这个embedding过程表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{X}_{tf} \to \mathbf{v}_{tf} \in \mathbf{R}^{D \times 1} \tag{3}</script><p>得到embedding $\mathbf{v}_{tf}$之后，接一个分类算法，将类别转换为binary mask就可以根据$(2)$进行分离了。在oracle的情况下，将speaker的IBM one-hot编码的分类结果和IBM可以相互转换。</p>
+<p>$(3)$式是对单个TF-bin进行的embedding，实际训练中输入以帧为单位，因此，进行的实际上是</p>
+<script type="math/tex; mode=display">
+\mathbf{X}_{t\cdot} \to \mathbf{Y}_{t\cdot} \in \mathbf{R}^{DF \times 1}</script><p>的过程。</p>
+<p>DPCL的loss function通过亲和性矩阵$\mathbf{A}^\top\mathbf{A}, \mathbf{A} \in \mathbf{R}^{D \times T}$定义，$\mathbf{A}$的列向量表示embedding，$(\mathbf{A}^\top\mathbf{A})_{ij} = 1$表示embedding $\mathbf{A}^\top_i$和$\mathbf{A}^\top_j$属于一个类别。</p>
+<p>令$\mathbf{V} \in \mathbf{R}^{S \times F}$表示IBM的one-hot编码结果，$\mathbf{Y} \in \mathbf{R}^{D \times F}$表示DPCL输出embedding。loss function用两种embedding亲和性矩阵之差的F范数表示：</p>
+<script type="math/tex; mode=display">
+\mathcal{J} = \Vert \mathbf{Y}^\top\mathbf{Y} - \mathbf{V}^\top\mathbf{V}\Vert_F^2</script><p>在具体实现的时候，以整句训练为例，$\mathbf{Y} \in \mathbf{R}^{D \times FT}$。这样$ \mathbf{Y}^\top\mathbf{Y} \in \mathbf{R}^{FT \times FT}$，显存很快就爆掉，可以采用等价计算方式：</p>
+<script type="math/tex; mode=display">
+\mathcal{J} = \Vert \mathbf{Y}\mathbf{Y}^\top \Vert_F^2 + \Vert \mathbf{V}\mathbf{V}^\top \Vert_F^2 - 2\Vert \mathbf{V}\mathbf{Y}^\top \Vert_F^2 \tag{4}</script><p>进行。</p>
+<p>下面提几个比较细节的地方：</p>
+<ol>
+<li>计算$(4)$式的时候，原始论文应该是mask掉了silence的T-F bin，因此，注意计算的时候掩蔽掉silence部分。是否silence取决于每个TF bin的能量值，论文中将每个句子比最大能量值小40dB的bin认为成silence。</li>
+<li>DPCL收敛的loss比较大，我收敛结果是3700+每个TF-bin，参考一下。</li>
+<li>训练和测试时候的特征一定要保证一致（是否log，是否cmvn等等），我开始时训练的cmvn代码逻辑有问题，测试时分离效果总是高低频对半分，查了一周多才找到问题所在……</li>
+<li>测试时聚类的时候，最好也将silence部分掩蔽掉，提高聚类的效果。</li>
+</ol>
+<p>整个实验下来，主要是上面的3耗了一点时间，其他过程均比较顺利。代码和结果可以参看<a href="https://github.com/funcwj/deep-clustering" target="_blank" rel="external">deep-clustering</a>。</p>
+<p>DPCL这块我没有调过多的配置，目前存在的问题是batch训练的时候，效果会比逐句训练差不少（average SDR-impr 只能在8.5这样子），后面有空还要check一下问题所在。</p>
+<h3 id="Utterance-Level-PIT"><a href="#Utterance-Level-PIT" class="headerlink" title="Utterance Level PIT"></a>Utterance Level PIT</h3><p>PIT采取的方案就硬怼，既然pair方式有$N!$种，那就直接遍历一遍，把最小的当loss，强制让网络学习align过程和对应的mask。它最早提出的时候，loss定义在帧级别（frame level），但是因为不能保证不同时刻网络的mask和speaker的对应关系保持一致，因此需要加一个speaker tracking的后处理过程（本身论文并没有提出speaker tracking的算法，直接和target比算的oracle结果）。uPIT的u表示utterance level，loss定义在整个句子上，用RNN建模：</p>
+<script type="math/tex; mode=display">
+\mathcal{J}_{\text{psm}} = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \odot \cos \left( \angle \mathbf{X}_s - \angle \mathbf{X}_{\phi(s)} \right) \right \Vert_F^2 \\
+\mathcal{J}_{\text{iam}} = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \right \Vert_F^2</script><p>$\mathcal{P}$表示$S$个speaker的排列方案。把上述定义成为permutate loss。</p>
+<p>uPIT遇到的坑主要是batch情况下，permutate loss的计算。如果N个句子同时训练，permutate loss是每个句子的permutate loss之和。我第一次实现写成了batch的permutate loss，训练不收敛。除此之外，其他过程也都顺风顺水。代码可以参见<a href="https://github.com/funcwj/uPIT-for-speech-separation" target="_blank" rel="external">uPIT-for-speech-separation</a>。</p>
+<p>uPIT调了几组参数，主要是dropout，weight decay，mask类型，激活函数，输入特征等等，到目前为止总结实验结果如下：</p>
+<p><img src="http://www.funcwj.cn/images/upit-experiments.png" alt=""></p>
+<p>从表中可以看出，dropout，weight decay等正则化手段对最终的结果提升影响较大，线性谱不做cmvn的效果最好，ReLU在不同的mask类型上表现均强于sigmoid，但是和论文结论不同的是，PSM并没有显示出相对IAM的优势，二者的结果相差不大。</p>
+<p>最后再说一点感触吧，现在大家都在用DL做东西，框架也很方便，因此可能最多的时间可能都不是耗在代码实现，而是debug和调参这些比较枯燥的任务上。对于这些，还是将它看成一种能力比较好，网络不收敛，如何找出问题，或者应用trick，如何根据实验结果调整参数，使模型更优，如何（尽量）解释（分析）不同参数对模型的影响等等，这些都是通过不断的实验和观察，才能得出规律，因此，切忌浮躁，多做实验！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2018/07/02/nn-speech-separation/" title="Speech Separation - DPCL & uPIT">http://www.funcwj.cn/2018/07/02/nn-speech-separation/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/29/srp-phat-for-tdoa-estimate/" rel="next" title="TDOA - SRP-PHAT方法">
+                <i class="fa fa-chevron-left"></i> TDOA - SRP-PHAT方法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/08/simple-wiener-filter/" rel="prev" title="Introduction to Wiener Filter">
+                Introduction to Wiener Filter <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Label-Permutation"><span class="nav-number">1.</span> <span class="nav-text">Label Permutation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DPCL"><span class="nav-number">2.</span> <span class="nav-text">DPCL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Utterance-Level-PIT"><span class="nav-number">3.</span> <span class="nav-text">Utterance Level PIT</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

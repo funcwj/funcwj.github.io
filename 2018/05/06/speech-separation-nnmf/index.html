@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Speech Separation," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近在看一些语音分离的文章，时间旧了，需要做一些总结。这篇文章先说一种传统而有效的方法，NMF（非负矩阵分解）。 将一个矩阵$\mathbf{V}$分解成两个非负矩阵的乘积形式，这种方法就叫非负矩阵分解，数学表达为：  \mathbf{V} \approx \mathbf{W} \mathbf{H}若$\mathbf{V} \in \mathbf{R}^{F \times T}$，那么$\math">
+<meta name="keywords" content="Speech Separation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Speech Separation - NMF methods">
+<meta property="og:url" content="http://www.funcwj.cn/2018/05/06/speech-separation-nnmf/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="最近在看一些语音分离的文章，时间旧了，需要做一些总结。这篇文章先说一种传统而有效的方法，NMF（非负矩阵分解）。 将一个矩阵$\mathbf{V}$分解成两个非负矩阵的乘积形式，这种方法就叫非负矩阵分解，数学表达为：  \mathbf{V} \approx \mathbf{W} \mathbf{H}若$\mathbf{V} \in \mathbf{R}^{F \times T}$，那么$\math">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.funcwj.cn/images/spectrum_snmf.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/spectrum_nnmf.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/online_oracle_snmf_demo1.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/online_oracle_snmf_demo2.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/online_oracle_snmf_demo3.jpg">
+<meta property="og:updated_time" content="2018-07-08T14:09:03.604Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Speech Separation - NMF methods">
+<meta name="twitter:description" content="最近在看一些语音分离的文章，时间旧了，需要做一些总结。这篇文章先说一种传统而有效的方法，NMF（非负矩阵分解）。 将一个矩阵$\mathbf{V}$分解成两个非负矩阵的乘积形式，这种方法就叫非负矩阵分解，数学表达为：  \mathbf{V} \approx \mathbf{W} \mathbf{H}若$\mathbf{V} \in \mathbf{R}^{F \times T}$，那么$\math">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/spectrum_snmf.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2018/05/06/speech-separation-nnmf/"/>
+
+
+
+
+
+  <title>Speech Separation - NMF methods | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/05/06/speech-separation-nnmf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Speech Separation - NMF methods</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-06T02:34:47+08:00">
+                2018-05-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,486
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  6
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近在看一些语音分离的文章，时间旧了，需要做一些总结。这篇文章先说一种传统而有效的方法，NMF（非负矩阵分解）。</p>
+<p>将一个矩阵$\mathbf{V}$分解成两个非负矩阵的乘积形式，这种方法就叫非负矩阵分解，数学表达为：</p>
+<script type="math/tex; mode=display">
+\mathbf{V} \approx \mathbf{W} \mathbf{H}</script><p>若$\mathbf{V} \in \mathbf{R}^{F \times T}$，那么$\mathbf{W} \in \mathbf{R}^{F \times D}, \mathbf{H} \in \mathbf{R}^{D\times T}$，其中$D$为分解过程的一个超参数，在一些文献中，$\mathbf{W}$被称为dictionary或者basis functions，$\mathbf{H}$被称为atoms或者activations，这种称呼的原因会在后文中解释。</p>
+<p>下面将从三个方面认识这个概念：</p>
+<ol>
+<li>如何得到这种表示</li>
+<li>这种表示的意义何在</li>
+<li>在分离任务中如何应用</li>
+</ol>
+<a id="more"></a>
+<h3 id="NMF"><a href="#NMF" class="headerlink" title="NMF"></a>NMF</h3><p>有定义可知，虽然NMF的分解形式不唯一，但是最终得到的结果，需要尽量降低和原始矩阵的误差（否则恢复不过来，失去意义了），定义$D(\mathbf{V}|\mathbf{WH})$表示误差函数，那么我们要求解的问题就表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{W},\mathbf{H} = \arg \min_{\mathbf{W}, \mathbf{H}} \mathcal{D}(\mathbf{V}|\mathbf{\Lambda})</script><p>其中$\mathbf{\Lambda} = \mathbf{WH}$。$\mathcal{D}$不唯一，可以根据任务不同分别定义，如欧式距离，KL散度等等，目前文献中常用$\beta$-divergence统一描述如下</p>
+<script type="math/tex; mode=display">
+\mathcal{D}_\beta(\mathbf{V} | \mathbf{\Lambda}) = 
+\begin{cases}
+\frac{\mathbf{V}}{\mathbf{\Lambda}} - \log \frac{\mathbf{V}}{\mathbf{\Lambda}} - 1 & \beta = 0\\
+\mathbf{V} (\log \mathbf{V} - \log \mathbf{\Lambda} )  + \mathbf{\Lambda} - \mathbf{V} & \beta = 1\\
+\frac{\mathbf{V}^\beta - \mathbf{\Lambda}^\beta -\beta \mathbf{\Lambda}^{\beta - 1}(\mathbf{V} - \mathbf{\Lambda})}{\beta(\beta - 1)} & \beta \in (0, 1)
+\end{cases}</script><p>定义$\mathbf{D}_\beta$之后，$\mathbf{W}$，$\mathbf{H}$的求解通过如下迭代的方式进行：</p>
+<script type="math/tex; mode=display">
+\mathbf{H} \leftarrow \mathbf{H} \odot \frac{\mathbf{W}^\top(\mathbf{V}\odot \mathbf{\Lambda}^{\beta -2})}{\mathbf{W}^\top\mathbf{\Lambda}^{\beta -1}} \\
+\mathbf{W} \leftarrow \mathbf{W} \odot \frac{(\mathbf{V}\odot \mathbf{\Lambda}^{\beta -2})\mathbf{H}^\top}{\mathbf{\Lambda}^{\beta -1}\mathbf{W}^\top} \\</script><p>很多时候，我们期望$\mathbf{H}$的具有较高的稀疏程度，因此，$\mathcal{D}$中常常出现关于$\mathbf{H}$的正则项：</p>
+<script type="math/tex; mode=display">
+\mathbf{W},\mathbf{H} = \arg \min_{\mathbf{W}, \mathbf{H}} \mathcal{D}(\mathbf{V}|\mathbf{\Lambda}) + \mu |\mathbf{H}|_1</script><p>其中$|\cdot|_1$表示$L_1$范数。在这种情况下，需要修正矩阵的更新公式，一种简单的处理方式是保持$\mathbf{W}$的更新法则不变，$\mathbf{H}$更新的分子加上正则系数$\mu$：</p>
+<script type="math/tex; mode=display">
+\mathbf{H} \leftarrow \mathbf{H} \odot \frac{\mathbf{W}^\top(\mathbf{V}\odot \mathbf{\Lambda}^{\beta -2})}{\mathbf{W}^\top\mathbf{\Lambda}^{\beta -1} + \mu}</script><p>这种NMF在文献[1]中被称为NMF+S（NMF with Sparsity)而非SNMF(Sparse NMF)，后者修正的$\mathbf{W}$的更新公式，且在分离任务中表现优于前者。讨论可以详细参考原始论文，这里不做过多叙述。</p>
+<p>NMF历史悠久，实现方便，在MATLAB，sklearn等工具中均有实现，论文[1]也开源了SNMF的MATLAB代码，可以通过<a href="http://www.merl.com/pub/leroux/sparseNMF.zip" target="_blank" rel="external">链接</a>下载。</p>
+<p>在语音信号处理中，NMF通常用于对信号的频谱进行分解，如下，图（2，1）表示原始的频谱，图（1，2）为NMF近似的结果，使用MERL的SNMF工具，参数配置$\beta = 1, \mu = 5, D = 64$。</p>
+<p><img src="http://www.funcwj.cn/images/spectrum_snmf.jpg" alt="spectrum_nmf">如果用MATLAB中的<code>nnmf</code>方法，在相同的配置下，结果如下：</p>
+<p><img src="http://www.funcwj.cn/images/spectrum_nnmf.jpg" alt="spectrum_nnmf"></p>
+<p>可以看出，SNMF估计的$\mathbf{H}$矩阵稀疏性更高。</p>
+<h3 id="如何理解"><a href="#如何理解" class="headerlink" title="如何理解"></a>如何理解</h3><p>关于表达式：</p>
+<script type="math/tex; mode=display">
+\mathbf{V} = \mathbf{WH}</script><p>我们可以换一种写法，即：</p>
+<script type="math/tex; mode=display">
+\mathbf{V} =  
+\begin{bmatrix}
+\mathbf{v}_1,
+\mathbf{v}_2,
+\cdots,
+\mathbf{v}_T
+\end{bmatrix}
+=
+\mathbf{W}
+\begin{bmatrix}
+\mathbf{h}_1,
+\mathbf{h}_2,
+\cdots,
+\mathbf{h}_T
+\end{bmatrix}</script><p>$\mathbf{v}_i, \mathbf{h}_i$表示各自矩阵中第$i$列的列向量。对于$\mathbf{v}_i$，有：</p>
+<script type="math/tex; mode=display">
+\mathbf{v}_t = \mathbf{W} \mathbf{h}_t = [\mathbf{w}_1, \mathbf{w}_2, \cdots, \mathbf{w}_D] \mathbf{h}_t = \sum_{d = 0}^{D - 1} \mathbf{w}_d \cdot h_{td}</script><p>上式表明，$t$时刻的频谱，可以表示为$\mathbf{W}$矩阵列向量的线性组合，组合系数为$\mathbf{H}$矩阵的第$t$列。也就是说，NMF会将原始矩阵分解成一组非负的向量组，和对应的一组非负权值。理解这点对于理解NMF在语音分离中的应用比较重要。</p>
+<p>另外一点需要提到，一般情况下，设置的$D$值小于$T$值，既然$\mathbf{W}$具有描述原始矩阵的性质，那么可以视其为一组具有非负性的特征向量。我们希望使用少数的特征向量就可以表示原始矩阵，一方面可以减少向量之间的相关性，避免冗余，一方面为了计算，存储的高效性。</p>
+<p>另外，有时我们会看到如下定义：</p>
+<script type="math/tex; mode=display">
+\mathbf{V} = \sum_{c}\mathbf{W}_c \mathbf{H}_c</script><p>即几组$\mathbf{W}$和$\mathbf{V}$矩阵的乘积和，典型的比如语音分离任务中。这种形式依旧可以规整成上面的原始表示形式，如下：</p>
+<script type="math/tex; mode=display">
+\mathbf{V} = \sum_{c}\mathbf{W}_c \mathbf{H}_c = [\mathbf{W}_1, \mathbf{W}_2, \cdots, \mathbf{W}_C]
+\begin{bmatrix}
+\mathbf{H}_1 \\
+\mathbf{H}_2 \\
+\cdots \\
+\mathbf{H}_C \\
+\end{bmatrix}</script><h3 id="语音分离：NMF方法"><a href="#语音分离：NMF方法" class="headerlink" title="语音分离：NMF方法"></a>语音分离：NMF方法</h3><p>在比较理想的情况下，混合语音信号$\mathbf{S}$由多路信号相加表示：</p>
+<script type="math/tex; mode=display">
+\mathbf{S} = \sum_c \mathbf{S}_c</script><p>对$\mathbf{S}_c$做NMF，有：</p>
+<script type="math/tex; mode=display">
+\mathbf{S} = \sum_c \mathbf{S}_c = \sum_c \mathbf{W}_c \mathbf{H}_c = \widetilde{\mathbf{W}} \widetilde{\mathbf{H}}</script><p>若$\widetilde{\mathbf{W}} \widetilde{\mathbf{H}}$可被估计，那么，可以下式分离出对应的语音信号：</p>
+<script type="math/tex; mode=display">
+\mathbf{S}'_c = \frac{\mathbf{W}_c \mathbf{H}_c}{\widetilde{\mathbf{W}} \widetilde{\mathbf{H}}} \odot \mathbf{S}</script><p>supervised NMF方法中，分为训练阶段和测试阶段。训练阶段需要单一说话人的监督数据，用来得到说话人的特征集合$\widetilde{\mathbf{W}} $，测试阶段，将其作为初始$\mathbf{W}$进行NMF，过程中只训练$\mathbf{H}$。收敛之后，用上式做说话人分离。</p>
+<p>有一点需要注意，就是测试的时候可以将句子分block进行，类似于声学模型中的拼帧。分离的结果只保留中间位置的帧即可。主要是希望利用picth和vocal在时间轴上的局部相似性，获取更好的分离效果。</p>
+<p>我进行了Oracle-NMF作实验验证上述流程，之所以称之为Oracle，是因为我直接从$\mathbf{S}_c$中学习speaker的特征矩阵，将他们进行<code>concat</code>作为NMF中的初始化，得到$\mathbf{H}$进行分离，而非从该说话人的其他说话语料中进行。</p>
+<p>实验使用MERL实现的SNMF，数据为wsj0的2spk混合数据（用的Deep Clustering的混合程序，生成16k数据），拼左右4帧，帧长和帧移为64ms，16ms。我可视化几个样例结果如下：</p>
+<p><img src="http://www.funcwj.cn/images/online_oracle_snmf_demo1.jpg" alt="online_oracle_snmf_demo1"></p>
+<p>从语谱图上可以看出，结果还是比较理想的。下面这个两个例子可以看出，在silence段，NMF的表现也不差。</p>
+<p><img src="http://www.funcwj.cn/images/online_oracle_snmf_demo2.jpg" alt="online_oracle_snmf_demo1"></p>
+<p><img src="http://www.funcwj.cn/images/online_oracle_snmf_demo3.jpg" alt="online_oracle_snmf_demo1"></p>
+<p>参考文献[2]中也使用了NMF，不过整体思路非上面所述，后期我会更一版GCC-PHAT，在那里简单讨论一些它的想法。</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. Le Roux J, Weninger F J, Hershey J R. Sparse NMF–half-baked or well done?[J]. Mitsubishi Electric Research Labs (MERL), Cambridge, MA, USA, Tech. Rep., no. TR2015-023, 2015.</p>
+<p>[2]. Wood S U N, Rouat J, Dupont S, et al. Blind speech separation and enhancement with GCC-NMF[J]. IEEE/ACM Transactions on Audio, Speech and Language Processing (TASLP), 2017, 25(4): 745-755.</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2018/05/06/speech-separation-nnmf/" title="Speech Separation - NMF methods">http://www.funcwj.cn/2018/05/06/speech-separation-nnmf/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/14/setk-speech-enhancement-tookit/" rel="next" title="SETK - Speech Enhancement Tools based on Kaldi">
+                <i class="fa fa-chevron-left"></i> SETK - Speech Enhancement Tools based on Kaldi
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/10/gcc-phat-for-tdoa-estimate/" rel="prev" title="TDOA - GCC-PHAT方法">
+                TDOA - GCC-PHAT方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#NMF"><span class="nav-number">1.</span> <span class="nav-text">NMF</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何理解"><span class="nav-number">2.</span> <span class="nav-text">如何理解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#语音分离：NMF方法"><span class="nav-number">3.</span> <span class="nav-text">语音分离：NMF方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

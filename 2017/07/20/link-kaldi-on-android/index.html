@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="为什么有这个想法，因为自己有过体验，当初做的第一个语音增强的demo，傻乎乎的自己实现特征提取，自己实现网络前向，于是就需要将kaldi的网络参数转写成方便自己程序读取的格式，还需要不断对比自己实现的特征结果和HTK的结果是否一致，这期间花费的时间个人觉得已经远远的超出做demo本身的意义，最主要的是，由于当初实现的代码仅仅是针对当初的需求，而一旦后期的特征配置或者网络结构发生变化，之前的工作就要">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在安卓上使用kaldi进行模型开发">
+<meta property="og:url" content="http://www.funcwj.cn/2017/07/20/link-kaldi-on-android/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="为什么有这个想法，因为自己有过体验，当初做的第一个语音增强的demo，傻乎乎的自己实现特征提取，自己实现网络前向，于是就需要将kaldi的网络参数转写成方便自己程序读取的格式，还需要不断对比自己实现的特征结果和HTK的结果是否一致，这期间花费的时间个人觉得已经远远的超出做demo本身的意义，最主要的是，由于当初实现的代码仅仅是针对当初的需求，而一旦后期的特征配置或者网络结构发生变化，之前的工作就要">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在安卓上使用kaldi进行模型开发">
+<meta name="twitter:description" content="为什么有这个想法，因为自己有过体验，当初做的第一个语音增强的demo，傻乎乎的自己实现特征提取，自己实现网络前向，于是就需要将kaldi的网络参数转写成方便自己程序读取的格式，还需要不断对比自己实现的特征结果和HTK的结果是否一致，这期间花费的时间个人觉得已经远远的超出做demo本身的意义，最主要的是，由于当初实现的代码仅仅是针对当初的需求，而一旦后期的特征配置或者网络结构发生变化，之前的工作就要">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/07/20/link-kaldi-on-android/"/>
+
+
+
+
+
+  <title>在安卓上使用kaldi进行模型开发 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/07/20/link-kaldi-on-android/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">在安卓上使用kaldi进行模型开发</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-20T23:29:28+08:00">
+                2017-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,759
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  7
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>为什么有这个想法，因为自己有过体验，当初做的第一个语音增强的demo，傻乎乎的自己实现特征提取，自己实现网络前向，于是就需要将kaldi的网络参数转写成方便自己程序读取的格式，还需要不断对比自己实现的特征结果和HTK的结果是否一致，这期间花费的时间个人觉得已经远远的超出做demo本身的意义，最主要的是，由于当初实现的代码仅仅是针对当初的需求，而一旦后期的特征配置或者网络结构发生变化，之前的工作就要重复一次，如此低效率的事情我个人是不想重复做的。</p>
+<a id="more"></a>
+<p>所以，最简单的方法就是，将计算逻辑交给kaldi完成，自己只需要完成控制逻辑上的编码。本身使用NDK+JNI进行开发并不是很难，无非是将kaldi的依赖和自身编译成库，和自己编写的JNI接口链接，通过Android Studio支持的cmake或者ndk构建最终的动态库就行了，但是，由于网上资料过少，链接错误又比较难查，所以还是耗费了不少时间的。</p>
+<p>我的需求是提取nnet1和feat两块，所以不需要openfst以及其他无关的代码，最终提取出的工作目录如下（实际上还可以进一步精简，test文件一律删除）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">base  cudamatrix  feat  hmm  itf  matrix  nnet thread  tree  util</div></pre></td></tr></table></figure>
+<p>所有步骤都可以从以下链接中获取</p>
+<ul>
+<li>谷歌官方的NDK指南 <a href="https://developer.android.com/ndk/guides/index.html" target="_blank" rel="external">LINK</a></li>
+<li>AndroidStudio的用户手册 <a href="https://developer.android.com/studio/intro/index.html" target="_blank" rel="external">LINK</a></li>
+<li>kaldi的交叉编译 <a href="http://jcsilva.github.io/2017/03/18/compile-kaldi-android/" target="_blank" rel="external">LINK</a></li>
+<li>OpenBlas的编译 <a href="https://github.com/xianyi/OpenBLAS/wiki/How-to-build-OpenBLAS-for-Android" target="_blank" rel="external">LINK</a></li>
+</ul>
+<p>我踩过的坑如下：</p>
+<h3 id="配置本地编译环境"><a href="#配置本地编译环境" class="headerlink" title="配置本地编译环境"></a>配置本地编译环境</h3><p>这一步之前编译OpenBlas的时候也用过，使用ndk自带的<code>make_standalone_toolchain.py</code>脚本配置编译环境，安装完毕之后，将安装目录下的bin文件夹导入环境变量。脚本比较重要的参数是<code>--api</code>和<code>--stl</code>。其中<code>--stl</code>配置NDK的运行时（gnustl/libc++/stlport），<code>--api</code>配置SDK的版本，这两个配置选项要和后续的Application.mk保持一致的，分别对应<code>APP_STL</code>和<code>APP_PLATFORM</code>。<code>--arm</code>配置编译平台，安卓手机对应<code>arm</code>或者<code>arm64</code>，对应Application.mk中<code>APP_ABI</code>的<code>armeabi/armeabi-v7a</code>和<code>arm86-v8a</code>。另外，切记，openblas和kaldi在同意一个toolchain下完成编译。</p>
+<h3 id="编译clapack"><a href="#编译clapack" class="headerlink" title="编译clapack"></a>编译clapack</h3><p>这个也很简单，github上有人已经构建好了工程，简单修改Android.mk执行ndk-build就行。</p>
+<h3 id="编译openblas"><a href="#编译openblas" class="headerlink" title="编译openblas"></a>编译openblas</h3><p>openblas编译基本不会出现问题，参照上面给出的链接即可。将clapack生成的blas，lapack，clapack，f2c四个库拷贝到openblas安装目录下的lib中，kaldi会自动配置到kaldi.mk中作为链接库。</p>
+<h3 id="编译kaldi"><a href="#编译kaldi" class="headerlink" title="编译kaldi"></a>编译kaldi</h3><p>由于修改了原先的工程目录，所以需要修改一下Makefile和configure文件</p>
+<ol>
+<li>去除configure文件中关于openfst的检查脚本</li>
+<li>修改Makefile中的SUBDIR(控制编译那些目录)，以及各子目录中的Makefile（ADDLIBS是本目录的依赖库，OBJFILES是要打包到静态库中的目标文件，不需要生成测试文件就将TESTFILES注释即可)</li>
+<li>注释android_openblas.mk中openfst的宏定义，将宏<code>ANDROIDINC</code>修正为<code>ANDROIDINCDIR</code>（脚本的bug，因为configure中定义的是<code>ANDROIDINCDIR</code>），注意一下<code>CXXFLAGS</code>的参数，后面链接的时候要用到。</li>
+<li>kaldi默认在编译android平台只能生成静态库</li>
+</ol>
+<h3 id="AS的配置"><a href="#AS的配置" class="headerlink" title="AS的配置"></a>AS的配置</h3><p>上述过程倒是很少出现问题，在AS中用cmake或者ndk生成动态库是主要的头疼点（一系列让人摸不着头脑的链接错误）。首先说明kaldi的编译和链接参数如下（来自android_openblas.mk）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">-DKALDI_DOUBLEPRECISION=0 # BaseFloat为单精度 </div><div class="line">-DHAVE_CXXABI_H </div><div class="line">-DHAVE_OPENBLAS # 在cblas_wrapper.h中用到，表示blas用openblas实现</div><div class="line">-DANDROID_BUILD -ftree-vectorize </div><div class="line">-mfloat-abi=hard -mfpu=neon -mhard-float -D_NDK_MATH_NO_SOFTFP=1 # openblas用到</div></pre></td></tr></table></figure></p>
+<p>以及<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">-Wl,--no-warn-mismatch </div><div class="line">-lm_hard # openblas用到</div></pre></td></tr></table></figure></p>
+<p>以上参数需要在Android.mk或者CmakeLists.txt中等价的实现，cmake我没有成功过，Android.mk目前配置如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">LOCAL_PATH := $(call my-dir)</div><div class="line"></div><div class="line"># 预构建静态库</div><div class="line">include $(CLEAR_VARS)</div><div class="line">LOCAL_MODULE := kaldi-prebuild</div><div class="line">LOCAL_SRC_FILES := libkaldi.a</div><div class="line">include $(PREBUILT_STATIC_LIBRARY)</div><div class="line"></div><div class="line">include $(CLEAR_VARS)</div><div class="line"></div><div class="line">LOCAL_MODULE    := kaldi</div><div class="line">LOCAL_SRC_FILES := impl.cpp</div><div class="line"></div><div class="line"># 编译选项</div><div class="line">LOCAL_CFLAGS += -DKALDI_DOUBLEPRECISION=0 -DHAVE_CXXABI_H \</div><div class="line">                 -DHAVE_OPENBLAS -DANDROID_BUILD -ftree-vectorize \</div><div class="line">                 -mfloat-abi=hard -mfpu=neon -mhard-float -D_NDK_MATH_NO_SOFTFP=1</div><div class="line"># 链接选项</div><div class="line">LOCAL_LDFLAGS += -Wl,--no-warn-mismatch -lm_hard</div><div class="line"># 链接静态库，为什么只有一个？我把各个静态库压成一个了</div><div class="line">LOCAL_STATIC_LIBRARIES += kaldi-prebuild</div><div class="line"># 定义头文件路径</div><div class="line">LOCAL_C_INCLUDES += $(LOCAL_PATH)/blas $(LOCAL_PATH)</div><div class="line"># 动态链接log库</div><div class="line">LOCAL_LDLIBS += -llog</div><div class="line"></div><div class="line">include $(BUILD_SHARED_LIBRARY)</div></pre></td></tr></table></figure></p>
+<p>对应的Application.mk如下，之前说明过，配置要和toolchain保持一致<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">APP_ABI := armeabi-v7a # 用到了openblas</div><div class="line">APP_STL := c++_static # libc++</div><div class="line">APP_CPPFLAGS := -fexceptions # 打开异常开关</div><div class="line">APP_PLATFORM := android-24 # SDK-24</div></pre></td></tr></table></figure></p>
+<p>这期间遇到的问题如下：</p>
+<h4 id="cmake的VFP问题"><a href="#cmake的VFP问题" class="headerlink" title="cmake的VFP问题"></a>cmake的VFP问题</h4><p>使用链接openblas如果不加<code>-mhard-float -D_NDK_MATH_NO_SOFTFP=1 -lm_hard</code>这些选项的话，会出现<code>*.a use VFP arguments, but output not</code>的链接错误，但是，我在CmakeLists.txt中的<code>add_definitions</code>和gradle中的<code>cppFlags</code>都尝试过添加这些选项，均没有解决该问题，只能转战ndk+Android.mk了。</p>
+<h4 id="f2c-的未定义问题"><a href="#f2c-的未定义问题" class="headerlink" title="f2c_的未定义问题"></a>f2c_的未定义问题</h4><p>这个推测应该是和静态库的链接顺序有关系，Android.mk要链接静态库，须先预构建一下（我暂时不知道其他链接方法），然后将预构建好的模块进行连接（加到<code>LOCAL_STATIC_LIBRARIES</code>参数之后），有一种说法是越基本的库放的越靠后，我在<code>kaldi-base.a kaldi-matrix.a</code>和五个blas相关的库上做过各种顺序的尝试，但是始终没能解决该问题（要么是<code>f2c</code>的为定义，要么是<code>openblas</code>的未定义），最终用粗暴的方法，将这几个库打包成一个静态库解决该问题的（尽量保证openblas和clapack库是同一个toolchain构建的）</p>
+<h4 id="ndk命名空间错误"><a href="#ndk命名空间错误" class="headerlink" title="ndk命名空间错误"></a>ndk命名空间错误</h4><p>这个错误是后来做了若干修正之后解决的，现在回想，可能的原因是Application.mk中的<code>APP_PLATFORM</code>和<code>APP_STL</code>和toolchain配置的<code>api/stl</code>不匹配。</p>
+<p>到这里，在jni文件夹外边使用<code>ndk-build</code>已经可以直接生成静态库了，但是，如果在AS中build的话，还是会出现<code>rand_r, rand, posix_memalign</code>这些函数的未定义，目前这些问题还没有解决，我通过gradle配置ndk的构建方法替换AS自身的逻辑来跳过这个错误，在gradle中<code>android{}</code>添加配置如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">sourceSets.main &#123;</div><div class="line">        jni.srcDirs = [] # 禁用AS默认的jni目录</div><div class="line">    &#125;</div><div class="line"></div><div class="line">task ndkBuild(type: org.gradle.api.tasks.Exec, description: &quot;compile JNI by NDK&quot;) &#123;</div><div class="line">    commandLine &quot;/Users/wujian/Library/Android/sdk/ndk-bundle/ndk-build&quot;,</div><div class="line">            &apos;NDK_PROJECT_PATH=build/intermediates/ndk&apos;,</div><div class="line">            &apos;NDK_LIBS_OUT=src/main/jniLibs&apos;,</div><div class="line">            &apos;APP_BUILD_SCRIPT=src/main/jni/Android.mk&apos;,</div><div class="line">            &apos;NDK_APPLICATION_MK=src/main/jni/Application.mk&apos;</div><div class="line">&#125;</div><div class="line"></div><div class="line">tasks.withType(JavaCompile) &#123;</div><div class="line">    compileTask-&gt;compileTask.dependsOn ndkBuild</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这种方法并不推荐，实际上个人觉得还是AS支持的ndk和cmake最佳，右击<code>app</code>，选择构建工具，link一下<code>CMakeLists.txt</code>或者<code>Android.mk</code>就行了。以后找到问题所在还是会切换过去的。</p>
+<p>无非就是一个链接问题，前后折腾了五天，现在总结的话，大致也只用这么多可以被写下来的东西。不过，想到今后从模型到demo的可以省下的大把时间，还是一件值得的事情。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/07/20/link-kaldi-on-android/" title="在安卓上使用kaldi进行模型开发">http://www.funcwj.cn/2017/07/20/link-kaldi-on-android/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/06/20/apply-dtw-in-kws/" rel="next" title="DTW在语音唤醒中的应用">
+                <i class="fa fa-chevron-left"></i> DTW在语音唤醒中的应用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/24/BP-for-dense/" rel="prev" title="全连接神经网络的BP推导">
+                全连接神经网络的BP推导 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置本地编译环境"><span class="nav-number">1.</span> <span class="nav-text">配置本地编译环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编译clapack"><span class="nav-number">2.</span> <span class="nav-text">编译clapack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编译openblas"><span class="nav-number">3.</span> <span class="nav-text">编译openblas</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编译kaldi"><span class="nav-number">4.</span> <span class="nav-text">编译kaldi</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AS的配置"><span class="nav-number">5.</span> <span class="nav-text">AS的配置</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#cmake的VFP问题"><span class="nav-number">5.1.</span> <span class="nav-text">cmake的VFP问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#f2c-的未定义问题"><span class="nav-number">5.2.</span> <span class="nav-text">f2c_的未定义问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ndk命名空间错误"><span class="nav-number">5.3.</span> <span class="nav-text">ndk命名空间错误</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

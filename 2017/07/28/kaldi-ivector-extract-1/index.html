@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="kaldi中ivector的提取程序在ivector-extract和ivector-extract-online2中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kaldi中ivector的提取【一】">
+<meta property="og:url" content="http://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="kaldi中ivector的提取程序在ivector-extract和ivector-extract-online2中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="kaldi中ivector的提取【一】">
+<meta name="twitter:description" content="kaldi中ivector的提取程序在ivector-extract和ivector-extract-online2中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/"/>
+
+
+
+
+
+  <title>kaldi中ivector的提取【一】 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">kaldi中ivector的提取【一】</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-28T23:43:29+08:00">
+                2017-07-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,085
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>kaldi中ivector的提取程序在<code>ivector-extract</code>和<code>ivector-extract-online2</code>中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。<br><a id="more"></a></p>
+<h3 id="离线方法"><a href="#离线方法" class="headerlink" title="离线方法"></a>离线方法</h3><p>离线方法是指，在事先获取了句子的特征和高斯后验的情况下，估计出一个ivector向量。<br>对于句子 $\mathbf{U}_{T \times F} = \{\mathbf{x}_1, \mathbf{x}_2, \cdots, \mathbf{x}_T\}^T$和对应的高斯后验 $\mathbf{P}_{T \times C}= \{\mathbf{p}_1, \mathbf{p}_2, \cdots, \mathbf{p}_T\}^T$，首先得到提取ivector所需要的零阶和一阶统计量：</p>
+<script type="math/tex; mode=display">
+\gamma_c = \sum_{t = 1}^T \mathbf{p}_{t,c} \\
+\mathbf{F}_c = \sum_{t = 1}^T \mathbf{p}_{t,c} \mathbf{x}_t</script><p>存储在$\boldsymbol{\gamma}_{C \times 1}$和$\mathbf{F}_{C \times F}$中。</p>
+<p>之后利用加载好的ivector提取器，调用<code>GetIvectorDistribution</code>函数并传入上述统计量将得到的均值作为ivector。ivector提取器<code>IvectorExtractor</code>中维护ivector提取过程中说话人无关的一些量，比如$\mathbf{T}$矩阵和UBM方差等等，由于kaldi代码中变量命名和我们常见的公式中不一致，这里以论文中常见的表示为标准。比较重要的量如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Matrix&lt;<span class="keyword">double</span>&gt; &gt; M_;</div><div class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;SpMatrix&lt;<span class="keyword">double</span>&gt; &gt; Sigma_inv_;</div><div class="line">Matrix&lt;<span class="keyword">double</span>&gt; U_; <span class="comment">//上三角作为一行</span></div><div class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Matrix&lt;<span class="keyword">double</span>&gt; &gt; Sigma_inv_M_;</div></pre></td></tr></table></figure></p>
+<p>其中<code>M_</code>表示$\mathbf{T}_{C \times F \times R}$，表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{T} = [\mathbf{T}_1, \mathbf{T}_2, \cdots, \mathbf{T}_C]</script><p><code>Sigma_inv_</code>表示$\mathbf{\Sigma}^{-1}_{C \times F \times F}$，表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{\Sigma}^{-1} = [\mathbf{\Sigma}^{-1}_1, \mathbf{\Sigma}^{-1}_2, \cdots, \mathbf{\Sigma}^{-1}_C]</script><p><code>U_</code>和<code>Sigma_inv_M_</code>由上面两个变量计算得到，分别定义为$\mathbf{U}_{C \times R \times R}, \mathbf{B}_{C \times F \times R}$：</p>
+<script type="math/tex; mode=display">
+\mathbf{U} = \mathbf{T}^T \cdot \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{T}_2^T \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{T}_C^T \mathbf{\Sigma}^{-1}_C\mathbf{T}_C ] \\
+\mathbf{B} = \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{\Sigma}^{-1}_C \mathbf{T}_C]</script><p>令$\mathbf{w} = \mathbf{Q}^{-1}\mathbf{L}$，那么$\mathbf{Q}, \mathbf{L}$的计算过程如下：</p>
+<script type="math/tex; mode=display">
+\mathbf{L}_{R \times 1} = \sum_{c = 1}^C (\mathbf{B}_c^T)_{R \times F} (\mathbf{F}_c)_{F \times 1} \\
+\mathbf{Q}_{R \times R} = \sum_{c = 1}^C \mathbf{U}_c\gamma_c + \mathbf{I}</script><p>观察到$\mathbf{T}_i^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_i$为对称矩阵，所以为了存储高效，保留上三角即可，因而$\mathbf{U}_{C \times R \times R}$可以退化为$\mathbf{U}_{C \times (R + 1) / 2}$，写成：</p>
+<script type="math/tex; mode=display">
+\mathbf{U}_{C \times (R + 1) / 2} = 
+\begin{vmatrix}
+\text{Utri}(\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_1) \\
+\text{Utri}(\mathbf{T}_2^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_2) \\
+\cdots \\
+\text{Utri}(\mathbf{T}_C^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_C)
+\end{vmatrix}</script><p>那么$\mathbf{Q}_{R \times R}$可由$\mathbf{U}^T_{(R + 1) / 2 \times C} \boldsymbol{\gamma}_{C \times 1}$计算得到。</p>
+<p>上述过程对应的代码在下面的函数中实现，参数<code>mean</code>即为传入的ivector向量。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> IvectorExtractor::GetIvectorDistribution (</div><div class="line">    <span class="keyword">const</span> IvectorExtractorUtteranceStats &amp;utt_stats,</div><div class="line">    VectorBase&lt;<span class="keyword">double</span>&gt; *mean,</div><div class="line">    SpMatrix&lt;<span class="keyword">double</span>&gt; *var) <span class="keyword">const</span></div></pre></td></tr></table></figure></p>
+<h3 id="在线方法"><a href="#在线方法" class="headerlink" title="在线方法"></a>在线方法</h3><p>在线方法需要提供一个配置文件，这个文件使用脚本<code>prepare_online_decoding.sh</code>生成，一个典型的配置文件如下：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">--splice-config=$PREFIX/exp/nnet2_online/nnet2_ms_online/conf/splice.conf</div><div class="line">--cmvn-config=$PREFIX/exp/nnet2_online/nnet2_ms_online/conf/online_cmvn.conf</div><div class="line">--lda-matrix=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/final.mat</div><div class="line">--global-cmvn-stats=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/global_cmvn.stats</div><div class="line">--diag-ubm=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/final.dubm</div><div class="line">--ivector-extractor=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/final.ie</div><div class="line">--num-gselect=5</div><div class="line">--min-post=0.025</div><div class="line">--posterior-scale=0.1</div><div class="line">--max-remembered-frames=1000</div><div class="line">--max-count=100</div></pre></td></tr></table></figure></p>
+<p>其中前六个比较熟悉，分别是拼帧配置，在线cmvn配置，LDA变换矩阵，全局cmvn统计量，UBM和训练好的ivector提取器。还有两个配置参数比较重要，分别是<code>--use_most_recent_ivector</code>和<code>--ivector_period</code>。前者默认为<code>true</code>，表示每次使用最估计的ivector，否则计算出的ivector需要缓存下来，以便获取到设定时间估计出的ivector，后者设置每多少帧估计一个ivector。</p>
+<p>这些配置文件用来初始化<code>OnlineIvectorExtractionConfig</code>，具体的对象载入在<code>OnlineIvectorExtractionInfo</code>中完成，前者作为后者初始化的参数。核心代码流程如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (; !spk2utt_reader.Done(); spk2utt_reader.Next()) &#123;</div><div class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> spk = spk2utt_reader.Key();</div><div class="line">    <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt; &amp;uttlist = spk2utt_reader.Value();</div><div class="line">    <span class="comment">// adaptation_state是针对一个同一个说话人的，结构体成员：</span></div><div class="line">    <span class="comment">// OnlineCmvnState cmvn_state;  </span></div><div class="line">    <span class="comment">// OnlineIvectorEstimationStats ivector_stats;</span></div><div class="line">    <span class="function">OnlineIvectorExtractorAdaptationState <span class="title">adaptation_state</span><span class="params">(ivector_info)</span></span>;</div><div class="line">    </div><div class="line">    <span class="comment">// 对于同一个说话人的所有句子</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; uttlist.size(); i++) &#123;</div><div class="line">        <span class="built_in">std</span>::<span class="built_in">string</span> utt = uttlist[i];</div><div class="line">    </div><div class="line">        <span class="comment">// 得到该句子的特征</span></div><div class="line">        <span class="keyword">const</span> Matrix&lt;BaseFloat&gt; &amp;feats = feature_reader.Value(utt);</div><div class="line">        <span class="function">OnlineMatrixFeature <span class="title">matrix_feature</span><span class="params">(feats)</span></span>;</div><div class="line">        <span class="comment">// 根据ivector_info初始化一系列具体的online特征</span></div><div class="line">        <span class="comment">// 比如OnlineSpliceFrames，OnlineTransform，OnlineCmvn等等</span></div><div class="line">        <span class="function">OnlineIvectorFeature <span class="title">ivector_feature</span><span class="params">(ivector_info, &amp;matrix_feature)</span></span>;</div><div class="line">        </div><div class="line">        <span class="comment">// ivector_stats_和cmvn_初始化</span></div><div class="line">        ivector_feature.SetAdaptationState(adaptation_state);</div><div class="line">    </div><div class="line">        <span class="comment">// repeat 默认false，ivector_period表示每多少帧取一个ivector，默认为10</span></div><div class="line">        int32 T = feats.NumRows(),</div><div class="line">            n = (repeat ? <span class="number">1</span> : ivector_config.ivector_period),</div><div class="line">            num_ivectors = (T + n - <span class="number">1</span>) / n;</div><div class="line">    </div><div class="line">        <span class="comment">// num_ivectors 决定一句话提取多少个ivector</span></div><div class="line">        Matrix&lt;BaseFloat&gt; ivectors(num_ivectors, ivector_feature.Dim());</div><div class="line">    </div><div class="line">        <span class="keyword">for</span> (int32 i = <span class="number">0</span>; i &lt; num_ivectors; i++) &#123;</div><div class="line">            int32 t = i * n;</div><div class="line">            <span class="comment">// 对应第i个ivector</span></div><div class="line">            SubVector&lt;BaseFloat&gt; ivector(ivectors, i);</div><div class="line">            <span class="comment">// 核心过程，调用函数UpdateStatsUntilFrame</span></div><div class="line">            ivector_feature.GetFrame(t, &amp;ivector);</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// Update diagnostics.</span></div><div class="line">        <span class="comment">// ...</span></div><div class="line">        <span class="comment">// 更新adaptation_state</span></div><div class="line">        ivector_feature.GetAdaptationState(&amp;adaptation_state);</div><div class="line">        <span class="comment">// 完成提取</span></div><div class="line">        ivector_writer.Write(utt, ivectors);</div><div class="line">        num_done++;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>上述过程的核心：<code>GetFrame</code>方法的逻辑会在kaldi中ivector的提取【二】中详细分析。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/" title="kaldi中ivector的提取【一】">http://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/27/learn-about-ivector/" rel="next" title="ivector的初步了解">
+                <i class="fa fa-chevron-left"></i> ivector的初步了解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/02/kaldi-online-decoder/" rel="prev" title="对kaldi中Online-Decoder的分析">
+                对kaldi中Online-Decoder的分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#离线方法"><span class="nav-number">1.</span> <span class="nav-text">离线方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在线方法"><span class="nav-number">2.</span> <span class="nav-text">在线方法</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

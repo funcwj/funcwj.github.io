@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="话说图像分类那边喜欢把网络往深处设计，语音这边也跟风走势，DeepRNN和DeepCNN接连出现在各种实验论文中。不过在网络成功走向深处之前，它的难点也是疑问在于，不加修正的加深网络层数，并不能获得相应的结果提升。于是各方大佬就进行了各种尝试和改良。截止目前，成功尝试包括以下三种：  Highway Network Residual Network，可以看做HN的特殊情况，ResNet在图像分类上">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deep RNN">
+<meta property="og:url" content="http://www.funcwj.cn/2017/10/08/deep-rnn/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="话说图像分类那边喜欢把网络往深处设计，语音这边也跟风走势，DeepRNN和DeepCNN接连出现在各种实验论文中。不过在网络成功走向深处之前，它的难点也是疑问在于，不加修正的加深网络层数，并不能获得相应的结果提升。于是各方大佬就进行了各种尝试和改良。截止目前，成功尝试包括以下三种：  Highway Network Residual Network，可以看做HN的特殊情况，ResNet在图像分类上">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.funcwj.cn/images/HW-LSTM.JPG">
+<meta property="og:image" content="http://www.funcwj.cn/images/recurrent-highway-networks.JPG">
+<meta property="og:updated_time" content="2017-10-08T15:28:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Deep RNN">
+<meta name="twitter:description" content="话说图像分类那边喜欢把网络往深处设计，语音这边也跟风走势，DeepRNN和DeepCNN接连出现在各种实验论文中。不过在网络成功走向深处之前，它的难点也是疑问在于，不加修正的加深网络层数，并不能获得相应的结果提升。于是各方大佬就进行了各种尝试和改良。截止目前，成功尝试包括以下三种：  Highway Network Residual Network，可以看做HN的特殊情况，ResNet在图像分类上">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/HW-LSTM.JPG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/10/08/deep-rnn/"/>
+
+
+
+
+
+  <title>Deep RNN | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/10/08/deep-rnn/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Deep RNN</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-08T23:24:58+08:00">
+                2017-10-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,880
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  7
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>话说图像分类那边喜欢把网络往深处设计，语音这边也跟风走势，DeepRNN和DeepCNN接连出现在各种实验论文中。不过在网络成功走向深处之前，它的难点也是疑问在于，不加修正的加深网络层数，并不能获得相应的结果提升。于是各方大佬就进行了各种尝试和改良。截止目前，成功尝试包括以下三种：</p>
+<ul>
+<li>Highway Network</li>
+<li>Residual Network，可以看做HN的特殊情况，ResNet在图像分类上用的很成功</li>
+<li>Recurrent Highway Network，中了ICML2017</li>
+</ul>
+<p>语音这边也基本是拿大佬们成功的实践往声学模型上尝试，也得到了一些识别率上的提升。<br><a id="more"></a></p>
+<h3 id="再谈RNN"><a href="#再谈RNN" class="headerlink" title="再谈RNN"></a>再谈RNN</h3><p>这里主要以pytorch为参考，说明一下RNN的输入输出关系以及内在设计思路，从而加深对RNN的理解。对于BaseRNN，GRU，LSTM，我们可以用一个笼统的式子表示其内在变换：</p>
+<script type="math/tex; mode=display">
+y, s_T = \mathcal{H}(x, s_0)</script><p>$s$表示state，即RNN内在的状态值，这个状态的解释如下：</p>
+<ul>
+<li>对于BaseRNN和GRU而言，状态表示RNN之前某时刻的输出，即$h_t$，原式可写为：$y, h_T = \mathcal{H}(x, h_0)$</li>
+<li>对于LSTM而言，由于cell存储了主要信息，状态表示之前某时刻下的输出和cell值，原式可写为：$y, h_T, c_T = \mathcal{H}(x, h_0, c_0)$</li>
+</ul>
+<p>$x, y$分别表示$t$时刻的输入和对应的输出。$\mathcal{H}$用来描述不同RNN对输入和状态的一系列操作。如果是LSTM的话，首先计算$i, f, g, o$各个门的值，之后更新cell值$c_t$，给出输出值$h_t$；GRU则计算$r, z$以及候选$\hat{h}_t$，给出$h_t$。</p>
+<p>pytorch里面，考虑到批训练准则（min-batch SGD），输入$x$的维度被设计为$[T, N, I]$，分别表示<code>time_steps,batch_size, input_size</code>，其中<code>time_steps</code>的存在由RNN的BPTT训练算法决定。与此对应的输出维度为$[T, N, O]$。$s_t$则记录下了每一个batch对应的每一层的状态值。如果不做sequence训练的话，那么一般是不需要使用$T$时刻的状态值$s_T$的，只需要拿到$y$将其返回给后续网络做输入即可。但是在类似CharRNN的任务中，仍旧需要将$T$时刻的状态传递下去，作为初始的$s_0$输入，这时候状态这个量就起到相应的作用了。</p>
+<p>以上这个过程是一个高度封装的结果，因为它既包含了时间轴上的展开，也包含了层间的传递，深入一点，即如何做时间展开（定义在<code>Recurrent</code>中），层与层之间如何堆叠传递（定义在<code>StackedRNN</code>中，实际上是在每一层中依次做的时间展开），可以参考pytorch的源码，RNN这部分代码主要分布在如下几个地方：</p>
+<ul>
+<li><code>pytorch/torch/nn/_functions/thnn/rnn.py</code>：实际定义了RNN的各种cell和层次封装</li>
+<li><code>pytorch/torch/nn/_functions/backends</code>：1和3之间的grue</li>
+<li><code>pytorch/torch/nn/_functions/modules/rnn.py</code>：最外层的封装，核心调用<code>backends.RNN</code></li>
+</ul>
+<h3 id="Deep-RNN"><a href="#Deep-RNN" class="headerlink" title="Deep RNN"></a>Deep RNN</h3><p>定义$h_l^t$表示DeepRNN中第$l$层$t$时刻的输出，$s_l^t$为第$l$层$t$时刻的状态，那么依据StackRNN的前一层的输入作为后层输入的关系，有：</p>
+<script type="math/tex; mode=display">
+h_l^t = \mathcal{H}(h_{l - 1}^t, s_l^{t - 1})</script><p>从上式可以看出，$l - 1$层的输入信息是无法直接到达下一层的。网络走向Deep的方案之一就是通过创建一条旁路（skip connection），允许输入通过，直接汇入输出中，这就是所谓的Highway Network（高速路网络，HWN）和Residual Network（残差网络， ResNet）的设计思路。通用的表示如下：</p>
+<script type="math/tex; mode=display">
+h_l^t = h_{l - 1}^t \odot w_i + \mathcal{H}(h_{l - 1}^t, s_l^{t - 1}) \odot w_o</script><p>HWN的形式更加通用一些，它允许网络动态的学习,权衡两者的权值$w_i, w_o$，即用一层仿射变换定义权值：</p>
+<script type="math/tex; mode=display">
+h_l^t = h_{l - 1}^t \odot C(h_{l -1}^t) + \mathcal{H}(h_{l - 1}^t, s_l^{t - 1}) \odot T(h_{l -1}^t)</script><p>也可以减少一部分学习参数，将$C$用$1 - T$来表示。ResNet可以看做HWN的一种特殊形式，即$C = T = 1$：</p>
+<script type="math/tex; mode=display">
+h_l^t = h_{l - 1}^t  + \mathcal{H}(h_{l - 1}^t, s_l^{t - 1})</script><p>强制网络的输出学习$\mathcal{F} - h_l^t$，其中$\mathcal{F}$表示我们期望的结果。Interspeech2017上谷歌有一篇文章（相关文献[5]）对比了两种跳转方案的优劣，发现HWN的学习能力强大一些。</p>
+<p>LSTM的情况可能要特殊一点，因为除了和RNN&amp;GRU共有的$h$之外，自己还有一个细胞状态$c$。我个人觉得如果按照上面的框架只考虑输出状态也是可行的，毕竟LSTM的输出也是读取了cell的结果。HW-LSTM和Res-LSTM的设计和应用可以参见相关文献[4]，[6]。</p>
+<p>在[4]中，LSTM的cell之间被加入了一个称为gated connection的东西$d$，将其用于修正LSTM中$c$的计算逻辑，即联通相邻层的cell。标准的LSTM，$c_t$计算逻辑如下：</p>
+<script type="math/tex; mode=display">
+c_t^l = f_t^l \odot c_{t - 1}^l + i_t^l \odot g_t^l</script><p>其中</p>
+<script type="math/tex; mode=display">
+g_t^l = \tanh(\mathbf{W}^l_{xg} x_t^l +\mathbf{W}^l_{hg}h_{t-1}^l + b_g)</script><p>上面的公式加上上标$l$是为了和HW-LSTM做对比。标准的LSTM仅仅允许$l$层的输出作为下一层的输入，不允许层间cell的信息流动。HW-LSTM添加了这种流动路径，将其修改为：</p>
+<script type="math/tex; mode=display">
+c_t^l = d_t^l \odot c_t^{l-1} + f_t^l \odot c_{t-1}^l + i_t^l \odot g_t^l</script><p>从上面的公式可以看出，$d_t^l$决定了下一层cell信息流动到当前层的量，值有下式给出：</p>
+<script type="math/tex; mode=display">
+d_t^l = \sigma(\mathbf{W}_{xd}^l x_t^l + \mathbf{w}_{cd}^l \odot c_t^{l - 1} +\mathbf{w}_{ld}^l \odot c_t^l + b_d)</script><p>文章中的示意图如下，红色区域即为添加的用来允许cell之间信息流动的connection：</p>
+<p><img src="http://www.funcwj.cn/images/HW-LSTM.JPG" alt="HW-LSTM"></p>
+<p>[6]中所谓Res-LSTM的设计就没有考虑cell之间的信息流动，仅仅在输出门上加了shortcut路径。不考虑Project层的话，输出$h_t$由$o_t \odot \tanh(c_t)$变为$h_t = o_t \odot (\tanh(c_t) + x_t)$。如果考虑Project层，那么考虑到project之后的维度和LSTM输入的维度未必保持一致，因此需要给$x_t$乘一个变换矩阵$\mathbf{W}_H$，即：</p>
+<script type="math/tex; mode=display">
+h_t = o_t \odot (\mathbf{W}_p p_t + \mathbf{W}_H x_t)</script><p>以上主要是通过HWN和ResNet使得RNN变得Deeper，ICML2017上出现了一种新的结构，循环高速网络，针对RNN提出的加深方案。</p>
+<p>Recurrent Highway Networks（简称RHN吧）中定义了一种新层：RHN层，并将该层的深度称为Recurrent Depth（简称RD）。对于RD为$L$的RHN层而言，它由一层RNN层和$L - 1$层HW层构成，若$L = 1$，那么所谓的RHN就和传统的RNN一致了，论文中配的单层RHN示意图如下：</p>
+<p><img src="http://www.funcwj.cn/images/recurrent-highway-networks.JPG" alt="RHN-structure"></p>
+<p>图中的$C,T,H$均表示激活变换（先进行仿射变换，再输入激活函数），输入有箭头的指向决定。可以看出，实际只有第一层输入了上一时刻的历史信息，但是每一层都有HW的逻辑在里面，最后一层的输出作为下一时刻第一层的输入。可以这么理解，传统的RNN保留当前层的输出作为自己的状态值，RHN允许RNN层的输入继续传递若干个HW层的输出作为状态值保留。</p>
+<p>对于$l(l &gt; 1)$层而言，输出$s_l^t$可以表达为：</p>
+<script type="math/tex; mode=display">
+s_l^t  = s_{l-1}^{t} \odot T( s_{l - 1}^{t}) + H(s_{l - 1}^{t}) \odot T(s_{l - 1}^{t})</script><p>$l = 1$时：</p>
+<script type="math/tex; mode=display">
+s_1^t  = s_{L}^{t - 1} \odot T(x_1, s_{L}^{t - 1}) + H(x_1, s_{L}^{t - 1}) \odot T(x_1, s_{L}^{t - 1})</script><p>以上所说只是一层RHN层，只是这一层里面有着$L$层的HW层。增大网络深度可以从增大RD和增加RHN层层数两个角度入手，在相关文献[5]中发现，堆叠RHN层比增大RD在近似参数量下更加有效（堆叠RHN引入了更多的Recurrent成分）。</p>
+<h3 id="相关文献"><a href="#相关文献" class="headerlink" title="相关文献"></a>相关文献</h3><p>[1]. <a href="https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/He_Deep_Residual_Learning_CVPR_2016_paper.pdf" target="_blank" rel="external">Deep residual learning for image recognition</a><br>[2]. <a href="https://arxiv.org/pdf/1505.00387.pdf" target="_blank" rel="external">Highway Networks</a><br>[3]. <a href="https://arxiv.org/abs/1607.03474" target="_blank" rel="external">Recurrent highway networks</a><br>[4]. Highway long short-term memory RNNS for distant speech recognition<br>[5]. Highway-LSTM and Recurrent Highway Networks for Speech Recognition<br>[6]. Residual LSTM: Design of a Deep Recurrent Architecture for Distant Speech Recognition </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/10/08/deep-rnn/" title="Deep RNN">http://www.funcwj.cn/2017/10/08/deep-rnn/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/07/CNN-for-ASR-1/" rel="next" title="CNN for ASR part-1">
+                <i class="fa fa-chevron-left"></i> CNN for ASR part-1
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/11/11/overview-of-beamformer/" rel="prev" title="Overview of Beamformer">
+                Overview of Beamformer <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#再谈RNN"><span class="nav-number">1.</span> <span class="nav-text">再谈RNN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deep-RNN"><span class="nav-number">2.</span> <span class="nav-text">Deep RNN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关文献"><span class="nav-number">3.</span> <span class="nav-text">相关文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

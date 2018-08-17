@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ASR," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CNN for ASR part-1">
+<meta property="og:url" content="http://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/4e4jnylfzt8pwpb578oxrect/convolution-along-frequency.PNG">
+<meta property="og:updated_time" content="2017-10-07T17:20:13.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CNN for ASR part-1">
+<meta name="twitter:description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
+<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/4e4jnylfzt8pwpb578oxrect/convolution-along-frequency.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/"/>
+
+
+
+
+
+  <title>CNN for ASR part-1 | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CNN for ASR part-1</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-07T23:12:25+08:00">
+                2017-10-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  2,555
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  9
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>ASR这块的CNN&amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直想多搭搭模型，跑跑实验，测测WER。<br><a id="more"></a></p>
+<p>我想将声学模型这块任务从kaldi迁移到pytorch/tensorflow上，理由是自己可以多了解一些流程上的具体工作。kaldi的强大在于，它从前端的特征提取，数据准备，语料对齐，到声学模型的训练，后期的解码，提供了整套的服务。但是问题是，很多人跑完脚本之后，并不知道我这个模型的输入构建，以及训练流程具体是怎么进行的，除非细致的看一下代码。我个人认为这对学习者而言不是什么好事。因此考虑切换工具，自己把控数据格式，模型搭建和训练流程。</p>
+<p>这里先说一下CNN。</p>
+<h3 id="CNN概述"><a href="#CNN概述" class="headerlink" title="CNN概述"></a>CNN概述</h3><p>卷积这个操作在信号领域本身就是含有特殊意义的，传统的方法可以人工设计一个滤波器（高通/低通/带通之类的）对输入信号进行信息/特征提取或者过滤，它不像仿射变换，很难理解它在实际问题中到底做了什么。比如在图像中，高通滤波可以检测出图片的边缘信息，这就可以理解成一种图像特征（边缘特征）。检测出这种特征的滤波器当然不止一种，边缘检测这块就有Roberts，Sobel，Prewitt等等算子（具体可以参见冈萨雷斯的数字图像处理，本科的东西有点忘了）。 CNN的卷积层就可以理解为一组（假设为$N$）这样的滤波器，分别对输入信号进行卷积（根据输入的维度，可以是一维/二维的），得到$N$组特征。CNN的训练就是要训出这样的一组滤波器。 使得在这组滤波特征之上，配合激活，池化，以及feed后续网络层的操作使得模型分类/回归效果最佳。</p>
+<p>实际网络输入都是离散化（经过采样）的值，因此所谓的卷积均为离散形式。记得在数字信号里面，解释卷积是这么回事：</p>
+<blockquote>
+<p>信号$A$和$B$卷积，将$B$翻转，从左往右的逐步移动，每移动一次，计算对应位置的乘积之和，直到两者完全不相交为止</p>
+</blockquote>
+<p>这个时域上的翻转比较难理解，但是如果$B$是卷积核，又是对称的，那么解释卷积就变成了模板操作，即将卷积核/模板$B$在$A$上移动，在$A$被$B$覆盖的区域内（感受野）两者对应相乘。所以实际操作中并不考虑这个翻转操作。也可以这么理解，CNN训练之前，各个滤波器/卷积核/模板都是未知的，卷积的时候不做翻转，那么最终训出的结果就是翻转之后的结果，道理是一样的。另外需要注意的是，信号里面的卷积默认做padding的，即超出被卷信号$A$的时长部分按照0处理，因此卷积之后的结果一定比原来信号时长长，我记得好像有个结论$M+N-1$之类的。但是CNN里面的卷积（以二维为例），如果设置padding大小，那么卷出来的结果是越来越小的。</p>
+<p>因此卷积这一步有如下概念：</p>
+<ol>
+<li>卷积核大小</li>
+<li>卷积核移动步长，即每次在特定方向上移动多少步</li>
+<li>是否要做边缘padding，是否要边缘补充0</li>
+</ol>
+<p>类似的，池化操作也有以上概念。池化层相当于一组特征的滤波器/卷积核，它对输入进行特定的变换，比如取最大（maxpool）或者取平均（avgpool）等等。池化层的作用在于减少信息冗余量，提高特征鲁棒性。CNN设计者认为卷积层之后的结果在空间上是具有variation的，对相邻区域的特征进行将采样，可以减少这种variation带来的不稳定性。另外池化层需要放在激活层之后。</p>
+<p>在设计CNN的时候，需要关注输入输出信号之间的大小关系，定义在某方向上的卷积核大小为$N_k$，移动步长为$N_s$，padding长度为$N_p$，该方向上输入信号长度为$N_i$，那么对应方向上输出长度$N_o$由下式得出：</p>
+<script type="math/tex; mode=display">
+N_o = \text{floor}((N_i + 2N_p - (N_k - 1) - 1) / N_s + 1)</script><p>如果要保证输入输出信号大小不发生变化，那么保证$N_s = 1$，$N_p = (N_k - 1) / 2$。</p>
+<p>CNN这块还有一个信道（channel）的概念，比如语音信号中的delta，图像的RGB等等。假设输入为3个信道，那么$N$个卷积核产生的特征个数是$3N$还是$N$？我的理解还是$N$，只不过卷积需要在三个信道上进行，并将对应的结果相加，表示如下：</p>
+<script type="math/tex; mode=display">
+O_i = \sigma \left(\sum_j^J I_j * W_{ji} \right)</script><p>其中$J$表示输入信道个数，$I,O$表示输入输出，$W_{ij}$表示输入信道$i$和输出信道$j$之间的卷积核。</p>
+<p>补充，<a href="https://github.com/vdumoulin/conv_arithmetic" target="_blank" rel="external">Github上关于卷积的一个可视化</a></p>
+<h3 id="CNN-in-ASR"><a href="#CNN-in-ASR" class="headerlink" title="CNN in ASR"></a>CNN in ASR</h3><p>首先需要说明，CNN在语音中被设计来降低频域的variation（时域的variation是用HMM来建模）的，因此很多声学模型中的CNN仅仅在输入特征的频率轴上进行卷积（已经有实验验证，在频率轴上卷积的效用更大一些。频率轴卷积是什么意思后面给出自己的理解）。故输入CNN的特征不可以是MFCC（因为其中做了iFFT，破坏了频谱的局部相关性），只能是谱特征以及其衍生特征比如FBANK等等。通过语谱图可以知道，同一个音素的发音在各个频率的分布是有规律的，但是不同的人，不同的性别在频率轴上的共振峰会有shift。通过卷积和池化操作可以降低这种shift带来的影响，相当于提取了一个更加鲁棒的特征。</p>
+<p>其次，就是卷积这个操作的参数量很少，对于$N$个卷积核，一层仅仅会产生$N \times K_x \times K_y$个参数，因此在移动终端设备上的应用前景很大（模型复杂度低，计算量少，不同卷积之间可以并行等等）。CNN常见的使用方式是通过卷积层提取鲁棒特征，作为后续的全连接层的输入。</p>
+<p>图像自然就是二维的，语音的基本单位为帧，一帧特征对应的只是向量，输入CNN的话，取一个时间窗$T$内的特征构成二维的频谱图$F_{B \times T}$。我对进行频率轴上的卷积的理解如下：</p>
+<p>即卷积核的长度和时间窗保持一致，宽度自定（也就是指定的filter_size），移动仅仅在频率轴上进行。这样实际上卷积的结果是一个向量。而如果在时间轴也进行卷积，那么卷积核的大小均可以自定，卷积产生一个矩阵。</p>
+<p>但是在文献[4]中提出了两种组织方式，这里以40维FBANK特征来说明：</p>
+<ol>
+<li>组织成$N$个$T \times F$的矩阵，故进行二维卷积。$N$为feature maps的个数，取决于是否进行delta</li>
+<li>组织成$N \times T$个向量，故进行一维卷积。每个向量长度为$F$，$N \times T$为feature maps的个数，取决于是否delta以及上下文的宽度。</li>
+</ol>
+<p>ASR这边的文献中有几个常见的概念，我的理解如下：</p>
+<ul>
+<li>feature maps：$N$个卷积核卷积输入信号得到$N$组卷积特征，每一组滤波特征称为一个feature maps，等于卷积层的输出信道数目，可以理解为信道。</li>
+<li>feature bands：以40维FABNK特征为例子，每一维上的特征序列称为一个feature band。如果连续多帧，一个feature band对应一个特征向量，单帧仅仅为一个数值。</li>
+<li>LWS/FWS（local/full weight sharing）：默认一个卷积核一次卷积操作中保持不变，称为FWS，如果在不同的频率值上允许卷积核变化，称为LWS。</li>
+</ul>
+<p>沿着频率轴的FWS卷积过程可以参考下图理解，图选自相关文献[2]：</p>
+<center><img src="http://static.zybuluo.com/funcwj/4e4jnylfzt8pwpb578oxrect/convolution-along-frequency.PNG" width="500"></center>
+
+<p>CNN在文献[4]中总结的比较全面，[4]和[1]，[2]的第一作者都是一个人，因而可以看做他工作的总结。</p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>目前在TIMIT语料上简单跑了几组实验，与很多文献不同的是，我的建模单元采用对齐模型(SAT)的1923个pdf，而不是$61 \times 3 = 183$个。评估方法依旧是标准test集合的PER。主要和传统的DNN比较结果（RNN的结果还没有出来）。模型用pytorch训练，解码使用kaldi内置的<code>latgen-faster-mapped</code>命令，将模型后验转为lattice进行PER的打分计算。其中CNN部分的频轴卷积是按照我自己的理解实现的。实验结果如下：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">MODEL</th>
+<th style="text-align:center">PER</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">DNN(3X1024) + BN</td>
+<td style="text-align:center">25.3%</td>
+</tr>
+<tr>
+<td style="text-align:center">DNN(4X512) + BN</td>
+<td style="text-align:center">24.1%</td>
+</tr>
+<tr>
+<td style="text-align:center">DNN(4X512) + BN + Dropout</td>
+<td style="text-align:center">23.8%</td>
+</tr>
+<tr>
+<td style="text-align:center">DNN(4X1024) + BN + Dropout</td>
+<td style="text-align:center">23.7%</td>
+</tr>
+<tr>
+<td style="text-align:center">CNN(K10,P6) + DNN(2X512)</td>
+<td style="text-align:center">23.1%</td>
+</tr>
+<tr>
+<td style="text-align:center">CNN(K10,P6) + DNN(2X512) + BN + Dropout</td>
+<td style="text-align:center">22.7%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>从实验记录中可以看出：</p>
+<ol>
+<li>BN和Dropout的正面作用。</li>
+<li>DNN中深度比宽度更有助于提高识别率。</li>
+<li>CNN的声学建模的鲁棒性（参数量最少，但是获得了最低的错误率）。</li>
+</ol>
+<h3 id="相关文献"><a href="#相关文献" class="headerlink" title="相关文献"></a>相关文献</h3><p>[1]. <a href="http://ieeexplore.ieee.org/abstract/document/6288864/&amp;hl=zh-CN&amp;sa=T&amp;oi=gsb&amp;ct=res&amp;cd=0&amp;ei=0EjXWdjBLIS1jwSCnorQCw&amp;scisig=AAGBfm3sg32eAxnNkrdEEWI_LCFG1_--hg" target="_blank" rel="external">Applying convolutional neural networks concepts to hybrid NN-HMM model for speech recognition</a><br>[2]. <a href="https://pdfs.semanticscholar.org/655a/e6f82c24e3e01b2b27c56512b06ba36d49c1.pdf&amp;hl=zh-CN&amp;sa=T&amp;oi=gsb-ggp&amp;ct=res&amp;cd=0&amp;ei=_kjXWciYBafajgS1iql4&amp;scisig=AAGBfm0dMFE-emqMrMYpuAXNvTtis2pCSA" target="_blank" rel="external">Exploring convolutional neural network structures and optimization techniques for speech recognition.</a><br>[3]. <a href="http://ieeexplore.ieee.org/abstract/document/6639347/&amp;hl=zh-CN&amp;sa=T&amp;oi=gsb&amp;ct=res&amp;cd=0&amp;ei=KknXWYbGFMbFjwSsyICADQ&amp;scisig=AAGBfm2F0Zlu0ciUwadzshNNm80IQQhuhA" target="_blank" rel="external">Deep convolutional neural networks for LVCSR</a><br>[4]. <a href="http://ieeexplore.ieee.org/abstract/document/6857341/&amp;hl=zh-CN&amp;sa=T&amp;oi=gsb&amp;ct=res&amp;cd=0&amp;ei=SEnXWYPOC9DzjgT5uBY&amp;scisig=AAGBfm1PlLteiDuanigiEmvVCvtC99jA3g" target="_blank" rel="external">Convolutional neural networks for speech recognition</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/" title="CNN for ASR part-1">http://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/02/building-ssr-service/" rel="next" title="搭建SSR服务">
+                <i class="fa fa-chevron-left"></i> 搭建SSR服务
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/10/08/deep-rnn/" rel="prev" title="Deep RNN">
+                Deep RNN <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#CNN概述"><span class="nav-number">1.</span> <span class="nav-text">CNN概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CNN-in-ASR"><span class="nav-number">2.</span> <span class="nav-text">CNN in ASR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实验"><span class="nav-number">3.</span> <span class="nav-text">实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关文献"><span class="nav-number">4.</span> <span class="nav-text">相关文献</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">90.7k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three.min.js"></script>
+
+  
+  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
