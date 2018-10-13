@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next gemini" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Speech Enhancement," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
+<meta name="keywords" content="Speech Enhancement">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GWPE Algorithm">
+<meta property="og:url" content="http://www.funcwj.cn/2018/09/20/gwpe-algorithm/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://www.funcwj.cn/images/gwpe-demo.png">
+<meta property="og:updated_time" content="2018-10-13T15:23:52.454Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GWPE Algorithm">
+<meta name="twitter:description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/gwpe-demo.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2018/09/20/gwpe-algorithm/"/>
+
+
+
+
+
+  <title>GWPE Algorithm | WJ's blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">我只是好奇</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/09/20/gwpe-algorithm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">GWPE Algorithm</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-20T23:03:51+08:00">
+                2018-09-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,206
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。</p>
+<p>GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文章中，我统一用后者表示。</p>
+<p>从论文题目可以看出，GWPE解决的是MIMO下，impluse response的shorten问题，也可以理解为multi-channel的dereverbration。主要贡献在于使用了一种新的相关性度量作为predict filter估计的代价函数，并导出了对应的估计方法。</p>
+<a id="more"></a>
+<h3 id="New-Cost-Function"><a href="#New-Cost-Function" class="headerlink" title="New Cost Function"></a>New Cost Function</h3><p>先介绍一下是PE（predict error），$\mathbf{y}_{f,t}$表示$N$路麦克风的观测信号，滤波配置（$\Delta, K, \mathcal{G}_f=\{\boldsymbol{G}_{f,\tau}\}_{\tau = \Delta}^{\Delta + K -1}$）下对$\mathbf{y}_{f,t}$的PE表示为：</p>
+<script type="math/tex; mode=display">
+\hat{\mathbf{x}_{f,t}} = \mathbf{y}_{f,t} - \sum_{\tau = \Delta}^{\Delta + K - 1} \boldsymbol{G}_{f,t}^H \mathbf{y}_{f,\tau} \tag{1}</script><p>其中第二项</p>
+<script type="math/tex; mode=display">
+\mathbf{x}_{f,t} = \sum_{\tau = \Delta}^{\Delta + K - 1} \boldsymbol{G}_{f,t}^H \mathbf{y}_{f,\tau}</script><p>称为在该滤波配置下对$\mathbf{y}_{f,t}$的线性预测。$K$表示滤波器阶数，$\Delta$表示延迟，$\boldsymbol{G}_{f,\tau} \in \mathbf{C}^{N \times N}, \mathbf{x}_{f,t}, \mathbf{y}_{f,t} \in \mathbf{C}^{N \times 1}$。</p>
+<p>WPE算法中，在PE中引入权重因子作为cost function，GWPE使用新的Hadamard-Fischer mutual correlation作为cost function，定义如下：</p>
+<script type="math/tex; mode=display">
+C_{HF}(\boldsymbol{U}_1, \dots, \boldsymbol{U}_N) = \frac{1}{N}    \sum_n \log (\det E(\boldsymbol{U}_n\boldsymbol{U}_n^H)) - \log (\det E(\boldsymbol{U}\boldsymbol{U}^H)) \tag{2}</script><p>$\boldsymbol{U}_{1\cdots N}$表示复值随机向量。$C_{HF}$具有非负性，当且仅当$\boldsymbol{U}_{1\cdots N}$两两完全不相关时取0值。</p>
+<p>借用$C_{HF}$来衡量在滤波矩阵$\mathcal{G}_f = \{\boldsymbol{G}_{f,\tau}\}_{\tau = \Delta}^{\Delta + K -1}$下线性预测$\mathbf{x}_{f,t} = \sum_{\tau = \Delta}^{\Delta + K - 1} \boldsymbol{G}_{f,t}^H \mathbf{y}_{f,\tau}$的相关性：</p>
+<script type="math/tex; mode=display">
+\mathcal{J}(\mathcal{G}_f) = \frac{1}{T}\sum_t \log \left( \det E(\mathbf{x}_{f,t}\mathbf{x}_{f,t}^H) \right) - \log (\det E(\boldsymbol{X}_f\boldsymbol{X}_f^H)) \tag{3}</script><p>可以证明，$(3)$式的第二项是一个常数，因此，$\mathcal{J}(\mathcal{G}_f)$可以简化为：</p>
+<script type="math/tex; mode=display">
+\mathcal{J}(\mathcal{G}_f) = \frac{1}{T}\sum_t \log \left( \det E(\mathbf{x}_{f,t}\mathbf{x}_{f,t}^H) \right) \tag{4}</script><p>上式便是GWPE的cost function。到此为止，MIMO的response shorten问题转化成了：</p>
+<script type="math/tex; mode=display">
+\mathcal{G}_f = \arg \min_{\mathcal{G}_f} \mathcal{J}(\mathcal{G}_f)</script><p>的优化问题。</p>
+<h3 id="Estimate-Filters"><a href="#Estimate-Filters" class="headerlink" title="Estimate Filters"></a>Estimate Filters</h3><p>$(4)$式的最小值没有解析解，因此，需要导出一种稳定的求解方法。论文中给出的辅助函数方法，即构造辅助函数$\mathcal{\hat{J}}(\mathcal{G}_f, \mathcal{L}_f)$，将原始问题分解成两个子问题依次优化：</p>
+<script type="math/tex; mode=display">
+\mathcal{\hat{L}}_f = \arg \min_{\mathcal{L}_f} \mathcal{\hat{J}}(\mathcal{\hat{G}}_f, \mathcal{L}_f) \tag{5} \\
+\mathcal{\hat{G}}_f = \arg \min_{\mathcal{G}_f} \mathcal{\hat{J}}(\mathcal{G}_f, \mathcal{\hat{L}}_f)</script><p>其中$\mathcal{L}_f = \{\boldsymbol{\Lambda}_{f,t} \}_{t = 0}^{T - 1}$。</p>
+<p>辅助函数定义为：</p>
+<script type="math/tex; mode=display">
+\mathcal{\hat{J}}(\mathcal{G}_f, \mathcal{L}_f)  = \frac{1}{T}\sum_t \left( E(\mathbf{x}_{f,t}^H \boldsymbol{\Lambda}_{f,t}^{-1} \mathbf{x}_{f,t}) - N + \log(\det(\boldsymbol{\Lambda}_{f,t})) \right)</script><p>依据性质：</p>
+<script type="math/tex; mode=display">
+\log \left| \det E(\boldsymbol{U}\boldsymbol{U}^H) \right| \leqslant E(\boldsymbol{U}^H\boldsymbol{\Lambda}^{-1}\boldsymbol{U}) -N + \log(\det \boldsymbol{\Lambda})</script><p>当且仅当$\boldsymbol{\Lambda} = E(\boldsymbol{U}\boldsymbol{U}^H)$时取等号。因此，对于$\mathcal{\hat{J}}(\mathcal{G}_f, \mathcal{L}_f)$：</p>
+<script type="math/tex; mode=display">
+\mathcal{J}(\mathcal{G}_f) \leqslant \mathcal{\hat{J}}(\mathcal{G}_f, \mathcal{L}_f)</script><p>取得等号时，$(5)$式的解为：</p>
+<script type="math/tex; mode=display">
+\mathcal{\hat{L}}_f = \{\boldsymbol{\hat{\Lambda}}_{f,t} \}_{t = 0}^{T - 1} = \{E(\mathbf{\hat{x}}_{f,t}\mathbf{\hat{x}}_{f,t}^H)\}_{t=0}^{T-1}</script><p>这一步的核心在于$E(\mathbf{\hat{x}}_{f,t}\mathbf{\hat{x}}_{f,t}^H)$（spatial correlation matrix）的估计，最常见的方法是做time  average：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{\hat{\Lambda}}_{f,t} = E(\mathbf{\hat{x}}_{f,t}\mathbf{\hat{x}}_{f,t}^H) = \sum_{k=t-\delta}^{t+\delta} = \frac{1}{2\delta+1} \mathbf{\hat{x}}_{f,k}\mathbf{\hat{x}}_{f,k}^H</script><p>论文中也提供了其他四种可选方法，可用于简化计算。</p>
+<p>$\mathcal{\hat{G}}_f$的解相推导对麻烦一些，我只说一下计算方法，首先构造$\boldsymbol{\psi}_{f,t}$矩阵：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{\psi}_{f,t} = [\boldsymbol{Y}_{f,t}^H, \cdots, \boldsymbol{Y}_{f,t-K+1}^H]^T \in \mathbf{C}^{KN^2 \times N}</script><p>其中：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{Y}_{f,t} = 
+\begin{bmatrix}
+\mathbf{y}_{f,t} & & \mathbf{o}\\
+& \ddots & \\
+\mathbf{o} & & \mathbf{y}_{f,t} \\
+\end{bmatrix} \in \mathbf{C}^{N^2 \times N}</script><p>其次，计算$\boldsymbol{g}_f = \overline{\boldsymbol{R}_f^{-1}\boldsymbol{r}_f}$，其中：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\boldsymbol{R}_f &= \sum_t \boldsymbol{\psi}_{f,t - \Delta} \boldsymbol{\hat{\Lambda}}_{f,t} \boldsymbol{\psi}_{f,t - \Delta}^H \in \mathbf{C}^{KN^2 \times KN^2} \\
+\boldsymbol{r}_f &= \sum_t \boldsymbol{\psi}_{f,t - \Delta} \boldsymbol{\hat{\Lambda}}_{f,t} \mathbf{y}_{f,t} \in \mathbf{C}^{KN^2 \times 1} 
+\end{align}</script><p>$\boldsymbol{g}_f$和$\boldsymbol{G}_{f,\tau}$的对应关系为：</p>
+<script type="math/tex; mode=display">
+\boldsymbol{g}_l = 
+\begin{bmatrix}
+\boldsymbol{G}_{f,\Delta,:, 1} \\
+\vdots \\
+\boldsymbol{G}_{f,\Delta,:, N} \\
+\vdots \\
+\boldsymbol{G}_{f,\Delta + K - 1,:, N}
+\end{bmatrix} \\</script><p>最后reshape一下成为$\mathcal{\hat{G}}_f$的更新值。</p>
+<h3 id="Application"><a href="#Application" class="headerlink" title="Application"></a>Application</h3><p>目前GWPE由fgnt开源了一版python的实现（<a href="https://github.com/fgnt/nara_wpe" target="_blank" rel="external">https://github.com/fgnt/nara_wpe</a>），效果挺好，可以参考一下实现细节，有空的话，我自己也想实现一版。</p>
+<p>GWPE最直接的用处就是multi-channel的dereverbration，如下图（这是4麦的实录数据，混响不是非常严重），对比来看，还是可以比较明显的看出GWPE处理之后的音频扫尾现象少了很多。由于混响对识别任务而言是一个影响较大的因素，因此，在WER上往往可以比较明显的对比出差距。</p>
+<p><img src="http://www.funcwj.cn/images/gwpe-demo.png" alt=""></p>
+<p>其次就是和前端的一些mask估计，beamforming结合起来用，因为增强/分离/定位这些任务也是混响敏感的，用GWPE做一遍数据预处理通常会有ASR上的增益。fgnt在interspeech2018上有一篇文章[2]专门分析WPE和beamforming的结合，有兴趣的同学可以参考一下。目前我手上的实验也验证了这一点，参考结果如下（WER绝对提升）：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:center">RAW-CH1</th>
+<th style="text-align:center">GWPE-CH1</th>
+<th style="text-align:center">DS</th>
+<th style="text-align:center">CGMM-MVDR</th>
+<th style="text-align:center">GWPE-CGMM-MVDR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">0%</td>
+<td style="text-align:center">2.07%</td>
+<td style="text-align:center">1.98%</td>
+<td style="text-align:center">3.37%</td>
+<td style="text-align:center">4.35%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>可以看出，单独过一遍GWPE就可以获得2%的绝对提升，在CGMM-MVDR基础上，替换输入为GWPE结果之后，可以继续获得一个点的绝对提升。</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. Yoshioka T, Nakatani T. Generalization of multi-channel linear prediction methods for blind MIMO impulse response shortening[J]. IEEE Transactions on Audio, Speech and Language Processing, 2012, 20(10): 2707-2720.</p>
+<p>[2]. Drude L, Boeddeker C, Heymann J, et al. Integrating Neural Network Based Beamforming and Weighted Prediction Error Dereverberation[J]. Proc. Interspeech 2018, 2018: 3043-3047.</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2018/09/20/gwpe-algorithm/" title="GWPE Algorithm">http://www.funcwj.cn/2018/09/20/gwpe-algorithm/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+    
+    <div>
+        
+            <div>
+    
+    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
+    
+</div>
+
+        
+     </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Speech-Enhancement/" rel="tag"><i class="fa fa-tag"></i> Speech Enhancement</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/13/stft-problem/" rel="next" title="Analysis/Synthesis window of STFT">
+                <i class="fa fa-chevron-left"></i> Analysis/Synthesis window of STFT
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/uploads/avatar.JPG"
+                alt="WJ" />
+            
+              <p class="site-author-name" itemprop="name">WJ</p>
+              <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">68</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-globe"></i>
+                Links
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://wangbaiyuan.cn" title="极客人" target="_blank">极客人</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://jcf94.com" title="jcf94" target="_blank">jcf94</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://hujian.website" title="hijkzzz" target="_blank">hijkzzz</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.cnblogs.com/xingshansi/" title="桂的blog" target="_blank">桂的blog</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.danielpovey.com" title="Daniel Povey" target="_blank">Daniel Povey</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="dasp" target="_blank">dasp</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="sasp" target="_blank">sasp</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://www.audiolabs-erlangen.de/home" title="AudioLibs" target="_blank">AudioLibs</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.irisa.fr/metiss/ozerov/" title="Alexey Ozerov" target="_blank">Alexey Ozerov</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://research.ics.aalto.fi/ica/fastica/" title="FastICA" target="_blank">FastICA</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://bass-db.gforge.inria.fr/bss_locate/" title="BSS Locate" target="_blank">BSS Locate</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="https://israelcohen.com" title="Israel Cohen" target="_blank">Israel Cohen</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.eng.biu.ac.il/gannot/" title="Sharon Gannot" target="_blank">Sharon Gannot</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#New-Cost-Function"><span class="nav-number">1.</span> <span class="nav-text">New Cost Function</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Estimate-Filters"><span class="nav-number">2.</span> <span class="nav-text">Estimate Filters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Application"><span class="nav-number">3.</span> <span class="nav-text">Application</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">4.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    
+      <span class="post-meta-item-text">Site words total count&#58;</span>
+    
+    <span title="Site words total count">92.6k</span>
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>

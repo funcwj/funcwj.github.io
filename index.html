@@ -291,6 +291,327 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/09/20/gwpe-algorithm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/20/gwpe-algorithm/" itemprop="url">GWPE Algorithm</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-20T23:03:51+08:00">
+                2018-09-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,206
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。</p>
+<p>GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文章中，我统一用后者表示。</p>
+<p>从论文题目可以看出，GWPE解决的是MIMO下，impluse response的shorten问题，也可以理解为multi-channel的dereverbration。主要贡献在于使用了一种新的相关性度量作为predict filter估计的代价函数，并导出了对应的估计方法。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/20/gwpe-algorithm/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+    
+    <div>
+        
+     </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/08/13/stft-problem/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/13/stft-problem/" itemprop="url">Analysis/Synthesis window of STFT</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-13T23:04:08+08:00">
+                2018-08-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  712
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  3
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>这里提一个(i)STFT的细节。做短时傅里叶分析的时候，通常会选取窗函数，缓解频谱泄露。把频域的谱通过OLA（overlap add）转换到时域上时，我以前的做法是选取相同的窗函数。这么做会带来一个问题，如果直接把OLA的结果写入磁盘，特别容易出现clipping，所以我通常会在OLA之后对samples做一个renorm/rescale操作，避免数值超出wav的采样单元，但是这么一做，往往就丢失了原先音频的能量信息。理想情况下，在频域不做任何处理，变换到时域，应该存在条件，使得时域结果完美重构的。</p>
+<p>后来逐渐的在一些文献中看到了一些资料。发现这个窗函数的选取，不是那么随意，要想达到最佳重构，正逆过程的窗需要满足一个约束条件，有些文献中也称为双正交。正过程的窗称为分析（analysis）窗，逆过程的窗（synthesis）称为合成窗。下面导出这个约束条件。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/08/13/stft-problem/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+    
+    <div>
+        
+     </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/08/02/qrnn-sru/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1579,326 +1900,6 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/04/14/setk-speech-enhancement-tookit/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/04/14/setk-speech-enhancement-tookit/" itemprop="url">SETK - Speech Enhancement Tools based on Kaldi</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-14T00:49:43+08:00">
-                2018-04-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  450
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  2
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>趁着最近手头上的事比较少，想把自己前段时间的事情总结一下，由于目前主流的开源识别项目Kaldi前端支持较差，我闲着没事干，把前期做的一些事情迁移到Kaldi上来。为啥叫做闲着没事呢，因为这些代码用python或者MATLAB实现相比C++真的太简单了（就当是为开源社区做点贡献吧）……不过话说回来，迁移到Kaldi上还是有一点方便的，就是速度，以后做一些验证性的实验或者前端baseline，前后端打通的话，基本做一下数据准备就OK了，省去了很多重新组织代码，脚本的时间。<br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/04/14/setk-speech-enhancement-tookit/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-    
-    <div>
-        
-     </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/03/13/end-to-end-overview/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/13/end-to-end-overview/" itemprop="url">Overview of E2E Methods</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-13T23:49:21+08:00">
-                2018-03-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  7,034
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  29
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本篇Blog虽然看起来像极了新闻稿，但实际上只是自己想做一个E2E的梳理（顺便交了某课程大作业），毕竟这玩意最近这么火。有一部分论文自己只看个大概，说法未必准确，各位看观小心~。</p>
-<p>语音识别（Automatic Speech Recognition，ASR）是要完成输入音频的采样序列到字符序列的映射任务。传统识别模块主要包含声学模型，字典，语言模型三个部分，其中声学模型用于将输入特征转化为声学单元的后验概率，字典用于表示声学单元序列到字符的映射关系，而语言模型则用于表示字符上下文之间的条件概率。由于声学模型的训练需要预知声学单元和输入特征之间的对齐信息，而常见的声学单元，比如CD-state，CD-phone等的时间对齐信息无法直接从抄本中的字符序列中获知。因此，DNN等声学模型的训练需要以传统的HMM-GMM模型进行启动引导，获得帧级别的状态标签，这一步操作称为对齐。也正是由于CD-state之类的建模单元颗粒度太小，无法直接转化成字符级别的输出，因此，需要融合字典，语言模型等信息，信息融合在声学解码器中进行。</p>
-<p>因为抄本的长度往往小于特征序列的长度， 所以，实现特征到序列直接映射的核心在于如何处理这种对齐关系。传统的NN-HMM框架正是无法进行这种不等长的序列映射，因此才需要对齐和解码。很显然，我们期望的是一种更加自然的模型结构，可以直接以抄本作为label完成训练，直接以字/词作为输出单元，从而简化训练和解码流程。2012年之后，随着传统声学建模技术的逐渐成熟，国内外学者和研究机构开始基于语音识别这种序列映射的特性，借鉴图像，机器翻译领域的一些成功案例，开始尝试端到端（End-to-End，E2E）的建模方法。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/03/13/end-to-end-overview/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-    
-    <div>
-        
-     </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1953,7 +1954,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">68</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1966,7 +1967,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2020,6 +2021,10 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
                 
                   <li class="links-of-blogroll-item">
                     <a href="https://www.cnblogs.com/xingshansi/" title="桂的blog" target="_blank">桂的blog</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.danielpovey.com" title="Daniel Povey" target="_blank">Daniel Povey</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
@@ -2091,7 +2096,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">90.7k</span>
+    <span title="Site words total count">92.6k</span>
   
 </div>
 
@@ -2151,9 +2156,6 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
 
 
 
-  
-  
-
 
 
 
@@ -2179,12 +2181,6 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
 
   
   <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-
-  
-  <script type="text/javascript" src="/lib/three/three.min.js"></script>
-
-  
-  <script type="text/javascript" src="/lib/three/three-waves.min.js"></script>
 
 
   
