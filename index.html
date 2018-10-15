@@ -291,6 +291,326 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/10/10/auxiva-algorithm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/10/10/auxiva-algorithm/" itemprop="url">AuxIVA Algorithm</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-10-10T08:59:00+08:00">
+                2018-10-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  1,115
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>这篇文章简单说一下AuxIVA算法，前段时间接触并实现了一下，有些结论和体会，在这里做一下小结。</p>
+<p>BSS（Blind Source/Speech/Signal Separation）问题中根据信号混合的方式，可以分为instantaneous/convolutive两种，前者仅仅是简单的线性叠加，和convolutive不同，对信号源到麦克风之间的冲击响应不加以建模；如果根据信号源数目和观测（麦克风）数目划分，有determined和underdetermined两种，前者表示观测信道足够（大于等于信号源数目），后者对应数量不足的情况。因此，BSS问题可以组合成四种case，比较显而易见，underdetermined/convolutive的情况最为复杂。</p>
+<p>BSS的解决方法，比较主流的是ICA[2]及其衍生算法，比如IVA[3]，TRINICON[4]等等。相比Frequency-ICA，IVA的优点是不需要解决frequency上的置换问题，显得十分简洁。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/10/10/auxiva-algorithm/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+    
+    <div>
+        
+     </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/09/30/omlsa-noise-reduction/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/30/omlsa-noise-reduction/" itemprop="url">OMLSA</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-30T23:51:23+08:00">
+                2018-09-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计&#58;</span>
+                
+                <span title="字数统计">
+                  800
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">
+                  3
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>这次说一个single-channel noise reduction的经典方法，OMLSA（optimally-modified log-spectral amplitude）。这是Cohen在2001年提出的（目前matlab已经开源，在cohen的个人主页上），比较具有代表性，里面牵扯模块也比较多，涉及了很多signal processing领域非常经典的未知量估计问题，后面还被拓展到multi-channel中，和GSC-structure结合，做post-filtering等等，如果想要深纠的话，对这个算法还是要基本了解一下的。我头一次看的时候还被绕进去一两天……</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/30/omlsa-noise-reduction/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+    
+    <div>
+        
+     </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/09/20/gwpe-algorithm/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1573,333 +1893,6 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/05/10/gcc-phat-for-tdoa-estimate/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/10/gcc-phat-for-tdoa-estimate/" itemprop="url">TDOA - GCC-PHAT方法</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-10T01:09:48+08:00">
-                2018-05-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  1,772
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  7
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>TDOA（Time Difference of Arrival，到达时间差）是一个在语音前端信号处理中很常见的名词，和它比较相像，也同样重要的还有一个DOA（Direction of Arrival，到达方向）。在麦克风拓扑结构已知的情况下，两者可以相互转换。TDOA表示不同通道之间语音信号的延迟程度，是一个相对的概念，一般用$\tau$表示。最简单的beamforming方法delay and sum中的delay针对的就是它。DOA表示信号源相对麦克风的到达角度，一般用$\theta$表示，如果是线阵的话，范围在0到180度之间。如下图所示，假设麦克风1和麦克风2之间的距离为$\delta$，DOA为$\theta_d$，声速$c$，那么$\tau_{12}$可以有简单的数学计算得到：</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/05/10/gcc-phat-for-tdoa-estimate/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-    
-    <div>
-        
-     </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/05/06/speech-separation-nnmf/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/06/speech-separation-nnmf/" itemprop="url">Speech Separation - NMF methods</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-06T02:34:47+08:00">
-                2018-05-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-wordcount">
-              
-                
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">字数统计&#58;</span>
-                
-                <span title="字数统计">
-                  1,486
-                </span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">
-                  6
-                </span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>最近在看一些语音分离的文章，时间旧了，需要做一些总结。这篇文章先说一种传统而有效的方法，NMF（非负矩阵分解）。</p>
-<p>将一个矩阵$\mathbf{V}$分解成两个非负矩阵的乘积形式，这种方法就叫非负矩阵分解，数学表达为：</p>
-<script type="math/tex; mode=display">
-\mathbf{V} \approx \mathbf{W} \mathbf{H}</script><p>若$\mathbf{V} \in \mathbf{R}^{F \times T}$，那么$\mathbf{W} \in \mathbf{R}^{F \times D}, \mathbf{H} \in \mathbf{R}^{D\times T}$，其中$D$为分解过程的一个超参数，在一些文献中，$\mathbf{W}$被称为dictionary或者basis functions，$\mathbf{H}$被称为atoms或者activations，这种称呼的原因会在后文中解释。</p>
-<p>下面将从三个方面认识这个概念：</p>
-<ol>
-<li>如何得到这种表示</li>
-<li>这种表示的意义何在</li>
-<li>在分离任务中如何应用</li>
-</ol>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/05/06/speech-separation-nnmf/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-    
-    <div>
-        
-     </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1954,7 +1947,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">68</span>
+                  <span class="site-state-item-count">70</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1967,7 +1960,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2096,7 +2089,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
     
       <span class="post-meta-item-text">Site words total count&#58;</span>
     
-    <span title="Site words total count">92.6k</span>
+    <span title="Site words total count">94.5k</span>
   
 </div>
 
