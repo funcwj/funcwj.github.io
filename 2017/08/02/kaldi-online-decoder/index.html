@@ -3,12 +3,26 @@
 
 
 
-<html class="theme-next gemini" lang="zh-Hans">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
+
+
+
 
 
 
@@ -25,8 +39,8 @@
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -43,62 +57,33 @@
 
 
 
-  
-  
-  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
 
 
 
 
 
 
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
 
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
-
-<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
-
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
 
 
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=6.4.2">
 
 
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=6.4.2">
 
 
-  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=6.4.2">
 
 
-
-
-
-  <meta name="keywords" content="ASR," />
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=6.4.2" color="#222">
 
 
 
 
 
 
-
-
-
-
-<meta name="description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
-<meta name="keywords" content="ASR">
-<meta property="og:type" content="article">
-<meta property="og:title" content="对kaldi中Online-Decoder的分析">
-<meta property="og:url" content="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/index.html">
-<meta property="og:site_name" content="WJ&#39;s blog">
-<meta property="og:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
-<meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/9tmr6q0vmlio8o2p4uaw8m3d/token-struct.jpg">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="对kaldi中Online-Decoder的分析">
-<meta name="twitter:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
 
 
 
@@ -107,15 +92,13 @@
   var CONFIG = {
     root: '/',
     scheme: 'Gemini',
-    version: '5.1.3',
+    version: '6.4.2',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
-    fancybox: true,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
     tabs: true,
-    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
-    duoshuo: {
-      userId: '0',
-      author: '博主'
-    },
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
     algolia: {
       applicationID: '',
       apiKey: '',
@@ -127,12 +110,41 @@
 </script>
 
 
-
-  <link rel="canonical" href="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/"/>
-
+  
 
 
 
+
+  <meta name="description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对kaldi中Online-Decoder的分析">
+<meta property="og:url" content="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/9tmr6q0vmlio8o2p4uaw8m3d/token-struct.jpg">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="对kaldi中Online-Decoder的分析">
+<meta name="twitter:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
+<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
 
   <title>对kaldi中Online-Decoder的分析 | WJ's blog</title>
   
@@ -144,9 +156,37 @@
 
 
 
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
 </head>
 
-<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
 
   
   
@@ -156,25 +196,27 @@
   <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
-    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
       <div class="header-inner"><div class="site-brand-wrapper">
   <div class="site-meta ">
     
 
     <div class="custom-logo-site-title">
-      <a href="/"  class="brand" rel="start">
+      <a href="/" class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
         <span class="site-title">WJ's blog</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
+    
       
         <p class="site-subtitle">我只是好奇</p>
       
+    
   </div>
 
   <div class="site-nav-toggle">
-    <button>
+    <button aria-label="切换导航栏">
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
@@ -182,66 +224,58 @@
   </div>
 </div>
 
-<nav class="site-nav">
-  
 
+
+<nav class="site-nav">
   
     <ul id="menu" class="menu">
       
         
-        <li class="menu-item menu-item-home">
-          <a href="/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
-            
-            首页
-          </a>
-        </li>
-      
         
-        <li class="menu-item menu-item-about">
-          <a href="/about/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
-            
-            关于
-          </a>
-        </li>
-      
         
-        <li class="menu-item menu-item-tags">
-          <a href="/tags/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
-            
-            标签
-          </a>
-        </li>
-      
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
         
-        <li class="menu-item menu-item-archives">
-          <a href="/archives/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
-            
-            归档
-          </a>
-        </li>
-      
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">12</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">70</span></a>
+  </li>
 
+      
       
         <li class="menu-item menu-item-search">
           
             <a href="javascript:;" class="popup-trigger">
           
             
-              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
-            
-            搜索
-          </a>
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
         </li>
       
     </ul>
+  
+
   
 
   
@@ -256,9 +290,7 @@
       <i class="fa fa-times-circle"></i>
     </span>
     <div class="local-search-input-wrapper">
-      <input autocomplete="off"
-             placeholder="搜索..." spellcheck="false"
-             type="text" id="local-search-input">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
     </div>
   </div>
   <div id="local-search-result"></div>
@@ -272,12 +304,34 @@
 
 
 
- </div>
+  
+
+
+
+</div>
     </header>
+
+    
+  
+  
+  
+    
+      
+    
+    <a href="https://github.com/funcwj" class="github-corner" target="_blank" title="Follow me on GitHub" aria-label="Follow me on GitHub"><svg width="80" height="80" viewbox="0 0 250 250" style="fill:#222; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg>
+    
+      </a>
+    
+
+
 
     <main id="main" class="main">
       <div class="main-inner">
         <div class="content-wrap">
+          
+            
+
+          
           <div id="content" class="content">
             
 
@@ -290,20 +344,22 @@
   
   
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
   
   
   
   <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/">
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
       <meta itemprop="image" content="/uploads/avatar.JPG">
     </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
       <meta itemprop="name" content="WJ's blog">
     </span>
 
@@ -312,11 +368,19 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">对kaldi中Online-Decoder的分析</h1>
+          <h1 class="post-title" itemprop="name headline">对kaldi中Online-Decoder的分析
+              
+            
+          </h1>
         
 
         <div class="post-meta">
           <span class="post-time">
+
+            
+            
+            
+
             
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
@@ -324,11 +388,12 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-08-02T22:57:44+08:00">
-                2017-08-02
-              </time>
-            
 
+              
+                
+              
+
+              <time title="创建时间：2017-08-02 22:57:44" itemprop="dateCreated datePublished" datetime="2017-08-02T22:57:44+08:00">2017-08-02</time>
             
 
             
@@ -344,20 +409,26 @@
           
 
           
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
 
           
-            <div class="post-wordcount">
+            <div class="post-symbolscount">
               
-                
+
+              
                 <span class="post-meta-item-icon">
                   <i class="fa fa-file-word-o"></i>
                 </span>
                 
-                  <span class="post-meta-item-text">字数统计&#58;</span>
+                  <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="字数统计">
-                  4,457
-                </span>
+                <span title="本文字数">16k</span>
               
 
               
@@ -371,9 +442,7 @@
                 
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
-                <span title="阅读时长">
-                  18
-                </span>
+                <span title="阅读时长">14 分钟</span>
               
             </div>
           
@@ -405,20 +474,20 @@
 <p>用token表示上述过程中描述的信息，那么每一时刻，每一状态维护一个token，在$t \in [0, T]$时刻，新的一轮token由$t - 1$时刻的token和解码图的路径约束共同形成。kaldi中token用结构体<code>Token</code>来描述，同一时刻的token通过<code>next</code>指针相连，从该时刻可以传递到的状态用<code>ForwardLink</code>描述，前一时刻的token由<code>HashList&lt;StateId, Token*&gt;</code>描述（这是一个kaldi自己实现的模板，其中的Hash元素本质上是使用链表连接的，但是也可以像Hash表一样随机获取），而整个解码过程中每一时刻产生的token（相当于上面说的树）用<code>std::vector&lt;TokenList&gt;</code>描述，下标为当前帧数，<code>TokenList</code>相当于一个<code>Token</code>的链表头，通过它可以依次获取到相应时刻的所有活跃token，具体的成员及其含义如下：</p>
 <ul>
 <li><p>Token</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Token</span> &#123;</span></div><div class="line">    BaseFloat tot_cost;     <span class="comment">// 到该状态的累计cost</span></div><div class="line">    BaseFloat extra_cost; </div><div class="line">    ForwardLink *links;     <span class="comment">// 也是一个链表，因为由该token可以到达下一时刻的token不止一个</span></div><div class="line">    Token *next;            <span class="comment">// 指向同一时刻的下一个token</span></div><div class="line">    Token *backpointer;     <span class="comment">// 指向上一时刻的最佳token，相当于一个回溯指针，</span></div><div class="line">                            <span class="comment">// 到达该状态的token可能会有很多，但只取最优的一个</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Token</span> &#123;</span></span><br><span class="line">    BaseFloat tot_cost;     <span class="comment">// 到该状态的累计cost</span></span><br><span class="line">    BaseFloat extra_cost; </span><br><span class="line">    ForwardLink *links;     <span class="comment">// 也是一个链表，因为由该token可以到达下一时刻的token不止一个</span></span><br><span class="line">    Token *next;            <span class="comment">// 指向同一时刻的下一个token</span></span><br><span class="line">    Token *backpointer;     <span class="comment">// 指向上一时刻的最佳token，相当于一个回溯指针，</span></span><br><span class="line">                            <span class="comment">// 到达该状态的token可能会有很多，但只取最优的一个</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>ForwardLink</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ForwardLink</span> &#123;</span></div><div class="line">    Token *next_tok;    <span class="comment">// 这条链接指向的token</span></div><div class="line">    Label ilabel;       <span class="comment">// 这下面的四个量取自解码图中的跳转/弧/边，因为每一个状态</span></div><div class="line">    Label olabel;       <span class="comment">// 维护一个token，那么token到token之间的连接信息和状态到状态之间的信息</span></div><div class="line">    BaseFloat graph_cost;       <span class="comment">// 应该保持一致，所以会有输入（tid），输出，权值（就是graph_cost）</span></div><div class="line">    BaseFloat acoustic_cost;    <span class="comment">// acoustic_cost就是tid对应的pdf_id的在声学模型中的后验</span></div><div class="line">    ForwardLink *next;          <span class="comment">// 链表结构，指向下一个</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ForwardLink</span> &#123;</span></span><br><span class="line">    Token *next_tok;    <span class="comment">// 这条链接指向的token</span></span><br><span class="line">    Label ilabel;       <span class="comment">// 这下面的四个量取自解码图中的跳转/弧/边，因为每一个状态</span></span><br><span class="line">    Label olabel;       <span class="comment">// 维护一个token，那么token到token之间的连接信息和状态到状态之间的信息</span></span><br><span class="line">    BaseFloat graph_cost;       <span class="comment">// 应该保持一致，所以会有输入（tid），输出，权值（就是graph_cost）</span></span><br><span class="line">    BaseFloat acoustic_cost;    <span class="comment">// acoustic_cost就是tid对应的pdf_id的在声学模型中的后验</span></span><br><span class="line">    ForwardLink *next;          <span class="comment">// 链表结构，指向下一个</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>TokenList</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TokenList</span> &#123;</span></div><div class="line">  Token *toks;        <span class="comment">// 同一时刻的token链表头</span></div><div class="line">  <span class="keyword">bool</span> must_prune_forward_links;  <span class="comment">// 这两个是Lattice剪枝标记</span></div><div class="line">  <span class="keyword">bool</span> must_prune_tokens;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TokenList</span> &#123;</span></span><br><span class="line">  Token *toks;        <span class="comment">// 同一时刻的token链表头</span></span><br><span class="line">  <span class="keyword">bool</span> must_prune_forward_links;  <span class="comment">// 这两个是Lattice剪枝标记</span></span><br><span class="line">  <span class="keyword">bool</span> must_prune_tokens;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <p>这几部分的关系可以用下图描述：</p>
 <center><img src="http://static.zybuluo.com/funcwj/9tmr6q0vmlio8o2p4uaw8m3d/token-struct.jpg"></center>
 
-<p>另一个重要的数据结构是kaldi中自己实现的<code>HashList</code>，一个类似于跳表的数据结构，里面维护的元素本质上以链表的形式相连，同时通过一个Hash表建立索引。元素和哈希通过<code>Elem</code>和<code>HashBucket</code>实现：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Elem</span> &#123;</span></div><div class="line">    I key;      <span class="comment">// State</span></div><div class="line">    T val;      <span class="comment">// Token</span></div><div class="line">    Elem *tail; <span class="comment">// 链表，指向下一个元素</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">HashBucket</span> &#123;</span></div><div class="line">    <span class="keyword">size_t</span> prev_bucket;     <span class="comment">// 指向前一个桶的下标，类似静态链表的索引方法</span></div><div class="line">    Elem *last_elem;        <span class="comment">// 指向挂在该桶上的最后一个元素，找到他就可以索引该桶上所有元素了</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>整个哈希结结构存在容器<code>std::vector&lt;HashBucket&gt; buckets_</code>中，通过<code>SetSize()</code>可以分配<code>buckets_</code>的大小。需要注意的是，前一个<code>HashBucket</code>的<code>last_elem.tail</code>指向当前<code>HashBucket</code>的第一个元素。其他重要的变量如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Elem *list_head_;   <span class="comment">// Elem链表会不断释放，分配，该变量记录链表头部</span></div><div class="line">Elem *freed_head_;  <span class="comment">// 记录空闲链表的头部，分配新的Elem就是从该头部取出一个空闲Elem</span></div><div class="line"><span class="keyword">size_t</span> bucket_list_tail_;   <span class="comment">// 当前活跃的最后一个桶的下标</span></div><div class="line"><span class="keyword">size_t</span> hash_size_;          <span class="comment">// 当前活跃的桶的个数</span></div></pre></td></tr></table></figure></p>
+<p>另一个重要的数据结构是kaldi中自己实现的<code>HashList</code>，一个类似于跳表的数据结构，里面维护的元素本质上以链表的形式相连，同时通过一个Hash表建立索引。元素和哈希通过<code>Elem</code>和<code>HashBucket</code>实现：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Elem</span> &#123;</span></span><br><span class="line">    I key;      <span class="comment">// State</span></span><br><span class="line">    T val;      <span class="comment">// Token</span></span><br><span class="line">    Elem *tail; <span class="comment">// 链表，指向下一个元素</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">HashBucket</span> &#123;</span></span><br><span class="line">    <span class="keyword">size_t</span> prev_bucket;     <span class="comment">// 指向前一个桶的下标，类似静态链表的索引方法</span></span><br><span class="line">    Elem *last_elem;        <span class="comment">// 指向挂在该桶上的最后一个元素，找到他就可以索引该桶上所有元素了</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>整个哈希结结构存在容器<code>std::vector&lt;HashBucket&gt; buckets_</code>中，通过<code>SetSize()</code>可以分配<code>buckets_</code>的大小。需要注意的是，前一个<code>HashBucket</code>的<code>last_elem.tail</code>指向当前<code>HashBucket</code>的第一个元素。其他重要的变量如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Elem *list_head_;   <span class="comment">// Elem链表会不断释放，分配，该变量记录链表头部</span></span><br><span class="line">Elem *freed_head_;  <span class="comment">// 记录空闲链表的头部，分配新的Elem就是从该头部取出一个空闲Elem</span></span><br><span class="line"><span class="keyword">size_t</span> bucket_list_tail_;   <span class="comment">// 当前活跃的最后一个桶的下标</span></span><br><span class="line"><span class="keyword">size_t</span> hash_size_;          <span class="comment">// 当前活跃的桶的个数</span></span><br></pre></td></tr></table></figure></p>
 <p>该数据结构的操作逻辑如下：</p>
 <ol>
 <li><p>获取当前活跃的所有元素<code>Elem</code><br>只需要返回<code>list_head</code>即可，通过链表的遍历即可访问到所有活跃元素（即上一时刻的State和对应的Token）。</p>
@@ -442,7 +511,7 @@
 </ul>
 <p>如果调用<code>toks = HashList.Clear()</code>，那么拿到的<code>toks</code>实际上是被置为<code>NULL</code>之前的<code>HashList.list_head_</code>的值，也就是清空前哈希的链表结构，这时候由于<code>HashList</code>已经重置过了，所以<code>toks</code>成为了前一状态产生的哈希/<code>Elem</code>链表的唯一引用。之后再对<code>HashList</code>操作都不会干扰到<code>toks</code>。因此，可以用<code>toks</code>来替代<code>prev_toks</code>，清空之后的<code>HashList</code>代替<code>cur_toks</code>。由于我们只需要遍历<code>toks</code>，用一下token中的信息，使用完之后，通过<code>Delete</code>函数，就可以将<code>toks</code>中的元素插入到<code>HashList.free_head_</code>中，实现内存的回收。</p>
 <h2 id="解码逻辑"><a href="#解码逻辑" class="headerlink" title="解码逻辑"></a>解码逻辑</h2><p>解码的逻辑非常简单，在解码正式开始之前调用<code>InitDecoding()</code>做一些初始化的工作，之后就是不断接受新的音频数据，调用<code>AdvanceDecoding()</code>（每一次<code>DecodableInterface</code>中的新的可用特征一次解码完毕），直至音频输入终止，调用<br><code>FinalizeDecoding()</code>结束解码。</p>
-<p>在<code>AdvanceDecoding()</code>中，对于每一帧调用<code>ProcessEmitting()</code>和<code>ProcessNonemitting()</code>，后者处理<code>ilabel == 0</code>的token传递（考虑到解码图中每一个状态均有自环，所以可以肯定的是，自环的输入label必然不能为空，否则就会陷入死循环）。每隔几帧剪一次枝。主要逻辑代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 解码到没有为止</span></div><div class="line"><span class="comment">// NumFramesDecoded(): active_toks_.size() - 1</span></div><div class="line"><span class="keyword">while</span> (NumFramesDecoded() &lt; target_frames_decoded) &#123;</div><div class="line">    <span class="comment">// 剪枝：默认25</span></div><div class="line">    <span class="keyword">if</span> (NumFramesDecoded() % config_.prune_interval == <span class="number">0</span>) &#123;</div><div class="line">        PruneActiveTokens(config_.lattice_beam * config_.prune_scale);</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 这里active_toks_扩充一个空间</span></div><div class="line">    BaseFloat cost_cutoff = ProcessEmitting(decodable);</div><div class="line">    ProcessNonemitting(cost_cutoff);</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>在<code>AdvanceDecoding()</code>中，对于每一帧调用<code>ProcessEmitting()</code>和<code>ProcessNonemitting()</code>，后者处理<code>ilabel == 0</code>的token传递（考虑到解码图中每一个状态均有自环，所以可以肯定的是，自环的输入label必然不能为空，否则就会陷入死循环）。每隔几帧剪一次枝。主要逻辑代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 解码到没有为止</span></span><br><span class="line"><span class="comment">// NumFramesDecoded(): active_toks_.size() - 1</span></span><br><span class="line"><span class="keyword">while</span> (NumFramesDecoded() &lt; target_frames_decoded) &#123;</span><br><span class="line">    <span class="comment">// 剪枝：默认25</span></span><br><span class="line">    <span class="keyword">if</span> (NumFramesDecoded() % config_.prune_interval == <span class="number">0</span>) &#123;</span><br><span class="line">        PruneActiveTokens(config_.lattice_beam * config_.prune_scale);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 这里active_toks_扩充一个空间</span></span><br><span class="line">    BaseFloat cost_cutoff = ProcessEmitting(decodable);</span><br><span class="line">    ProcessNonemitting(cost_cutoff);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></p>
 <p>下面对每个函数块逐一分析：</p>
 <h3 id="ProcessEmitting"><a href="#ProcessEmitting" class="headerlink" title="ProcessEmitting"></a>ProcessEmitting</h3><p>这部分代码主要实现两个功能，一个是token信息沿着输入不为空的弧上的传递，另一个就是若干剪枝阈值的评估。这部分的剪枝有两层，第一层决前一时刻的token能否继续存在，也就是说，如果前一时刻某一个token的<code>tot_cost</code>相比最好的token的<code>tok_cost</code>差的太多，那么它就没有必要继续传递下去了（这条路径概率过低）。第二层决定前一时刻的token是否能将信息沿着解码图中的路径约束传递到当前时刻，这一步需要预估一个当前时刻的最优权值，如果token沿着某条弧转移过来过低于我们这个预估的值，那么也不允许它传递（因为就算传递了，也会在下一时刻的第一层剪枝中被剪掉）。</p>
 <p>解释一下所谓的beam，beam的含义是，允许过滤项和最优项之间的差距在beam之内。解码过程中的cost越低越优，因此，当得出所谓的<code>best_cost</code>之后，往往将<code>best_cost + beam</code>最为剪枝的阈值。</p>
@@ -450,31 +519,34 @@
 <p>考虑到解码中允许设置<code>--max-active(default = MAX_INT)</code>和<code>--min-active(default = 200)</code>，不同的设置在<code>GetCutoff()</code>中的计算逻辑不同，因为<code>beam</code>本身就是一个容差估计（只是这种估计并没有什么参照标准），但是现在有新的约束条件（token数目）约束了，因而需要结合在这种约束下的估计值选一个。分如下两种情况：</p>
 <ol>
 <li><p>假设没有约束，即某一时刻的token数目没有限制，那么使用<code>beam</code>作为容差（默认为16），即：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cur_cutoff = best_weight + config_.beam; <span class="comment">// default config_.beam = 16.0</span></div><div class="line">adaptive_beam = config_.beam;</div></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cur_cutoff = best_weight + config_.beam; <span class="comment">// default config_.beam = 16.0</span></span><br><span class="line">adaptive_beam = config_.beam;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>存在$[N_{min}, N_{max}]$约束：<br>那么令$C_{min}$(<code>max_active_cutoff</code>)和$C_{max}$(<code>min_active_cutoff</code>)分别为token链中第max-active和min-active小的cost。显然，前者小于后者（约束更紧）。用$W_{best}$表示<code>best_weight</code>，$b$表示<code>config_.beam</code>:<br>那么<code>cur_cutoff</code>取$\min_{2nd}(W_{best} + b, C_{min}, C_{max})$。如果结果是$W_{best} + b$，那么和情况1结果保持一致，否则<code>adaptive_beam</code>计算如下：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// config_.beam_delta = 0.5</span></div><div class="line">adaptive_beam = cur_cutoff - best_weight + config_.beam_delta;</div></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// config_.beam_delta = 0.5</span></span><br><span class="line">adaptive_beam = cur_cutoff - best_weight + config_.beam_delta;</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
 <p>因此，<code>adaptive_beam</code>的作用是作为<code>next_cutoff</code>的<code>beam</code>替代，在<code>--min-active/--max-active</code>形成约束力的时候。</p>
-<p>对于<code>next_cutoff</code>，使用上一时刻最优token前向传递产生的cost（加上<code>adaptive_beam</code>）作为初始值。之后在处理token第二层剪枝过程中，如果传递形成的新的cost高于<code>next_cutoff</code>，则不予传递，否则产生新的token。若<code>tot_cost + adaptive_beam &lt; next_cutoff</code>，则更新<code>next_cutoff</code>。这部分代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"> <span class="keyword">for</span> (Elem *e = final_toks, *e_tail; e != <span class="literal">NULL</span>; e = e_tail) &#123;</div><div class="line">    StateId state = e-&gt;key;</div><div class="line">    Token *tok = e-&gt;val;</div><div class="line">    <span class="keyword">if</span> (tok-&gt;tot_cost &lt;=  cur_cutoff) &#123;</div><div class="line">        <span class="keyword">for</span> (fst::ArcIterator&lt;fst::Fst&lt;Arc&gt; &gt; aiter(fst_, state);</div><div class="line">           !aiter.Done();</div><div class="line">           aiter.Next()) &#123;</div><div class="line">            <span class="comment">// 遍历状态的连接弧</span></div><div class="line">            <span class="keyword">const</span> Arc &amp;arc = aiter.Value();</div><div class="line">            <span class="keyword">if</span> (arc.ilabel != <span class="number">0</span>) &#123;</div><div class="line">                BaseFloat ac_cost = cost_offset -</div><div class="line">                    decodable-&gt;LogLikelihood(frame, arc.ilabel),</div><div class="line">                    graph_cost = arc.weight.Value(),</div><div class="line">                    cur_cost = tok-&gt;tot_cost,</div><div class="line">                    tot_cost = cur_cost + ac_cost + graph_cost;</div><div class="line">                <span class="comment">// 剪枝</span></div><div class="line">                <span class="keyword">if</span> (tot_cost &gt; next_cutoff) <span class="keyword">continue</span>;</div><div class="line">                <span class="comment">// 继续更新，这是一个不断估计的过程</span></div><div class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (tot_cost + adaptive_beam &lt; next_cutoff)</div><div class="line">                    next_cutoff = tot_cost + adaptive_beam; </div><div class="line">                <span class="comment">// 一开始调用时tok_已经是空的了。这一步产生的是新的tok</span></div><div class="line">                Token *next_tok = FindOrAddToken(arc.nextstate,</div><div class="line">                                               frame + <span class="number">1</span>, tot_cost, tok, <span class="literal">NULL</span>);</div><div class="line">                <span class="comment">// 把当前时刻的新token加入上一时刻的前向链表中</span></div><div class="line">                tok-&gt;links = <span class="keyword">new</span> ForwardLink(next_tok, arc.ilabel, arc.olabel,</div><div class="line">                                           graph_cost, ac_cost, tok-&gt;links);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 下一个element</span></div><div class="line">    e_tail = e-&gt;tail;</div><div class="line">    <span class="comment">// 从链表中拿掉/回收</span></div><div class="line">    toks_.Delete(e);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>函数<code>FindOrAddToken()</code>的作用是创建新的token（当前时刻）或者更新已有token的参数（<code>tot_cost</code>或者回溯指针等等）。因为同一个状态可能会有不同的token带着不同的<code>tot_cost</code>到达，但是只保留最优的一个。之前也说过，新建的token以链表形式相连，头部挂在<code>std::vector&lt;TokenList&gt; active_toks_</code>中：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">FindOrAddToken(StateId state, int32 frame_plus_one, BaseFloat tot_cost,</div><div class="line">            Token *backpointer, <span class="keyword">bool</span> *changed) &#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">    Token *&amp;toks = active_toks_[frame_plus_one].toks;   <span class="comment">// 注意引用，实际修改了</span></div><div class="line">    Elem *e_found = toks_.Find(state);</div><div class="line">    <span class="keyword">if</span> (e_found == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">const</span> BaseFloat extra_cost = <span class="number">0.0</span>;</div><div class="line">        <span class="comment">// NULL表示暂时没有forwardlinks，t时刻只能形成t-1时刻的前向链表</span></div><div class="line">        <span class="comment">// 头插法：这里new_tok.next = toks</span></div><div class="line">        <span class="comment">// 这里的new_tok暂时不释放的</span></div><div class="line">        Token *new_tok = <span class="keyword">new</span> Token (tot_cost, extra_cost, <span class="literal">NULL</span>, toks, backpointer);</div><div class="line">        toks = new_tok; </div><div class="line">        num_toks_++;    <span class="comment">// 整个解码过程中的token数目</span></div><div class="line">        <span class="comment">// 插入hash中维护，维护的是Elem，删除它不会释放token</span></div><div class="line">        toks_.Insert(state, new_tok);</div><div class="line">        <span class="keyword">if</span> (changed) *changed = <span class="literal">true</span>;</div><div class="line">        <span class="keyword">return</span> new_tok;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p><code>active_toks_</code>也是一个十分重要的变量，它的大小是逐渐增加的，每一次调用<code>ProcessEmitting()</code>都会扩充一次。整个解码器用它的大小来追溯已经处理了的总帧数：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">inline</span> int32 <span class="title">NumFramesDecoded</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> active_toks_.size() - <span class="number">1</span>; &#125;</div></pre></td></tr></table></figure></p>
+<p>对于<code>next_cutoff</code>，使用上一时刻最优token前向传递产生的cost（加上<code>adaptive_beam</code>）作为初始值。之后在处理token第二层剪枝过程中，如果传递形成的新的cost高于<code>next_cutoff</code>，则不予传递，否则产生新的token。若<code>tot_cost + adaptive_beam &lt; next_cutoff</code>，则更新<code>next_cutoff</code>。这部分代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"> <span class="keyword">for</span> (Elem *e = final_toks, *e_tail; e != <span class="literal">NULL</span>; e = e_tail) &#123;</span><br><span class="line">    StateId state = e-&gt;key;</span><br><span class="line">    Token *tok = e-&gt;val;</span><br><span class="line">    <span class="keyword">if</span> (tok-&gt;tot_cost &lt;=  cur_cutoff) &#123;</span><br><span class="line">        <span class="keyword">for</span> (fst::ArcIterator&lt;fst::Fst&lt;Arc&gt; &gt; aiter(fst_, state);</span><br><span class="line">           !aiter.Done();</span><br><span class="line">           aiter.Next()) &#123;</span><br><span class="line">            <span class="comment">// 遍历状态的连接弧</span></span><br><span class="line">            <span class="keyword">const</span> Arc &amp;arc = aiter.Value();</span><br><span class="line">            <span class="keyword">if</span> (arc.ilabel != <span class="number">0</span>) &#123;</span><br><span class="line">                BaseFloat ac_cost = cost_offset -</span><br><span class="line">                    decodable-&gt;LogLikelihood(frame, arc.ilabel),</span><br><span class="line">                    graph_cost = arc.weight.Value(),</span><br><span class="line">                    cur_cost = tok-&gt;tot_cost,</span><br><span class="line">                    tot_cost = cur_cost + ac_cost + graph_cost;</span><br><span class="line">                <span class="comment">// 剪枝</span></span><br><span class="line">                <span class="keyword">if</span> (tot_cost &gt; next_cutoff) <span class="keyword">continue</span>;</span><br><span class="line">                <span class="comment">// 继续更新，这是一个不断估计的过程</span></span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (tot_cost + adaptive_beam &lt; next_cutoff)</span><br><span class="line">                    next_cutoff = tot_cost + adaptive_beam; </span><br><span class="line">                <span class="comment">// 一开始调用时tok_已经是空的了。这一步产生的是新的tok</span></span><br><span class="line">                Token *next_tok = FindOrAddToken(arc.nextstate,</span><br><span class="line">                                               frame + <span class="number">1</span>, tot_cost, tok, <span class="literal">NULL</span>);</span><br><span class="line">                <span class="comment">// 把当前时刻的新token加入上一时刻的前向链表中</span></span><br><span class="line">                tok-&gt;links = <span class="keyword">new</span> ForwardLink(next_tok, arc.ilabel, arc.olabel,</span><br><span class="line">                                           graph_cost, ac_cost, tok-&gt;links);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 下一个element</span></span><br><span class="line">    e_tail = e-&gt;tail;</span><br><span class="line">    <span class="comment">// 从链表中拿掉/回收</span></span><br><span class="line">    toks_.Delete(e);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>函数<code>FindOrAddToken()</code>的作用是创建新的token（当前时刻）或者更新已有token的参数（<code>tot_cost</code>或者回溯指针等等）。因为同一个状态可能会有不同的token带着不同的<code>tot_cost</code>到达，但是只保留最优的一个。之前也说过，新建的token以链表形式相连，头部挂在<code>std::vector&lt;TokenList&gt; active_toks_</code>中：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">FindOrAddToken(StateId state, int32 frame_plus_one, BaseFloat tot_cost,</span><br><span class="line">            Token *backpointer, <span class="keyword">bool</span> *changed) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    Token *&amp;toks = active_toks_[frame_plus_one].toks;   <span class="comment">// 注意引用，实际修改了</span></span><br><span class="line">    Elem *e_found = toks_.Find(state);</span><br><span class="line">    <span class="keyword">if</span> (e_found == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">const</span> BaseFloat extra_cost = <span class="number">0.0</span>;</span><br><span class="line">        <span class="comment">// NULL表示暂时没有forwardlinks，t时刻只能形成t-1时刻的前向链表</span></span><br><span class="line">        <span class="comment">// 头插法：这里new_tok.next = toks</span></span><br><span class="line">        <span class="comment">// 这里的new_tok暂时不释放的</span></span><br><span class="line">        Token *new_tok = <span class="keyword">new</span> Token (tot_cost, extra_cost, <span class="literal">NULL</span>, toks, backpointer);</span><br><span class="line">        toks = new_tok; </span><br><span class="line">        num_toks_++;    <span class="comment">// 整个解码过程中的token数目</span></span><br><span class="line">        <span class="comment">// 插入hash中维护，维护的是Elem，删除它不会释放token</span></span><br><span class="line">        toks_.Insert(state, new_tok);</span><br><span class="line">        <span class="keyword">if</span> (changed) *changed = <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">return</span> new_tok;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p><code>active_toks_</code>也是一个十分重要的变量，它的大小是逐渐增加的，每一次调用<code>ProcessEmitting()</code>都会扩充一次。整个解码器用它的大小来追溯已经处理了的总帧数：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">inline</span> int32 <span class="title">NumFramesDecoded</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123; <span class="keyword">return</span> active_toks_.size() - <span class="number">1</span>; &#125;</span><br></pre></td></tr></table></figure></p>
 <p>假设现在处理的是第frame帧（frame从0开始计数），那么要获得该帧产生的token链表，<code>active_toks_</code>的index应该是frame + 1。</p>
-<h3 id="ProcessNonemitting"><a href="#ProcessNonemitting" class="headerlink" title="ProcessNonemitting"></a>ProcessNonemitting</h3><p>从函数名可以看出，这一步处理的当前帧下输入为$\epsilon$的跳转/弧，也就是说没有声学的观测概率。这部分代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line">ProcessNonemitting(BaseFloat cutoff) &#123;</div><div class="line">    KALDI_ASSERT(!active_toks_.empty());</div><div class="line">    <span class="comment">// active_toks_在ProcessEmitting()中已经扩容了/+1，所以要访问</span></div><div class="line">    <span class="comment">// 当前帧需要-2</span></div><div class="line">    int32 frame = <span class="keyword">static_cast</span>&lt;int32&gt;(active_toks_.size()) - <span class="number">2</span>;</div><div class="line">    KALDI_ASSERT(queue_.empty());</div><div class="line">    <span class="comment">// push当前时刻到达的状态</span></div><div class="line">    <span class="comment">// toks_.GetList()获取的是在ProcessEmitting()中新产生的token</span></div><div class="line">    <span class="comment">// 也就是当前时刻的token</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> Elem *e = toks_.GetList(); e != <span class="literal">NULL</span>;  e = e-&gt;tail)</div><div class="line">        queue_.push_back(e-&gt;key);</div><div class="line">    <span class="comment">// queue_中存储的是由当前时刻token对应的状态出发，可以通过空跳转</span></div><div class="line">    <span class="comment">// 到达的所有状态</span></div><div class="line">    <span class="keyword">while</span> (!queue_.empty()) &#123;</div><div class="line">        StateId state = queue_.back();</div><div class="line">        queue_.pop_back();</div><div class="line"></div><div class="line">        Token *tok = toks_.Find(state)-&gt;val;</div><div class="line">        BaseFloat cur_cost = tok-&gt;tot_cost;</div><div class="line">        <span class="keyword">if</span> (cur_cost &gt; cutoff)</div><div class="line">          <span class="keyword">continue</span>;</div><div class="line">        <span class="comment">// 一般而言，当前时刻的token没有前向链表</span></div><div class="line">        tok-&gt;DeleteForwardLinks();</div><div class="line">        tok-&gt;links = <span class="literal">NULL</span>;</div><div class="line">        <span class="keyword">for</span> (fst::ArcIterator&lt;fst::Fst&lt;Arc&gt; &gt; aiter(fst_, state);</div><div class="line">             !aiter.Done();</div><div class="line">             aiter.Next()) &#123;</div><div class="line">            <span class="keyword">const</span> Arc &amp;arc = aiter.Value();</div><div class="line">            <span class="comment">// ilabel == 0表示non-emitting</span></div><div class="line">            <span class="keyword">if</span> (arc.ilabel == <span class="number">0</span>) &#123;  <span class="comment">// propagate nonemitting only...</span></div><div class="line">                BaseFloat graph_cost = arc.weight.Value(),</div><div class="line">                tot_cost = cur_cost + graph_cost;   <span class="comment">// acoustic_cost = 0</span></div><div class="line">                <span class="keyword">if</span> (tot_cost &lt; cutoff) &#123;</div><div class="line">                    <span class="keyword">bool</span> changed;</div><div class="line">                    Token *new_tok = FindOrAddToken(arc.nextstate, </div><div class="line">                                                    frame + <span class="number">1</span>, tot_cost,</div><div class="line">                                                    tok, &amp;changed);</div><div class="line">                    <span class="comment">// ilabel == 0则acoustic_cost = 0</span></div><div class="line">                    <span class="comment">// tok指的是当前时刻的token</span></div><div class="line">                    tok-&gt;links = <span class="keyword">new</span> ForwardLink(new_tok, <span class="number">0</span>, arc.olabel,</div><div class="line">                                               graph_cost, <span class="number">0</span>, tok-&gt;links);</div><div class="line">                    <span class="comment">// 形成新的token或者更新了权值，说明新状态可到达</span></div><div class="line">                    <span class="keyword">if</span> (changed) queue_.push_back(arc.nextstate);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="ProcessNonemitting"><a href="#ProcessNonemitting" class="headerlink" title="ProcessNonemitting"></a>ProcessNonemitting</h3><p>从函数名可以看出，这一步处理的当前帧下输入为$\epsilon$的跳转/弧，也就是说没有声学的观测概率。这部分代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">ProcessNonemitting(BaseFloat cutoff) &#123;</span><br><span class="line">    KALDI_ASSERT(!active_toks_.empty());</span><br><span class="line">    <span class="comment">// active_toks_在ProcessEmitting()中已经扩容了/+1，所以要访问</span></span><br><span class="line">    <span class="comment">// 当前帧需要-2</span></span><br><span class="line">    int32 frame = <span class="keyword">static_cast</span>&lt;int32&gt;(active_toks_.size()) - <span class="number">2</span>;</span><br><span class="line">    KALDI_ASSERT(queue_.empty());</span><br><span class="line">    <span class="comment">// push当前时刻到达的状态</span></span><br><span class="line">    <span class="comment">// toks_.GetList()获取的是在ProcessEmitting()中新产生的token</span></span><br><span class="line">    <span class="comment">// 也就是当前时刻的token</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> Elem *e = toks_.GetList(); e != <span class="literal">NULL</span>;  e = e-&gt;tail)</span><br><span class="line">        queue_.push_back(e-&gt;key);</span><br><span class="line">    <span class="comment">// queue_中存储的是由当前时刻token对应的状态出发，可以通过空跳转</span></span><br><span class="line">    <span class="comment">// 到达的所有状态</span></span><br><span class="line">    <span class="keyword">while</span> (!queue_.empty()) &#123;</span><br><span class="line">        StateId state = queue_.back();</span><br><span class="line">        queue_.pop_back();</span><br><span class="line"></span><br><span class="line">        Token *tok = toks_.Find(state)-&gt;val;</span><br><span class="line">        BaseFloat cur_cost = tok-&gt;tot_cost;</span><br><span class="line">        <span class="keyword">if</span> (cur_cost &gt; cutoff)</span><br><span class="line">          <span class="keyword">continue</span>;</span><br><span class="line">        <span class="comment">// 一般而言，当前时刻的token没有前向链表</span></span><br><span class="line">        tok-&gt;DeleteForwardLinks();</span><br><span class="line">        tok-&gt;links = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">for</span> (fst::ArcIterator&lt;fst::Fst&lt;Arc&gt; &gt; aiter(fst_, state);</span><br><span class="line">             !aiter.Done();</span><br><span class="line">             aiter.Next()) &#123;</span><br><span class="line">            <span class="keyword">const</span> Arc &amp;arc = aiter.Value();</span><br><span class="line">            <span class="comment">// ilabel == 0表示non-emitting</span></span><br><span class="line">            <span class="keyword">if</span> (arc.ilabel == <span class="number">0</span>) &#123;  <span class="comment">// propagate nonemitting only...</span></span><br><span class="line">                BaseFloat graph_cost = arc.weight.Value(),</span><br><span class="line">                tot_cost = cur_cost + graph_cost;   <span class="comment">// acoustic_cost = 0</span></span><br><span class="line">                <span class="keyword">if</span> (tot_cost &lt; cutoff) &#123;</span><br><span class="line">                    <span class="keyword">bool</span> changed;</span><br><span class="line">                    Token *new_tok = FindOrAddToken(arc.nextstate, </span><br><span class="line">                                                    frame + <span class="number">1</span>, tot_cost,</span><br><span class="line">                                                    tok, &amp;changed);</span><br><span class="line">                    <span class="comment">// ilabel == 0则acoustic_cost = 0</span></span><br><span class="line">                    <span class="comment">// tok指的是当前时刻的token</span></span><br><span class="line">                    tok-&gt;links = <span class="keyword">new</span> ForwardLink(new_tok, <span class="number">0</span>, arc.olabel,</span><br><span class="line">                                               graph_cost, <span class="number">0</span>, tok-&gt;links);</span><br><span class="line">                    <span class="comment">// 形成新的token或者更新了权值，说明新状态可到达</span></span><br><span class="line">                    <span class="keyword">if</span> (changed) queue_.push_back(arc.nextstate);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>总体而言，解码过程就是不断的对一帧处理可观测跳转和空跳转，在拓展token的过程中执行剪枝策略，并将每一时刻的token链保存在<code>active_tok_</code>中，用于最终形成Lattice。</p>
 <h3 id="PruneActiveTokens"><a href="#PruneActiveTokens" class="headerlink" title="PruneActiveTokens"></a>PruneActiveTokens</h3><p>除了在token传递过程中执行剪枝，kaldi还会每隔几帧执行一次<code>PruneActiveTokens</code>操作。该操作虽然也会删掉一些不必要的token，但是阈值的计算是在<code>active_toks_</code>中进行的（存在时间跨度）。首先执行<code>PruneForwardLinks()</code>，剪去一些token的前向指针，之后会调用<code>PruneTokensForFrame()</code>，将前向链接为空的token删去。</p>
-<p>在<code>PruneForwardLinks()</code>中，对于当前时刻的每一个token，程序会遍历其ForwardLinks，算出每一条link和最优路径的cost差/距离<code>link_extra_cost</code>，如果差距过大（大于<code>lattice_beam</code>）就剪掉该link。<code>token-&gt;extra_cost</code>置为所有前向链接的<code>link_extra_cost</code>中最小的一个（如果前向链接被删完了，<code>token-&gt;extra_cost</code>会被置为无穷）。在下一步的<code>PruneTokensForFrame()</code>就是通过<code>token-&gt;extra_cost</code>来断定该token是否有前向链接的。整个搜索过程是一个时间轴上的回溯过程，即从当前时刻向初始时刻0开始。这里需要注意一个顺序问题，比如在$t - 1$时刻执行<code>PruneForwardLinks()</code>，需要用到$t$时刻的token信息，因此这里的执行顺序应该是先执行$t$时刻的Links剪枝，再执行$t + 1$时刻的Token剪枝。<code>PruneForwardLinks()</code>核心操作代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div></pre></td><td class="code"><pre><div class="line">PruneForwardLinks(int32 frame_plus_one, <span class="keyword">bool</span> *extra_costs_changed,</div><div class="line">                    <span class="keyword">bool</span> *links_pruned, BaseFloat delta) &#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">    <span class="keyword">bool</span> changed = <span class="literal">true</span>; <span class="comment">// 新的tok_extra_cost - 旧的tok_extra_cost &gt; 1.0 ?</span></div><div class="line">    <span class="keyword">while</span> (changed) &#123;</div><div class="line">        changed = <span class="literal">false</span>;</div><div class="line">        <span class="comment">// 当前时刻的每一个token</span></div><div class="line">        <span class="keyword">for</span> (Token *tok = active_toks_[frame_plus_one].toks;</div><div class="line">            tok != <span class="literal">NULL</span>; tok = tok-&gt;next) &#123;</div><div class="line"></div><div class="line">            ForwardLink *link, *prev_link = <span class="literal">NULL</span>;</div><div class="line">            BaseFloat tok_extra_cost = <span class="built_in">std</span>::numeric_limits&lt;BaseFloat&gt;::infinity();</div><div class="line">            <span class="comment">// 对于每一个token的每一个前向链接</span></div><div class="line">            <span class="comment">// tok_extra_cost 取最小的link_extra_cost</span></div><div class="line">            <span class="keyword">for</span> (link = tok-&gt;links; link != <span class="literal">NULL</span>; ) &#123;</div><div class="line">                Token *next_tok = link-&gt;next_tok;</div><div class="line">                <span class="comment">// extra_cost 初始化的时候为0</span></div><div class="line">                <span class="comment">// 和最优路径的差距</span></div><div class="line">                <span class="comment">// (tok-&gt;tot_cost + link-&gt;acoustic_cost + link-&gt;graph_cost)</span></div><div class="line">                <span class="comment">// - next_tok-&gt;tot_cost &gt;= 0</span></div><div class="line">                BaseFloat link_extra_cost = next_tok-&gt;extra_cost +</div><div class="line">                    ((tok-&gt;tot_cost + link-&gt;acoustic_cost + link-&gt;graph_cost)</div><div class="line">                    - next_tok-&gt;tot_cost);</div><div class="line">                <span class="comment">// 超过了阈值，删掉link</span></div><div class="line">                <span class="keyword">if</span> (link_extra_cost &gt; config_.lattice_beam) &#123;</div><div class="line">                    ForwardLink *next_link = link-&gt;next;</div><div class="line">                    <span class="keyword">if</span> (prev_link != <span class="literal">NULL</span>) prev_link-&gt;next = next_link;</div><div class="line">                    <span class="keyword">else</span> tok-&gt;links = next_link;</div><div class="line">                    <span class="keyword">delete</span> link;</div><div class="line">                    link = next_link;</div><div class="line">                    *links_pruned = <span class="literal">true</span>;   <span class="comment">// 表示有link删除，可能产生没有link的token了</span></div><div class="line">                &#125; <span class="keyword">else</span> &#123;   <span class="comment">// 更新tok_extra_cost，保留link</span></div><div class="line">                    <span class="keyword">if</span> (link_extra_cost &lt; <span class="number">0.0</span>) &#123;    <span class="comment">// 正常不会这样</span></div><div class="line">                        <span class="keyword">if</span> (link_extra_cost &lt; <span class="number">-0.01</span>)</div><div class="line">                            KALDI_WARN &lt;&lt; <span class="string">"Negative extra_cost: "</span> &lt;&lt; link_extra_cost;</div><div class="line">                        link_extra_cost = <span class="number">0.0</span>;</div><div class="line">                    &#125; <span class="comment">// keep最小的</span></div><div class="line">                    <span class="keyword">if</span> (link_extra_cost &lt; tok_extra_cost)</div><div class="line">                        tok_extra_cost = link_extra_cost;</div><div class="line">                    <span class="comment">// 指向没有被删除的最后一个</span></div><div class="line">                    prev_link = link;</div><div class="line">                    link = link-&gt;next; <span class="comment">// 下一个link</span></div><div class="line">                &#125;</div><div class="line">            &#125; <span class="comment">// ForwardLink循环结束</span></div><div class="line">            <span class="comment">// delta默认1.0</span></div><div class="line">            <span class="comment">// 新的tok_extra_cost - 旧的tok_extra_cost &gt; 1.0</span></div><div class="line">            <span class="keyword">if</span> (<span class="built_in">fabs</span>(tok_extra_cost - tok-&gt;extra_cost) &gt; delta)</div><div class="line">                changed = <span class="literal">true</span>;</div><div class="line">            tok-&gt;extra_cost = tok_extra_cost;</div><div class="line">            <span class="comment">// 要么+infinity 要么 &lt;= lattice_beam_</span></div><div class="line">            <span class="comment">// +infinity就会被剪掉</span></div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 曾经有一次是true，它就是true</span></div><div class="line">        <span class="comment">// extra_costs_changed表示tok-&gt;extra_cost更新了</span></div><div class="line">        <span class="comment">// 因此前一时刻的tokens的extra_cost也需要重新计算了</span></div><div class="line">        <span class="keyword">if</span> (changed) *extra_costs_changed = <span class="literal">true</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在<code>PruneForwardLinks()</code>中，对于当前时刻的每一个token，程序会遍历其ForwardLinks，算出每一条link和最优路径的cost差/距离<code>link_extra_cost</code>，如果差距过大（大于<code>lattice_beam</code>）就剪掉该link。<code>token-&gt;extra_cost</code>置为所有前向链接的<code>link_extra_cost</code>中最小的一个（如果前向链接被删完了，<code>token-&gt;extra_cost</code>会被置为无穷）。在下一步的<code>PruneTokensForFrame()</code>就是通过<code>token-&gt;extra_cost</code>来断定该token是否有前向链接的。整个搜索过程是一个时间轴上的回溯过程，即从当前时刻向初始时刻0开始。这里需要注意一个顺序问题，比如在$t - 1$时刻执行<code>PruneForwardLinks()</code>，需要用到$t$时刻的token信息，因此这里的执行顺序应该是先执行$t$时刻的Links剪枝，再执行$t + 1$时刻的Token剪枝。<code>PruneForwardLinks()</code>核心操作代码如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">PruneForwardLinks(int32 frame_plus_one, <span class="keyword">bool</span> *extra_costs_changed,</span><br><span class="line">                    <span class="keyword">bool</span> *links_pruned, BaseFloat delta) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">bool</span> changed = <span class="literal">true</span>; <span class="comment">// 新的tok_extra_cost - 旧的tok_extra_cost &gt; 1.0 ?</span></span><br><span class="line">    <span class="keyword">while</span> (changed) &#123;</span><br><span class="line">        changed = <span class="literal">false</span>;</span><br><span class="line">        <span class="comment">// 当前时刻的每一个token</span></span><br><span class="line">        <span class="keyword">for</span> (Token *tok = active_toks_[frame_plus_one].toks;</span><br><span class="line">            tok != <span class="literal">NULL</span>; tok = tok-&gt;next) &#123;</span><br><span class="line"></span><br><span class="line">            ForwardLink *link, *prev_link = <span class="literal">NULL</span>;</span><br><span class="line">            BaseFloat tok_extra_cost = <span class="built_in">std</span>::numeric_limits&lt;BaseFloat&gt;::infinity();</span><br><span class="line">            <span class="comment">// 对于每一个token的每一个前向链接</span></span><br><span class="line">            <span class="comment">// tok_extra_cost 取最小的link_extra_cost</span></span><br><span class="line">            <span class="keyword">for</span> (link = tok-&gt;links; link != <span class="literal">NULL</span>; ) &#123;</span><br><span class="line">                Token *next_tok = link-&gt;next_tok;</span><br><span class="line">                <span class="comment">// extra_cost 初始化的时候为0</span></span><br><span class="line">                <span class="comment">// 和最优路径的差距</span></span><br><span class="line">                <span class="comment">// (tok-&gt;tot_cost + link-&gt;acoustic_cost + link-&gt;graph_cost)</span></span><br><span class="line">                <span class="comment">// - next_tok-&gt;tot_cost &gt;= 0</span></span><br><span class="line">                BaseFloat link_extra_cost = next_tok-&gt;extra_cost +</span><br><span class="line">                    ((tok-&gt;tot_cost + link-&gt;acoustic_cost + link-&gt;graph_cost)</span><br><span class="line">                    - next_tok-&gt;tot_cost);</span><br><span class="line">                <span class="comment">// 超过了阈值，删掉link</span></span><br><span class="line">                <span class="keyword">if</span> (link_extra_cost &gt; config_.lattice_beam) &#123;</span><br><span class="line">                    ForwardLink *next_link = link-&gt;next;</span><br><span class="line">                    <span class="keyword">if</span> (prev_link != <span class="literal">NULL</span>) prev_link-&gt;next = next_link;</span><br><span class="line">                    <span class="keyword">else</span> tok-&gt;links = next_link;</span><br><span class="line">                    <span class="keyword">delete</span> link;</span><br><span class="line">                    link = next_link;</span><br><span class="line">                    *links_pruned = <span class="literal">true</span>;   <span class="comment">// 表示有link删除，可能产生没有link的token了</span></span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;   <span class="comment">// 更新tok_extra_cost，保留link</span></span><br><span class="line">                    <span class="keyword">if</span> (link_extra_cost &lt; <span class="number">0.0</span>) &#123;    <span class="comment">// 正常不会这样</span></span><br><span class="line">                        <span class="keyword">if</span> (link_extra_cost &lt; <span class="number">-0.01</span>)</span><br><span class="line">                            KALDI_WARN &lt;&lt; <span class="string">"Negative extra_cost: "</span> &lt;&lt; link_extra_cost;</span><br><span class="line">                        link_extra_cost = <span class="number">0.0</span>;</span><br><span class="line">                    &#125; <span class="comment">// keep最小的</span></span><br><span class="line">                    <span class="keyword">if</span> (link_extra_cost &lt; tok_extra_cost)</span><br><span class="line">                        tok_extra_cost = link_extra_cost;</span><br><span class="line">                    <span class="comment">// 指向没有被删除的最后一个</span></span><br><span class="line">                    prev_link = link;</span><br><span class="line">                    link = link-&gt;next; <span class="comment">// 下一个link</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="comment">// ForwardLink循环结束</span></span><br><span class="line">            <span class="comment">// delta默认1.0</span></span><br><span class="line">            <span class="comment">// 新的tok_extra_cost - 旧的tok_extra_cost &gt; 1.0</span></span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">fabs</span>(tok_extra_cost - tok-&gt;extra_cost) &gt; delta)</span><br><span class="line">                changed = <span class="literal">true</span>;</span><br><span class="line">            tok-&gt;extra_cost = tok_extra_cost;</span><br><span class="line">            <span class="comment">// 要么+infinity 要么 &lt;= lattice_beam_</span></span><br><span class="line">            <span class="comment">// +infinity就会被剪掉</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 曾经有一次是true，它就是true</span></span><br><span class="line">        <span class="comment">// extra_costs_changed表示tok-&gt;extra_cost更新了</span></span><br><span class="line">        <span class="comment">// 因此前一时刻的tokens的extra_cost也需要重新计算了</span></span><br><span class="line">        <span class="keyword">if</span> (changed) *extra_costs_changed = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p><code>PruneForwardLinks()</code>会在两中情况下被执行：</p>
 <ol>
 <li>在<code>active_toks_</code>中有新的<code>TokenList</code>被拓展，因为初始化的时候<code>must_prune_forward_links</code>和<code>must_prune_tokens</code>为<code>true</code>。</li>
-<li>下一时刻的<code>TokenList</code>中，有<code>token</code>的<code>extra_cost</code>变化了，所以之前时刻都需要重新计算。<br><code>PruneActiveTokens()</code>的核心代码如下：<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">PruneActiveTokens(BaseFloat delta) &#123;</div><div class="line">    <span class="comment">// ...</span></div><div class="line">    <span class="keyword">for</span> (int32 f = cur_frame_plus_one - <span class="number">1</span>; f &gt;= <span class="number">0</span>; f--) &#123;</div><div class="line">        <span class="keyword">if</span> (active_toks_[f].must_prune_forward_links) &#123;</div><div class="line">        <span class="keyword">bool</span> extra_costs_changed = <span class="literal">false</span>, links_pruned = <span class="literal">false</span>;</div><div class="line">        PruneForwardLinks(f, &amp;extra_costs_changed, &amp;links_pruned, delta);</div><div class="line">        <span class="comment">// extra_costs_changed表示f时刻的token-&gt;extra_cost发生了变化</span></div><div class="line">        <span class="comment">// 因此之前时刻的token-&gt;extra_cost的需要相应的重新计算</span></div><div class="line">        <span class="keyword">if</span> (extra_costs_changed &amp;&amp; f &gt; <span class="number">0</span>)</div><div class="line">            active_toks_[f<span class="number">-1</span>].must_prune_forward_links = <span class="literal">true</span>;</div><div class="line">        <span class="comment">// links_pruned 表示是否有link被剪掉了</span></div><div class="line">        <span class="keyword">if</span> (links_pruned)</div><div class="line">            active_toks_[f].must_prune_tokens = <span class="literal">true</span>;</div><div class="line">        <span class="comment">// 剪完了</span></div><div class="line">        active_toks_[f].must_prune_forward_links = <span class="literal">false</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// f + 1 != cur_frame_plus_one - 1 还没有ForwordLink</span></div><div class="line">        <span class="comment">// f + 1时刻</span></div><div class="line">        <span class="keyword">if</span> (f+<span class="number">1</span> &lt; cur_frame_plus_one &amp;&amp;</div><div class="line">            active_toks_[f+<span class="number">1</span>].must_prune_tokens) &#123;</div><div class="line">            PruneTokensForFrame(f+<span class="number">1</span>);</div><div class="line">            active_toks_[f+<span class="number">1</span>].must_prune_tokens = <span class="literal">false</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<li>下一时刻的<code>TokenList</code>中，有<code>token</code>的<code>extra_cost</code>变化了，所以之前时刻都需要重新计算。<br><code>PruneActiveTokens()</code>的核心代码如下：<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">PruneActiveTokens(BaseFloat delta) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">    <span class="keyword">for</span> (int32 f = cur_frame_plus_one - <span class="number">1</span>; f &gt;= <span class="number">0</span>; f--) &#123;</span><br><span class="line">        <span class="keyword">if</span> (active_toks_[f].must_prune_forward_links) &#123;</span><br><span class="line">        <span class="keyword">bool</span> extra_costs_changed = <span class="literal">false</span>, links_pruned = <span class="literal">false</span>;</span><br><span class="line">        PruneForwardLinks(f, &amp;extra_costs_changed, &amp;links_pruned, delta);</span><br><span class="line">        <span class="comment">// extra_costs_changed表示f时刻的token-&gt;extra_cost发生了变化</span></span><br><span class="line">        <span class="comment">// 因此之前时刻的token-&gt;extra_cost的需要相应的重新计算</span></span><br><span class="line">        <span class="keyword">if</span> (extra_costs_changed &amp;&amp; f &gt; <span class="number">0</span>)</span><br><span class="line">            active_toks_[f<span class="number">-1</span>].must_prune_forward_links = <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">// links_pruned 表示是否有link被剪掉了</span></span><br><span class="line">        <span class="keyword">if</span> (links_pruned)</span><br><span class="line">            active_toks_[f].must_prune_tokens = <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">// 剪完了</span></span><br><span class="line">        active_toks_[f].must_prune_forward_links = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// f + 1 != cur_frame_plus_one - 1 还没有ForwordLink</span></span><br><span class="line">        <span class="comment">// f + 1时刻</span></span><br><span class="line">        <span class="keyword">if</span> (f+<span class="number">1</span> &lt; cur_frame_plus_one &amp;&amp;</span><br><span class="line">            active_toks_[f+<span class="number">1</span>].must_prune_tokens) &#123;</span><br><span class="line">            PruneTokensForFrame(f+<span class="number">1</span>);</span><br><span class="line">            active_toks_[f+<span class="number">1</span>].must_prune_tokens = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
 <h2 id="特征供给"><a href="#特征供给" class="headerlink" title="特征供给"></a>特征供给</h2><p>这部分会和ivector的在线提取放在一起，说明kaldi对Online-Feature的包装。</p>
 
       
     </div>
+
+    
+
     
     
     
@@ -487,32 +559,17 @@
       <div>
         <ul class="post-copyright">
   <li class="post-copyright-author">
-    <strong>本文作者：</strong>
-    WJ
-  </li>
+    <strong>本文作者： </strong>WJ</li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
     <a href="http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/" title="对kaldi中Online-Decoder的分析">http://www.funcwj.cn/2017/08/02/kaldi-online-decoder/</a>
   </li>
   <li class="post-copyright-license">
-    <strong>版权声明： </strong>
-    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
-  </li>
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
 </ul>
 
       </div>
     
-    
-    <div>
-        
-            <div>
-    
-    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
-    
-</div>
-
-        
-     </div>
 
     <footer class="post-footer">
       
@@ -559,19 +616,14 @@
   </article>
 
 
-
-    <div class="post-spread">
-      
-    </div>
   </div>
 
 
           </div>
           
 
-
-          
   
+
 
 
         </div>
@@ -605,72 +657,110 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
-          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
-              <img class="site-author-image" itemprop="image"
-                src="/uploads/avatar.JPG"
-                alt="WJ" />
+              <img class="site-author-image" itemprop="image" src="/uploads/avatar.JPG" alt="WJ">
             
               <p class="site-author-name" itemprop="name">WJ</p>
               <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
           </div>
 
-          <nav class="site-state motion-element">
-
-            
-              <div class="site-state-item site-state-posts">
+          
+            <nav class="site-state motion-element">
               
-                <a href="/archives/">
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">70</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
               
-                  <span class="site-state-item-count">70</span>
-                  <span class="site-state-item-name">日志</span>
-                </a>
-              </div>
-            
 
-            
-
-            
               
-              
-              <div class="site-state-item site-state-tags">
-                <a href="/tags/index.html">
-                  <span class="site-state-item-count">12</span>
-                  <span class="site-state-item-name">标签</span>
-                </a>
-              </div>
-            
 
-          </nav>
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
 
           
 
-          <div class="links-of-author motion-element">
-            
+          
+            <div class="links-of-author motion-element">
               
                 <span class="links-of-author-item">
-                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
-                    
-                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
                 </span>
               
                 <span class="links-of-author-item">
-                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
-                    
-                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                  <a href="mailto:funcwj@foxmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
                 </span>
               
-            
-          </div>
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎"><i class="fa fa-fw fa-book"></i>知乎</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://www.funcwj.cn" target="_blank" title="..."><i class="fa fa-fw fa-google"></i>...</a>
+                  
+                </span>
+              
+            </div>
+          
 
           
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons">
+              </a>
+            </div>
           
 
           
           
             <div class="links-of-blogroll motion-element links-of-blogroll-inline">
               <div class="links-of-blogroll-title">
-                <i class="fa  fa-fw fa-globe"></i>
+                <i class="fa  fa-fw fa-link"></i>
                 Links
               </div>
               <ul class="links-of-blogroll-list">
@@ -696,11 +786,11 @@
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="dasp" target="_blank">dasp</a>
+                    <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="DASP" target="_blank">DASP</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="sasp" target="_blank">sasp</a>
+                    <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="SASP" target="_blank">SASP</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
@@ -709,14 +799,6 @@
                 
                   <li class="links-of-blogroll-item">
                     <a href="http://www.irisa.fr/metiss/ozerov/" title="Alexey Ozerov" target="_blank">Alexey Ozerov</a>
-                  </li>
-                
-                  <li class="links-of-blogroll-item">
-                    <a href="https://research.ics.aalto.fi/ica/fastica/" title="FastICA" target="_blank">FastICA</a>
-                  </li>
-                
-                  <li class="links-of-blogroll-item">
-                    <a href="http://bass-db.gforge.inria.fr/bss_locate/" title="BSS Locate" target="_blank">BSS Locate</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
@@ -735,6 +817,9 @@
             </div>
           
 
+          
+            
+          
           
 
         </div>
@@ -770,9 +855,9 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
-  <span class="with-love">
-    <i class="fa fa-user"></i>
+        <div class="copyright">&copy; 2017 – <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">WJ</span>
 
@@ -782,14 +867,27 @@
       <i class="fa fa-area-chart"></i>
     </span>
     
-      <span class="post-meta-item-text">Site words total count&#58;</span>
+      <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="Site words total count">94.5k</span>
+    <span title="站点总字数">312k</span>
+  
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">4:43</span>
   
 </div>
 
 
-  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.8.0</div>
 
 
 
@@ -797,12 +895,31 @@
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Gemini</a> v6.4.2</div>
 
 
 
 
         
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
 
 
 
@@ -821,6 +938,11 @@
       </div>
     
 
+    
+	
+    
+
+    
   </div>
 
   
@@ -839,7 +961,6 @@
 
 
 
-  
 
 
 
@@ -852,68 +973,56 @@
 
 
 
-  
-  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
-
-  
-  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
-
-  
-  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
-
-  
-  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
-
-  
-  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
-
-  
-  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
 
 
-  
-
-
-  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
-
-  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
 
 
 
   
   
-
-
-  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
-
-  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
-
-
-
-  
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
-
-
-
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
   
 
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
 
-  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
-
-
-
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
   
 
 
   
 
 
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
 
 
-	
+
+  
+  
 
 
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
 
 
 
@@ -921,9 +1030,9 @@
 
 
 
-
-
   
+
+
 
 
 
@@ -983,6 +1092,8 @@
         .css('overflow', 'hidden');
       $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
 
+      
+
       $.ajax({
         url: path,
         dataType: isXml ? "xml" : "json",
@@ -1016,6 +1127,7 @@
                 var title = data.title.trim();
                 var titleInLowerCase = title.toLowerCase();
                 var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
                 var contentInLowerCase = content.toLowerCase();
                 var articleUrl = decodeURIComponent(data.url);
                 var indexOfTitle = [];
@@ -1263,31 +1375,118 @@
 
   
   
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        tex2jax: {
-          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
-          processEscapes: true,
-          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-        }
-      });
-    </script>
 
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
         for (i=0; i < all.length; i += 1) {
           all[i].SourceElement().parentNode.className += ' has-jax';
         }
-      });
-    </script>
-    <script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
   
 
 
   
+  
 
   
+
+  
+
+  
+
+  
+
+  
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
 
 </body>
 </html>

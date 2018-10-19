@@ -3,12 +3,26 @@
 
 
 
-<html class="theme-next gemini" lang="zh-Hans">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
+
+
+
 
 
 
@@ -25,8 +39,8 @@
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -43,62 +57,33 @@
 
 
 
-  
-  
-  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
 
 
 
 
 
 
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
 
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
-
-<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
-
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
 
 
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=6.4.2">
 
 
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=6.4.2">
 
 
-  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=6.4.2">
 
 
-
-
-
-  <meta name="keywords" content="Python," />
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=6.4.2" color="#222">
 
 
 
 
 
 
-
-
-
-
-<meta name="description" content="Linux上没装matlab，没有audition，开源的audacity程序没法看语谱(找到看的方法了……)，所以当时就简单写了一个，勉强能看。">
-<meta name="keywords" content="Python">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Python绘制语谱图">
-<meta property="og:url" content="http://www.funcwj.cn/2017/05/28/python-spectrum/index.html">
-<meta property="og:site_name" content="WJ&#39;s blog">
-<meta property="og:description" content="Linux上没装matlab，没有audition，开源的audacity程序没法看语谱(找到看的方法了……)，所以当时就简单写了一个，勉强能看。">
-<meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/wh09r0jqdc10xygs2egi471k/stft_demo.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/fibglzugi6dwslybm6iwrvgk/time_stft_demo.png">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python绘制语谱图">
-<meta name="twitter:description" content="Linux上没装matlab，没有audition，开源的audacity程序没法看语谱(找到看的方法了……)，所以当时就简单写了一个，勉强能看。">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/wh09r0jqdc10xygs2egi471k/stft_demo.png">
 
 
 
@@ -107,15 +92,13 @@
   var CONFIG = {
     root: '/',
     scheme: 'Gemini',
-    version: '5.1.3',
+    version: '6.4.2',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
-    fancybox: true,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
     tabs: true,
-    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
-    duoshuo: {
-      userId: '0',
-      author: '博主'
-    },
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
     algolia: {
       applicationID: '',
       apiKey: '',
@@ -127,12 +110,41 @@
 </script>
 
 
-
-  <link rel="canonical" href="http://www.funcwj.cn/2017/05/28/python-spectrum/"/>
-
+  
 
 
 
+
+  <meta name="description" content="Linux上没装matlab，没有audition，开源的audacity程序没法看语谱(找到看的方法了……)，所以当时就简单写了一个，勉强能看。">
+<meta name="keywords" content="Python">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python绘制语谱图">
+<meta property="og:url" content="http://www.funcwj.cn/2017/05/28/python-spectrum/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="Linux上没装matlab，没有audition，开源的audacity程序没法看语谱(找到看的方法了……)，所以当时就简单写了一个，勉强能看。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/wh09r0jqdc10xygs2egi471k/stft_demo.png">
+<meta property="og:image" content="http://static.zybuluo.com/funcwj/fibglzugi6dwslybm6iwrvgk/time_stft_demo.png">
+<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python绘制语谱图">
+<meta name="twitter:description" content="Linux上没装matlab，没有audition，开源的audacity程序没法看语谱(找到看的方法了……)，所以当时就简单写了一个，勉强能看。">
+<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/wh09r0jqdc10xygs2egi471k/stft_demo.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2017/05/28/python-spectrum/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
 
   <title>Python绘制语谱图 | WJ's blog</title>
   
@@ -144,9 +156,37 @@
 
 
 
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
 </head>
 
-<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
 
   
   
@@ -156,25 +196,27 @@
   <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
-    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
       <div class="header-inner"><div class="site-brand-wrapper">
   <div class="site-meta ">
     
 
     <div class="custom-logo-site-title">
-      <a href="/"  class="brand" rel="start">
+      <a href="/" class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
         <span class="site-title">WJ's blog</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
+    
       
         <p class="site-subtitle">我只是好奇</p>
       
+    
   </div>
 
   <div class="site-nav-toggle">
-    <button>
+    <button aria-label="切换导航栏">
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
@@ -182,66 +224,58 @@
   </div>
 </div>
 
-<nav class="site-nav">
-  
 
+
+<nav class="site-nav">
   
     <ul id="menu" class="menu">
       
         
-        <li class="menu-item menu-item-home">
-          <a href="/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
-            
-            首页
-          </a>
-        </li>
-      
         
-        <li class="menu-item menu-item-about">
-          <a href="/about/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
-            
-            关于
-          </a>
-        </li>
-      
         
-        <li class="menu-item menu-item-tags">
-          <a href="/tags/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
-            
-            标签
-          </a>
-        </li>
-      
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
         
-        <li class="menu-item menu-item-archives">
-          <a href="/archives/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
-            
-            归档
-          </a>
-        </li>
-      
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">12</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">70</span></a>
+  </li>
 
+      
       
         <li class="menu-item menu-item-search">
           
             <a href="javascript:;" class="popup-trigger">
           
             
-              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
-            
-            搜索
-          </a>
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
         </li>
       
     </ul>
+  
+
   
 
   
@@ -256,9 +290,7 @@
       <i class="fa fa-times-circle"></i>
     </span>
     <div class="local-search-input-wrapper">
-      <input autocomplete="off"
-             placeholder="搜索..." spellcheck="false"
-             type="text" id="local-search-input">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
     </div>
   </div>
   <div id="local-search-result"></div>
@@ -272,12 +304,34 @@
 
 
 
- </div>
+  
+
+
+
+</div>
     </header>
+
+    
+  
+  
+  
+    
+      
+    
+    <a href="https://github.com/funcwj" class="github-corner" target="_blank" title="Follow me on GitHub" aria-label="Follow me on GitHub"><svg width="80" height="80" viewbox="0 0 250 250" style="fill:#222; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg>
+    
+      </a>
+    
+
+
 
     <main id="main" class="main">
       <div class="main-inner">
         <div class="content-wrap">
+          
+            
+
+          
           <div id="content" class="content">
             
 
@@ -290,20 +344,22 @@
   
   
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
   
   
   
   <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/05/28/python-spectrum/">
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
       <meta itemprop="image" content="/uploads/avatar.JPG">
     </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
       <meta itemprop="name" content="WJ's blog">
     </span>
 
@@ -312,11 +368,19 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Python绘制语谱图</h1>
+          <h1 class="post-title" itemprop="name headline">Python绘制语谱图
+              
+            
+          </h1>
         
 
         <div class="post-meta">
           <span class="post-time">
+
+            
+            
+            
+
             
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
@@ -324,11 +388,12 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-28T02:43:32+08:00">
-                2017-05-28
-              </time>
-            
 
+              
+                
+              
+
+              <time title="创建时间：2017-05-28 02:43:32" itemprop="dateCreated datePublished" datetime="2017-05-28T02:43:32+08:00">2017-05-28</time>
             
 
             
@@ -344,20 +409,26 @@
           
 
           
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
 
           
-            <div class="post-wordcount">
+            <div class="post-symbolscount">
               
-                
+
+              
                 <span class="post-meta-item-icon">
                   <i class="fa fa-file-word-o"></i>
                 </span>
                 
-                  <span class="post-meta-item-text">字数统计&#58;</span>
+                  <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="字数统计">
-                  422
-                </span>
+                <span title="本文字数">1.6k</span>
               
 
               
@@ -371,9 +442,7 @@
                 
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
-                <span title="阅读时长">
-                  2
-                </span>
+                <span title="阅读时长">1 分钟</span>
               
             </div>
           
@@ -397,16 +466,19 @@
 <a id="more"></a>
 <p>基本原理是STFT，短时傅里叶变换，下面的程序思想和STFT类似，但是不完全一致，只是绘制了每一帧的幅度谱，效果看着还可以，语谱绘制使用matplotlib的<code>imshow</code>函数，直接传入矩阵即可，但是注意，该函数绘制的时候按列绘制，我在存储每一帧的结果是按行存储的，所以需要转置。</p>
 <p>另外，之前还做了预加重，毕竟不是提取特征，不需要，细节看代码（当初的写的有点不规范啊）：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> scipy.io.wavfile <span class="keyword">as</span> wav</div><div class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div><div class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</div><div class="line"><span class="keyword">import</span> sys</div><div class="line"><span class="keyword">import</span> re</div><div class="line"></div><div class="line"><span class="keyword">if</span> len(sys.argv) != <span class="number">2</span>:</div><div class="line">    print(<span class="string">"Format error: &lt;src wave&gt;"</span>)</div><div class="line">    sys.exit()</div><div class="line"></div><div class="line">wavpath = sys.argv[<span class="number">1</span>]</div><div class="line"><span class="comment"># samples 返回类型是 numpy.ndarray</span></div><div class="line"><span class="comment"># 用这个模块读取wav scipy.io.wavfile，之前用的是python的wave模块</span></div><div class="line">rate, samples =  wav.read(wavpath)</div><div class="line"></div><div class="line">m = re.match(<span class="string">'(.*)/(.*)'</span>, wavpath)</div><div class="line"></div><div class="line">wavname = m.group(<span class="number">2</span>)</div><div class="line"><span class="keyword">print</span> <span class="string">"process %s..."</span> % wavname</div><div class="line"><span class="comment"># 转成浮点值</span></div><div class="line">wave = np.array(samples, dtype = <span class="string">"float"</span>)</div><div class="line"></div><div class="line">frame_off = <span class="number">160</span></div><div class="line">frame_len = <span class="number">400</span></div><div class="line">spect_len = <span class="number">512</span></div><div class="line"></div><div class="line">frame_num = (wave.size - frame_len) / frame_off + <span class="number">1</span></div><div class="line"><span class="comment"># 生成汉明窗</span></div><div class="line">hamwindow = np.hamming(frame_len)</div><div class="line">spect = np.zeros((frame_num, spect_len / <span class="number">2</span> + <span class="number">1</span>))</div><div class="line">z = np.zeros(spect_len - frame_len)</div><div class="line"></div><div class="line"><span class="keyword">for</span> idx <span class="keyword">in</span> range(frame_num):</div><div class="line">    base = idx * frame_off</div><div class="line">    frame = wave[base: base + frame_len]            <span class="comment"># 分帧</span></div><div class="line">    frame = np.append(frame * hamwindow, z)         <span class="comment"># 加窗</span></div><div class="line">    spect[idx:] = np.log10(np.abs(np.fft.rfft(frame))) <span class="comment"># FFT，返回幅度谱</span></div><div class="line"></div><div class="line">plt.title(wavname)</div><div class="line">plt.imshow(np.transpose(spect), origin=<span class="string">"lower"</span>, cmap = <span class="string">"jet"</span>, aspect = <span class="string">"auto"</span>, interpolation = <span class="string">"none"</span>)</div><div class="line">plt.show()</div></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scipy.io.wavfile <span class="keyword">as</span> wav</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> len(sys.argv) != <span class="number">2</span>:</span><br><span class="line">    print(<span class="string">"Format error: &lt;src wave&gt;"</span>)</span><br><span class="line">    sys.exit()</span><br><span class="line"></span><br><span class="line">wavpath = sys.argv[<span class="number">1</span>]</span><br><span class="line"><span class="comment"># samples 返回类型是 numpy.ndarray</span></span><br><span class="line"><span class="comment"># 用这个模块读取wav scipy.io.wavfile，之前用的是python的wave模块</span></span><br><span class="line">rate, samples =  wav.read(wavpath)</span><br><span class="line"></span><br><span class="line">m = re.match(<span class="string">'(.*)/(.*)'</span>, wavpath)</span><br><span class="line"></span><br><span class="line">wavname = m.group(<span class="number">2</span>)</span><br><span class="line"><span class="keyword">print</span> <span class="string">"process %s..."</span> % wavname</span><br><span class="line"><span class="comment"># 转成浮点值</span></span><br><span class="line">wave = np.array(samples, dtype = <span class="string">"float"</span>)</span><br><span class="line"></span><br><span class="line">frame_off = <span class="number">160</span></span><br><span class="line">frame_len = <span class="number">400</span></span><br><span class="line">spect_len = <span class="number">512</span></span><br><span class="line"></span><br><span class="line">frame_num = (wave.size - frame_len) / frame_off + <span class="number">1</span></span><br><span class="line"><span class="comment"># 生成汉明窗</span></span><br><span class="line">hamwindow = np.hamming(frame_len)</span><br><span class="line">spect = np.zeros((frame_num, spect_len / <span class="number">2</span> + <span class="number">1</span>))</span><br><span class="line">z = np.zeros(spect_len - frame_len)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> idx <span class="keyword">in</span> range(frame_num):</span><br><span class="line">    base = idx * frame_off</span><br><span class="line">    frame = wave[base: base + frame_len]            <span class="comment"># 分帧</span></span><br><span class="line">    frame = np.append(frame * hamwindow, z)         <span class="comment"># 加窗</span></span><br><span class="line">    spect[idx:] = np.log10(np.abs(np.fft.rfft(frame))) <span class="comment"># FFT，返回幅度谱</span></span><br><span class="line"></span><br><span class="line">plt.title(wavname)</span><br><span class="line">plt.imshow(np.transpose(spect), origin=<span class="string">"lower"</span>, cmap = <span class="string">"jet"</span>, aspect = <span class="string">"auto"</span>, interpolation = <span class="string">"none"</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
 <p>给出一个绘制结果</p>
 <p><img src="http://static.zybuluo.com/funcwj/wh09r0jqdc10xygs2egi471k/stft_demo.png" alt="stft_demo.png-221kB"></p>
 <p>完善：还可以为横纵坐标加上单位（时间和频率），时间信息如下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">xlocs = np.linspace(0, frame_num - 1, 5)</div><div class="line">frame_dur = 1 / float(rate) * frame_off</div><div class="line">plt.xticks(xlocs, [&quot;%.02f&quot; % l for l in (xlocs * frame_dur)])</div><div class="line">plt.xlabel(&quot;time (s)&quot;)</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">xlocs = np.linspace(0, frame_num - 1, 5)</span><br><span class="line">frame_dur = 1 / float(rate) * frame_off</span><br><span class="line">plt.xticks(xlocs, [&quot;%.02f&quot; % l for l in (xlocs * frame_dur)])</span><br><span class="line">plt.xlabel(&quot;time (s)&quot;)</span><br></pre></td></tr></table></figure>
 <p><img src="http://static.zybuluo.com/funcwj/fibglzugi6dwslybm6iwrvgk/time_stft_demo.png" alt="time_stft_demo.png-211.7kB"></p>
 <p>频率信息待完善…</p>
 
       
     </div>
+
+    
+
     
     
     
@@ -419,32 +491,17 @@
       <div>
         <ul class="post-copyright">
   <li class="post-copyright-author">
-    <strong>本文作者：</strong>
-    WJ
-  </li>
+    <strong>本文作者： </strong>WJ</li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
     <a href="http://www.funcwj.cn/2017/05/28/python-spectrum/" title="Python绘制语谱图">http://www.funcwj.cn/2017/05/28/python-spectrum/</a>
   </li>
   <li class="post-copyright-license">
-    <strong>版权声明： </strong>
-    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
-  </li>
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
 </ul>
 
       </div>
     
-    
-    <div>
-        
-            <div>
-    
-    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
-    
-</div>
-
-        
-     </div>
 
     <footer class="post-footer">
       
@@ -491,19 +548,14 @@
   </article>
 
 
-
-    <div class="post-spread">
-      
-    </div>
   </div>
 
 
           </div>
           
 
-
-          
   
+
 
 
         </div>
@@ -528,72 +580,110 @@
 
       <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
         <div class="site-overview">
-          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
-              <img class="site-author-image" itemprop="image"
-                src="/uploads/avatar.JPG"
-                alt="WJ" />
+              <img class="site-author-image" itemprop="image" src="/uploads/avatar.JPG" alt="WJ">
             
               <p class="site-author-name" itemprop="name">WJ</p>
               <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
           </div>
 
-          <nav class="site-state motion-element">
-
-            
-              <div class="site-state-item site-state-posts">
+          
+            <nav class="site-state motion-element">
               
-                <a href="/archives/">
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">70</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
               
-                  <span class="site-state-item-count">70</span>
-                  <span class="site-state-item-name">日志</span>
-                </a>
-              </div>
-            
 
-            
-
-            
               
-              
-              <div class="site-state-item site-state-tags">
-                <a href="/tags/index.html">
-                  <span class="site-state-item-count">12</span>
-                  <span class="site-state-item-name">标签</span>
-                </a>
-              </div>
-            
 
-          </nav>
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
 
           
 
-          <div class="links-of-author motion-element">
-            
+          
+            <div class="links-of-author motion-element">
               
                 <span class="links-of-author-item">
-                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
-                    
-                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
                 </span>
               
                 <span class="links-of-author-item">
-                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
-                    
-                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                  <a href="mailto:funcwj@foxmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
                 </span>
               
-            
-          </div>
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎"><i class="fa fa-fw fa-book"></i>知乎</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://www.funcwj.cn" target="_blank" title="..."><i class="fa fa-fw fa-google"></i>...</a>
+                  
+                </span>
+              
+            </div>
+          
 
           
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons">
+              </a>
+            </div>
           
 
           
           
             <div class="links-of-blogroll motion-element links-of-blogroll-inline">
               <div class="links-of-blogroll-title">
-                <i class="fa  fa-fw fa-globe"></i>
+                <i class="fa  fa-fw fa-link"></i>
                 Links
               </div>
               <ul class="links-of-blogroll-list">
@@ -619,11 +709,11 @@
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="dasp" target="_blank">dasp</a>
+                    <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="DASP" target="_blank">DASP</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="sasp" target="_blank">sasp</a>
+                    <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="SASP" target="_blank">SASP</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
@@ -632,14 +722,6 @@
                 
                   <li class="links-of-blogroll-item">
                     <a href="http://www.irisa.fr/metiss/ozerov/" title="Alexey Ozerov" target="_blank">Alexey Ozerov</a>
-                  </li>
-                
-                  <li class="links-of-blogroll-item">
-                    <a href="https://research.ics.aalto.fi/ica/fastica/" title="FastICA" target="_blank">FastICA</a>
-                  </li>
-                
-                  <li class="links-of-blogroll-item">
-                    <a href="http://bass-db.gforge.inria.fr/bss_locate/" title="BSS Locate" target="_blank">BSS Locate</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
@@ -659,6 +741,9 @@
           
 
           
+            
+          
+          
 
         </div>
       </section>
@@ -677,9 +762,9 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
-  <span class="with-love">
-    <i class="fa fa-user"></i>
+        <div class="copyright">&copy; 2017 – <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">WJ</span>
 
@@ -689,14 +774,27 @@
       <i class="fa fa-area-chart"></i>
     </span>
     
-      <span class="post-meta-item-text">Site words total count&#58;</span>
+      <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="Site words total count">94.5k</span>
+    <span title="站点总字数">312k</span>
+  
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">4:43</span>
   
 </div>
 
 
-  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.8.0</div>
 
 
 
@@ -704,12 +802,31 @@
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Gemini</a> v6.4.2</div>
 
 
 
 
         
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
 
 
 
@@ -728,6 +845,11 @@
       </div>
     
 
+    
+	
+    
+
+    
   </div>
 
   
@@ -746,7 +868,6 @@
 
 
 
-  
 
 
 
@@ -759,68 +880,56 @@
 
 
 
-  
-  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
-
-  
-  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
-
-  
-  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
-
-  
-  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
-
-  
-  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
-
-  
-  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
 
 
-  
-
-
-  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
-
-  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
 
 
 
   
   
-
-
-  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
-
-  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
-
-
-
-  
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
-
-
-
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
   
 
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
 
-  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
-
-
-
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
   
 
 
   
 
 
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
 
 
-	
+
+  
+  
 
 
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
 
 
 
@@ -828,9 +937,9 @@
 
 
 
-
-
   
+
+
 
 
 
@@ -890,6 +999,8 @@
         .css('overflow', 'hidden');
       $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
 
+      
+
       $.ajax({
         url: path,
         dataType: isXml ? "xml" : "json",
@@ -923,6 +1034,7 @@
                 var title = data.title.trim();
                 var titleInLowerCase = title.toLowerCase();
                 var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
                 var contentInLowerCase = content.toLowerCase();
                 var articleUrl = decodeURIComponent(data.url);
                 var indexOfTitle = [];
@@ -1170,31 +1282,118 @@
 
   
   
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        tex2jax: {
-          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
-          processEscapes: true,
-          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-        }
-      });
-    </script>
 
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
         for (i=0; i < all.length; i += 1) {
           all[i].SourceElement().parentNode.className += ' has-jax';
         }
-      });
-    </script>
-    <script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
   
 
 
   
+  
 
   
+
+  
+
+  
+
+  
+
+  
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
 
 </body>
 </html>

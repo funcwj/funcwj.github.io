@@ -3,12 +3,26 @@
 
 
 
-<html class="theme-next gemini" lang="zh-Hans">
-<head>
-  <meta charset="UTF-8"/>
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
+
+
+
 
 
 
@@ -25,8 +39,8 @@
 
 
 
-<meta http-equiv="Cache-Control" content="no-transform" />
-<meta http-equiv="Cache-Control" content="no-siteapp" />
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
 
 
 
@@ -43,61 +57,33 @@
 
 
 
-  
-  
-  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
 
 
 
 
 
 
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
 
-<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
-
-<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
-
-
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=5.1.3">
+<link href="/css/main.css?v=6.4.2" rel="stylesheet" type="text/css">
 
 
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=5.1.3">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png?v=6.4.2">
 
 
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=5.1.3">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png?v=6.4.2">
 
 
-  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=5.1.3" color="#222">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png?v=6.4.2">
 
 
-
-
-
-  <meta name="keywords" content="Speech Separation," />
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg?v=6.4.2" color="#222">
 
 
 
 
 
 
-
-
-
-
-<meta name="description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
-<meta name="keywords" content="Speech Separation">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Speech Separation - DPCL &amp; uPIT">
-<meta property="og:url" content="http://www.funcwj.cn/2018/07/02/nn-speech-separation/index.html">
-<meta property="og:site_name" content="WJ&#39;s blog">
-<meta property="og:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
-<meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://www.funcwj.cn/images/upit-experiments.png">
-<meta property="og:updated_time" content="2018-07-08T14:17:32.877Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Speech Separation - DPCL &amp; uPIT">
-<meta name="twitter:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
-<meta name="twitter:image" content="http://www.funcwj.cn/images/upit-experiments.png">
 
 
 
@@ -106,15 +92,13 @@
   var CONFIG = {
     root: '/',
     scheme: 'Gemini',
-    version: '5.1.3',
+    version: '6.4.2',
     sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
-    fancybox: true,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
     tabs: true,
-    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
-    duoshuo: {
-      userId: '0',
-      author: '博主'
-    },
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
     algolia: {
       applicationID: '',
       apiKey: '',
@@ -126,12 +110,40 @@
 </script>
 
 
-
-  <link rel="canonical" href="http://www.funcwj.cn/2018/07/02/nn-speech-separation/"/>
-
+  
 
 
 
+
+  <meta name="description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
+<meta name="keywords" content="Speech Separation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Speech Separation - DPCL &amp; uPIT">
+<meta property="og:url" content="http://www.funcwj.cn/2018/07/02/nn-speech-separation/index.html">
+<meta property="og:site_name" content="WJ&#39;s blog">
+<meta property="og:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://www.funcwj.cn/images/upit-experiments.png">
+<meta property="og:updated_time" content="2018-07-08T14:17:32.877Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Speech Separation - DPCL &amp; uPIT">
+<meta name="twitter:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/upit-experiments.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://www.funcwj.cn/2018/07/02/nn-speech-separation/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
 
   <title>Speech Separation - DPCL & uPIT | WJ's blog</title>
   
@@ -143,9 +155,37 @@
 
 
 
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
 </head>
 
-<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
 
   
   
@@ -155,25 +195,27 @@
   <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
-    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
       <div class="header-inner"><div class="site-brand-wrapper">
   <div class="site-meta ">
     
 
     <div class="custom-logo-site-title">
-      <a href="/"  class="brand" rel="start">
+      <a href="/" class="brand" rel="start">
         <span class="logo-line-before"><i></i></span>
         <span class="site-title">WJ's blog</span>
         <span class="logo-line-after"><i></i></span>
       </a>
     </div>
+    
       
         <p class="site-subtitle">我只是好奇</p>
       
+    
   </div>
 
   <div class="site-nav-toggle">
-    <button>
+    <button aria-label="切换导航栏">
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
       <span class="btn-bar"></span>
@@ -181,66 +223,58 @@
   </div>
 </div>
 
-<nav class="site-nav">
-  
 
+
+<nav class="site-nav">
   
     <ul id="menu" class="menu">
       
         
-        <li class="menu-item menu-item-home">
-          <a href="/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
-            
-            首页
-          </a>
-        </li>
-      
         
-        <li class="menu-item menu-item-about">
-          <a href="/about/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
-            
-            关于
-          </a>
-        </li>
-      
         
-        <li class="menu-item menu-item-tags">
-          <a href="/tags/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
-            
-            标签
-          </a>
-        </li>
-      
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
         
-        <li class="menu-item menu-item-archives">
-          <a href="/archives/" rel="section">
-            
-              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
-            
-            归档
-          </a>
-        </li>
-      
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">12</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">70</span></a>
+  </li>
 
+      
       
         <li class="menu-item menu-item-search">
           
             <a href="javascript:;" class="popup-trigger">
           
             
-              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
-            
-            搜索
-          </a>
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>搜索</a>
         </li>
       
     </ul>
+  
+
   
 
   
@@ -255,9 +289,7 @@
       <i class="fa fa-times-circle"></i>
     </span>
     <div class="local-search-input-wrapper">
-      <input autocomplete="off"
-             placeholder="搜索..." spellcheck="false"
-             type="text" id="local-search-input">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
     </div>
   </div>
   <div id="local-search-result"></div>
@@ -271,12 +303,34 @@
 
 
 
- </div>
+  
+
+
+
+</div>
     </header>
+
+    
+  
+  
+  
+    
+      
+    
+    <a href="https://github.com/funcwj" class="github-corner" target="_blank" title="Follow me on GitHub" aria-label="Follow me on GitHub"><svg width="80" height="80" viewbox="0 0 250 250" style="fill:#222; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg>
+    
+      </a>
+    
+
+
 
     <main id="main" class="main">
       <div class="main-inner">
         <div class="content-wrap">
+          
+            
+
+          
           <div id="content" class="content">
             
 
@@ -289,20 +343,22 @@
   
   
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
   
   
   
   <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/07/02/nn-speech-separation/">
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
       <meta itemprop="image" content="/uploads/avatar.JPG">
     </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
       <meta itemprop="name" content="WJ's blog">
     </span>
 
@@ -311,11 +367,19 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Speech Separation - DPCL & uPIT</h1>
+          <h1 class="post-title" itemprop="name headline">Speech Separation - DPCL & uPIT
+              
+            
+          </h1>
         
 
         <div class="post-meta">
           <span class="post-time">
+
+            
+            
+            
+
             
               <span class="post-meta-item-icon">
                 <i class="fa fa-calendar-o"></i>
@@ -323,11 +387,12 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-02T22:05:53+08:00">
-                2018-07-02
-              </time>
-            
 
+              
+                
+              
+
+              <time title="创建时间：2018-07-02 22:05:53" itemprop="dateCreated datePublished" datetime="2018-07-02T22:05:53+08:00">2018-07-02</time>
             
 
             
@@ -343,20 +408,26 @@
           
 
           
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
 
           
-            <div class="post-wordcount">
+            <div class="post-symbolscount">
               
-                
+
+              
                 <span class="post-meta-item-icon">
                   <i class="fa fa-file-word-o"></i>
                 </span>
                 
-                  <span class="post-meta-item-text">字数统计&#58;</span>
+                  <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="字数统计">
-                  2,089
-                </span>
+                <span title="本文字数">5.5k</span>
               
 
               
@@ -370,9 +441,7 @@
                 
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
-                <span title="阅读时长">
-                  8
-                </span>
+                <span title="阅读时长">5 分钟</span>
               
             </div>
           
@@ -474,7 +543,7 @@
 <p>可以看出，oracle的情况下，PSM的优势确实很明显。</p>
 <h3 id="Label-Permutation"><a href="#Label-Permutation" class="headerlink" title="Label Permutation"></a>Label Permutation</h3><p>label的置换问题是使用监督性学习解决说话人无关的语音分离问题首先要解决的问题。在增强任务中，我们只需要学习到speech的mask，而分离任务中，则需要学习到多个说话人的mask，由此引入了训练过程中的label置换问题。</p>
 <p>置换问题怎么理解？假设网络结构存在两个线性层输出$\mathbf{m}_1$和$\mathbf{m}_2$，对应的label为$s_1, s_2$。这样就存在两种匹配方式，即$\mathbf{m}_1 \to s_1, \mathbf{m}_2 \to s_2$和$\mathbf{m}_1 \to s_2, \mathbf{m}_2 \to s_1$。由此拓展下去，$N$个说话人存在$N!$种对应方式。传统的训练方法，输出和label之间的对应关系是固定的，以增强网络为例，一个对应speech，另一个对应noise，网络收敛之后，label对应speech的输出speech的mask，对应noise的输出noise的mask。在分离任务中，训练语料存在多个说话人（多余网络输出个数），因此，不可能将网络的输出和确定的说话人对应起来，故而无法组织训练。</p>
-<p>相关理解可以参考<a href="https://www.zhihu.com/question/268773643/answer/414532531" target="_blank" rel="external">如何理解语音分离中的置换问题（permutaiton problem）</a></p>
+<p>相关理解可以参考<a href="https://www.zhihu.com/question/268773643/answer/414532531" target="_blank" rel="noopener">如何理解语音分离中的置换问题（permutaiton problem）</a></p>
 <p>DPCL和uPIT就是从两个角度入手解决label的置换问题的。</p>
 <h3 id="DPCL"><a href="#DPCL" class="headerlink" title="DPCL"></a>DPCL</h3><p>Deep Clustering没有正面和label permutation硬怼，而是绕过了这个问题，尝试将每个TF-bin映射到一个高维的特征上，使得其可以更好的被区分开来。这个embedding过程表示为：</p>
 <script type="math/tex; mode=display">
@@ -495,13 +564,13 @@
 <li>训练和测试时候的特征一定要保证一致（是否log，是否cmvn等等），我开始时训练的cmvn代码逻辑有问题，测试时分离效果总是高低频对半分，查了一周多才找到问题所在……</li>
 <li>测试时聚类的时候，最好也将silence部分掩蔽掉，提高聚类的效果。</li>
 </ol>
-<p>整个实验下来，主要是上面的3耗了一点时间，其他过程均比较顺利。代码和结果可以参看<a href="https://github.com/funcwj/deep-clustering" target="_blank" rel="external">deep-clustering</a>。</p>
+<p>整个实验下来，主要是上面的3耗了一点时间，其他过程均比较顺利。代码和结果可以参看<a href="https://github.com/funcwj/deep-clustering" target="_blank" rel="noopener">deep-clustering</a>。</p>
 <p>DPCL这块我没有调过多的配置，目前存在的问题是batch训练的时候，效果会比逐句训练差不少（average SDR-impr 只能在8.5这样子），后面有空还要check一下问题所在。</p>
 <h3 id="Utterance-Level-PIT"><a href="#Utterance-Level-PIT" class="headerlink" title="Utterance Level PIT"></a>Utterance Level PIT</h3><p>PIT采取的方案就硬怼，既然pair方式有$N!$种，那就直接遍历一遍，把最小的当loss，强制让网络学习align过程和对应的mask。它最早提出的时候，loss定义在帧级别（frame level），但是因为不能保证不同时刻网络的mask和speaker的对应关系保持一致，因此需要加一个speaker tracking的后处理过程（本身论文并没有提出speaker tracking的算法，直接和target比算的oracle结果）。uPIT的u表示utterance level，loss定义在整个句子上，用RNN建模：</p>
 <script type="math/tex; mode=display">
 \mathcal{J}_{\text{psm}} = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \odot \cos \left( \angle \mathbf{X}_s - \angle \mathbf{X}_{\phi(s)} \right) \right \Vert_F^2 \\
 \mathcal{J}_{\text{iam}} = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \right \Vert_F^2</script><p>$\mathcal{P}$表示$S$个speaker的排列方案。把上述定义成为permutate loss。</p>
-<p>uPIT遇到的坑主要是batch情况下，permutate loss的计算。如果N个句子同时训练，permutate loss是每个句子的permutate loss之和。我第一次实现写成了batch的permutate loss，训练不收敛。除此之外，其他过程也都顺风顺水。代码可以参见<a href="https://github.com/funcwj/uPIT-for-speech-separation" target="_blank" rel="external">uPIT-for-speech-separation</a>。</p>
+<p>uPIT遇到的坑主要是batch情况下，permutate loss的计算。如果N个句子同时训练，permutate loss是每个句子的permutate loss之和。我第一次实现写成了batch的permutate loss，训练不收敛。除此之外，其他过程也都顺风顺水。代码可以参见<a href="https://github.com/funcwj/uPIT-for-speech-separation" target="_blank" rel="noopener">uPIT-for-speech-separation</a>。</p>
 <p>uPIT调了几组参数，主要是dropout，weight decay，mask类型，激活函数，输入特征等等，到目前为止总结实验结果如下：</p>
 <p><img src="http://www.funcwj.cn/images/upit-experiments.png" alt=""></p>
 <p>从表中可以看出，dropout，weight decay等正则化手段对最终的结果提升影响较大，线性谱不做cmvn的效果最好，ReLU在不同的mask类型上表现均强于sigmoid，但是和论文结论不同的是，PSM并没有显示出相对IAM的优势，二者的结果相差不大。</p>
@@ -509,6 +578,9 @@
 
       
     </div>
+
+    
+
     
     
     
@@ -521,32 +593,17 @@
       <div>
         <ul class="post-copyright">
   <li class="post-copyright-author">
-    <strong>本文作者：</strong>
-    WJ
-  </li>
+    <strong>本文作者： </strong>WJ</li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
     <a href="http://www.funcwj.cn/2018/07/02/nn-speech-separation/" title="Speech Separation - DPCL & uPIT">http://www.funcwj.cn/2018/07/02/nn-speech-separation/</a>
   </li>
   <li class="post-copyright-license">
-    <strong>版权声明： </strong>
-    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
-  </li>
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
 </ul>
 
       </div>
     
-    
-    <div>
-        
-            <div>
-    
-    <div style="text-align:center;color: #ccc;font-size:14px;">-------------本文结束<i class="fa fa-paw"></i>感谢您的阅读-------------</div>
-    
-</div>
-
-        
-     </div>
 
     <footer class="post-footer">
       
@@ -593,19 +650,14 @@
   </article>
 
 
-
-    <div class="post-spread">
-      
-    </div>
   </div>
 
 
           </div>
           
 
-
-          
   
+
 
 
         </div>
@@ -639,72 +691,110 @@
 
       <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
-          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
-              <img class="site-author-image" itemprop="image"
-                src="/uploads/avatar.JPG"
-                alt="WJ" />
+              <img class="site-author-image" itemprop="image" src="/uploads/avatar.JPG" alt="WJ">
             
               <p class="site-author-name" itemprop="name">WJ</p>
               <p class="site-description motion-element" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</p>
           </div>
 
-          <nav class="site-state motion-element">
-
-            
-              <div class="site-state-item site-state-posts">
+          
+            <nav class="site-state motion-element">
               
-                <a href="/archives/">
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">70</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
               
-                  <span class="site-state-item-count">70</span>
-                  <span class="site-state-item-name">日志</span>
-                </a>
-              </div>
-            
 
-            
-
-            
               
-              
-              <div class="site-state-item site-state-tags">
-                <a href="/tags/index.html">
-                  <span class="site-state-item-count">12</span>
-                  <span class="site-state-item-name">标签</span>
-                </a>
-              </div>
-            
 
-          </nav>
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">12</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
 
           
 
-          <div class="links-of-author motion-element">
-            
+          
+            <div class="links-of-author motion-element">
               
                 <span class="links-of-author-item">
-                  <a href="https://github.com/funcwj" target="_blank" title="GitHub">
-                    
-                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  <a href="https://github.com/funcwj" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
                 </span>
               
                 <span class="links-of-author-item">
-                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎">
-                    
-                      <i class="fa fa-fw fa-book"></i>知乎</a>
+                  <a href="mailto:funcwj@foxmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
                 </span>
               
-            
-          </div>
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/jian-fu-16" target="_blank" title="知乎"><i class="fa fa-fw fa-book"></i>知乎</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="http://www.funcwj.cn" target="_blank" title="..."><i class="fa fa-fw fa-google"></i>...</a>
+                  
+                </span>
+              
+            </div>
+          
 
           
+          
+            <div class="cc-license motion-element" itemprop="license">
+              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
+                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons">
+              </a>
+            </div>
           
 
           
           
             <div class="links-of-blogroll motion-element links-of-blogroll-inline">
               <div class="links-of-blogroll-title">
-                <i class="fa  fa-fw fa-globe"></i>
+                <i class="fa  fa-fw fa-link"></i>
                 Links
               </div>
               <ul class="links-of-blogroll-list">
@@ -730,11 +820,11 @@
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="dasp" target="_blank">dasp</a>
+                    <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="DASP" target="_blank">DASP</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="sasp" target="_blank">sasp</a>
+                    <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="SASP" target="_blank">SASP</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
@@ -743,14 +833,6 @@
                 
                   <li class="links-of-blogroll-item">
                     <a href="http://www.irisa.fr/metiss/ozerov/" title="Alexey Ozerov" target="_blank">Alexey Ozerov</a>
-                  </li>
-                
-                  <li class="links-of-blogroll-item">
-                    <a href="https://research.ics.aalto.fi/ica/fastica/" title="FastICA" target="_blank">FastICA</a>
-                  </li>
-                
-                  <li class="links-of-blogroll-item">
-                    <a href="http://bass-db.gforge.inria.fr/bss_locate/" title="BSS Locate" target="_blank">BSS Locate</a>
                   </li>
                 
                   <li class="links-of-blogroll-item">
@@ -769,6 +851,9 @@
             </div>
           
 
+          
+            
+          
           
 
         </div>
@@ -804,9 +889,9 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
-  <span class="with-love">
-    <i class="fa fa-user"></i>
+        <div class="copyright">&copy; 2017 – <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-heart"></i>
   </span>
   <span class="author" itemprop="copyrightHolder">WJ</span>
 
@@ -816,14 +901,27 @@
       <i class="fa fa-area-chart"></i>
     </span>
     
-      <span class="post-meta-item-text">Site words total count&#58;</span>
+      <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="Site words total count">94.5k</span>
+    <span title="站点总字数">312k</span>
+  
+
+  
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    
+      <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
+    
+    <span title="站点阅读时长">4:43</span>
   
 </div>
 
 
-  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.8.0</div>
 
 
 
@@ -831,12 +929,31 @@
 
 
 
-  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Gemini</a> v6.4.2</div>
 
 
 
 
         
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
 
 
 
@@ -855,6 +972,11 @@
       </div>
     
 
+    
+	
+    
+
+    
   </div>
 
   
@@ -873,7 +995,6 @@
 
 
 
-  
 
 
 
@@ -886,68 +1007,56 @@
 
 
 
-  
-  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
-
-  
-  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
-
-  
-  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
-
-  
-  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
-
-  
-  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
-
-  
-  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
 
 
-  
-
-
-  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
-
-  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
 
 
 
   
   
-
-
-  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
-
-  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
-
-
-
-  
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
-
-
-
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
   
 
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
 
-  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
-
-
-
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
   
 
 
   
 
 
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.2"></script>
 
 
-	
+
+  
+  
 
 
+  <script type="text/javascript" src="/js/src/affix.js?v=6.4.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.4.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.2"></script>
 
 
 
@@ -955,9 +1064,9 @@
 
 
 
-
-
   
+
+
 
 
 
@@ -1017,6 +1126,8 @@
         .css('overflow', 'hidden');
       $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
 
+      
+
       $.ajax({
         url: path,
         dataType: isXml ? "xml" : "json",
@@ -1050,6 +1161,7 @@
                 var title = data.title.trim();
                 var titleInLowerCase = title.toLowerCase();
                 var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
                 var contentInLowerCase = content.toLowerCase();
                 var articleUrl = decodeURIComponent(data.url);
                 var indexOfTitle = [];
@@ -1297,31 +1409,118 @@
 
   
   
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Config({
-        tex2jax: {
-          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
-          processEscapes: true,
-          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-        }
-      });
-    </script>
 
-    <script type="text/x-mathjax-config">
-      MathJax.Hub.Queue(function() {
-        var all = MathJax.Hub.getAllJax(), i;
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
         for (i=0; i < all.length; i += 1) {
           all[i].SourceElement().parentNode.className += ' has-jax';
         }
-      });
-    </script>
-    <script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
   
 
 
   
+  
 
   
+
+  
+
+  
+
+  
+
+  
+  <style>
+    .copy-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #333;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: pointer;
+      background-color: #eee;
+      background-image: linear-gradient(#fcfcfc, #eee);
+      border: 1px solid #d5d5d5;
+      border-radius: 3px;
+      user-select: none;
+      outline: 0;
+    }
+
+    .highlight-wrap .copy-btn {
+      transition: opacity .3s ease-in-out;
+      opacity: 0;
+      padding: 2px 6px;
+      position: absolute;
+      right: 4px;
+      top: 8px;
+    }
+
+    .highlight-wrap:hover .copy-btn,
+    .highlight-wrap .copy-btn:focus {
+      opacity: 1
+    }
+
+    .highlight-wrap {
+      position: relative;
+    }
+  </style>
+  <script>
+    $('.highlight').each(function (i, e) {
+      var $wrap = $('<div>').addClass('highlight-wrap')
+      $(e).after($wrap)
+      $wrap.append($('<button>').addClass('copy-btn').append('复制').on('click', function (e) {
+        var code = $(this).parent().find('.code').find('.line').map(function (i, e) {
+          return $(e).text()
+        }).toArray().join('\n')
+        var ta = document.createElement('textarea')
+        document.body.appendChild(ta)
+        ta.style.position = 'absolute'
+        ta.style.top = '0px'
+        ta.style.left = '0px'
+        ta.value = code
+        ta.select()
+        ta.focus()
+        var result = document.execCommand('copy')
+        document.body.removeChild(ta)
+        
+          if(result)$(this).text('复制成功')
+          else $(this).text('复制失败')
+        
+        $(this).blur()
+      })).on('mouseleave', function (e) {
+        var $b = $(this).find('.copy-btn')
+        setTimeout(function () {
+          $b.text('复制')
+        }, 300)
+      }).append(e)
+    })
+  </script>
+
 
 </body>
 </html>
