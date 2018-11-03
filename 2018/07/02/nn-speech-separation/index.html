@@ -124,7 +124,7 @@
 <meta property="og:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/upit-experiments.png">
-<meta property="og:updated_time" content="2018-07-08T14:17:32.877Z">
+<meta property="og:updated_time" content="2018-11-03T14:10:42.455Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Speech Separation - DPCL &amp; uPIT">
 <meta name="twitter:description" content="上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。 首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在">
@@ -427,7 +427,7 @@
                 
                   <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="本文字数">5.5k</span>
+                <span title="本文字数">6.3k</span>
               
 
               
@@ -441,7 +441,7 @@
                 
                   <span class="post-meta-item-text">阅读时长 &asymp;</span>
                 
-                <span title="阅读时长">5 分钟</span>
+                <span title="阅读时长">6 分钟</span>
               
             </div>
           
@@ -482,7 +482,7 @@
 \mathbf{M}_{\text{IBM}}^i = \left(\bigwedge_{n \ne i}^{N} |\mathbf{S}_i | > |\mathbf{S}_n|\right) \wedge \left(|\mathbf{S}_i | > |\mathbf{N}|\right)</script></li>
 <li><p>IAM：</p>
 <script type="math/tex; mode=display">
-\mathbf{M}_{\text{IAM}}^i = \frac{|\mathbf{S}_i|}{|\mathbf{X}|}</script></li>
+\mathbf{M}_{\text{IAM}}^i = \frac{|\mathbf{S}_i|}{|\mathbf{X}|} = \frac{|\mathbf{S}_i|}{|\sum_i \mathbf{X}_i + \mathbf{N}|}</script></li>
 <li><p>IRM：</p>
 <script type="math/tex; mode=display">
 \mathbf{M}_{\text{IRM}}^i = \frac{|\mathbf{S}_i|}{\sum_{i = 1}^N|\mathbf{S}_i| + |\mathbf{N}|}</script></li>
@@ -491,6 +491,26 @@
 \mathbf{M}_{\text{IAM}}^i = \frac{|\mathbf{S}_i| \cos(\angle \mathbf{X} - \angle \mathbf{S}_i )}{|\mathbf{X}|}</script></li>
 </ul>
 <p>其中，$ \mathbf{M}_{\text{IBM}}^i \in {0, 1}，\mathbf{M}_{\text{IRM}}^i \in [0, 1]$，范围均被限定，PSM可能出现负值。</p>
+<p>关于IAM和IRM再多提几点：</p>
+<ol>
+<li><p>IAM在汪老师的论文里面又被称为SMM（spectral magnitude mask）和FFT-mask，和IRM的关系可以表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{iam}} \geqslant \mathbf{M}_{\text{irm}}</script><p>很多论文采用的loss函数表达为下面形式的：</p>
+<script type="math/tex; mode=display">
+\mathcal{L} = \Vert \mathbf{M} \odot |\mathbf{Y}| - |\mathbf{X}|\Vert_F^2</script><p>可以等价为IAM为target。</p>
+</li>
+<li><p>IRM的定义式在俞栋老师和汪老师的论文中略有不同，上面给出的是俞栋老师uPIT论文中的表达式，汪老师的定义如下：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{irm}}^\text{Wang} = \frac{|\mathbf{S}_i|}{\left(\sum_{i = 1}^N|\mathbf{S}_i|^2 + |\mathbf{N}|^2 \right)^{0.5}}</script><p>两者之间的关系为：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{irm}}^\text{Wang} \geqslant \mathbf{M}_{\text{irm}}^\text{Yu}</script><p>汪老师的综述详见：</p>
+<blockquote>
+<ol>
+<li>Wang D L, Chen J. Supervised Speech Separation Based on Deep Learning: An Overview[J]. IEEE/ACM Transactions on Audio Speech &amp; Language Processing, 2018, PP(99):1-1.</li>
+</ol>
+</blockquote>
+</li>
+</ol>
 <p>在wsj0-mix2数据集上，上面四种mask oracle的分离效果如下（SDR）</p>
 <div class="table-container">
 <table>
@@ -783,12 +803,6 @@
 
           
           
-            <div class="cc-license motion-element" itemprop="license">
-              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
-                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons">
-              </a>
-            </div>
-          
 
           
           
@@ -844,7 +858,7 @@
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="https://assert.pub/arxiv/eess/eess.AS/" title="Top10 Arxiv" target="_blank">Top10 Arxiv</a>
+                    <a href="https://arxiv.org/list/eess.AS/recent" title="ASLP Arxiv" target="_blank">ASLP Arxiv</a>
                   </li>
                 
               </ul>
@@ -903,7 +917,7 @@
     
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">312k</span>
+    <span title="站点总字数">313k</span>
   
 
   
@@ -914,7 +928,7 @@
     
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">4:43</span>
+    <span title="站点阅读时长">4:44</span>
   
 </div>
 

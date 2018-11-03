@@ -123,12 +123,12 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="维纳滤波信号领域最基本，最常见的滤波方法之一，陈老师的麦克风阵列处理一书中首先介绍的就是维纳滤波。本篇文章中我简单的介绍一下维纳滤波。 因为是从ASR看到前端来的，因此，对维纳滤波的理解做不到十分深入。在我看来，维纳滤波的典型特征是MMSE准则，由此就带来一个困惑，没有参考信号或者目标信号，如何做均方误差最小化。换句话说，很多时候，如果已经知道参考信号了，那何须继续滤波呢……">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://www.funcwj.com/images/wiener-demo-1.jpg">
-<meta property="og:updated_time" content="2018-07-18T00:31:28.167Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/wiener-demo-1.jpg">
+<meta property="og:updated_time" content="2018-10-20T02:34:38.507Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Introduction to Wiener Filter">
 <meta name="twitter:description" content="维纳滤波信号领域最基本，最常见的滤波方法之一，陈老师的麦克风阵列处理一书中首先介绍的就是维纳滤波。本篇文章中我简单的介绍一下维纳滤波。 因为是从ASR看到前端来的，因此，对维纳滤波的理解做不到十分深入。在我看来，维纳滤波的典型特征是MMSE准则，由此就带来一个困惑，没有参考信号或者目标信号，如何做均方误差最小化。换句话说，很多时候，如果已经知道参考信号了，那何须继续滤波呢……">
-<meta name="twitter:image" content="http://www.funcwj.com/images/wiener-demo-1.jpg">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/wiener-demo-1.jpg">
 
 
 
@@ -482,7 +482,7 @@
 <p>下面用一个toy简单验证一下，噪声类型为白噪声</p>
 <figure class="highlight matlab"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">wav = <span class="string">'wav/egs1.wav'</span>;</span><br><span class="line">snr = <span class="number">1</span>;</span><br><span class="line">filter_size = <span class="number">512</span>;</span><br><span class="line">warm_up = <span class="number">51200</span>;</span><br><span class="line"></span><br><span class="line">speech = audioread(wav);</span><br><span class="line">M = norm(speech, <span class="built_in">inf</span>);</span><br><span class="line"><span class="comment">% modify matlab's awgn</span></span><br><span class="line">[noisy, noise] = my_awgn(speech, snr, <span class="string">'measured'</span>);</span><br><span class="line">T = <span class="built_in">length</span>(noisy);</span><br><span class="line"></span><br><span class="line">warm_up = min(warm_up, T);</span><br><span class="line">fprintf("using first %d samples to estimate rvv, totally %d samples...\n", warm_up, T);</span><br><span class="line"></span><br><span class="line">padding = <span class="built_in">zeros</span>(<span class="number">1</span>, filter_size - <span class="number">1</span>);</span><br><span class="line">Y = <span class="built_in">toeplitz</span>([noisy<span class="string">' padding], [noisy(1), padding]);</span></span><br><span class="line"><span class="string">V = toeplitz([noise'</span> padding], [noise(<span class="number">1</span>), padding]);</span><br><span class="line"></span><br><span class="line">Ryy = Y' * Y / T;</span><br><span class="line"></span><br><span class="line">ryy = mean(Y(<span class="number">1</span>: T, :) .* noisy, <span class="number">1</span>);</span><br><span class="line">rvv = mean(V(<span class="number">1</span>: warm_up, :) .* noise(<span class="number">1</span>: warm_up), <span class="number">1</span>);</span><br><span class="line">ryx = ryy - rvv;</span><br><span class="line"></span><br><span class="line">Hw = Ryy \ ryx';</span><br><span class="line"></span><br><span class="line">denoise = Y * Hw;</span><br><span class="line">denoise = denoise(<span class="number">1</span>: T, :);</span><br><span class="line"></span><br><span class="line">subplot(<span class="number">3</span>, <span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">plot(speech);title("Clean Speech");</span><br><span class="line">xlim([<span class="number">1</span>, T]); ylim([<span class="number">-1</span>, <span class="number">1</span>]);</span><br><span class="line">subplot(<span class="number">3</span>, <span class="number">1</span>, <span class="number">2</span>);</span><br><span class="line">plot(noisy / norm(noisy, inf) * M);title("Noisy Speech");</span><br><span class="line">xlim([<span class="number">1</span>, T]); ylim([<span class="number">-1</span>, <span class="number">1</span>]);</span><br><span class="line">subplot(<span class="number">3</span>, <span class="number">1</span>, <span class="number">3</span>);</span><br><span class="line">plot(denoise / norm(denoise, inf) * M);title("Wiener Denoised Speech");</span><br><span class="line">xlim([<span class="number">1</span>, T]); ylim([<span class="number">-1</span>, <span class="number">1</span>]);</span><br></pre></td></tr></table></figure>
 <p>测试的时候其实发现denoise效果一般（如果上面的toy实现没有什么大问题的话）。下面给出一个$\text{SNR}=2$的例子（还是可以看出噪声部分得到了部分削弱）。</p>
-<p><img src="http://www.funcwj.com/images/wiener-demo-1.jpg" alt=""></p>
+<p><img src="http://www.funcwj.cn/images/wiener-demo-1.jpg" alt=""></p>
 
       
     </div>
@@ -682,12 +682,6 @@
 
           
           
-            <div class="cc-license motion-element" itemprop="license">
-              <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" target="_blank">
-                <img src="/images/cc-by-nc-sa.svg" alt="Creative Commons">
-              </a>
-            </div>
-          
 
           
           
@@ -743,7 +737,7 @@
                   </li>
                 
                   <li class="links-of-blogroll-item">
-                    <a href="https://assert.pub/arxiv/eess/eess.AS/" title="Top10 Arxiv" target="_blank">Top10 Arxiv</a>
+                    <a href="https://arxiv.org/list/eess.AS/recent" title="ASLP Arxiv" target="_blank">ASLP Arxiv</a>
                   </li>
                 
               </ul>
@@ -786,7 +780,7 @@
     
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">312k</span>
+    <span title="站点总字数">313k</span>
   
 
   
@@ -797,7 +791,7 @@
     
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">4:43</span>
+    <span title="站点阅读时长">4:44</span>
   
 </div>
 
