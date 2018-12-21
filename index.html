@@ -256,7 +256,7 @@
           
           <li class="menu-item menu-item-archives">
     <a href="/archives/" rel="section">
-      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">70</span></a>
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">71</span></a>
   </li>
 
       
@@ -331,6 +331,177 @@
           <div id="content" class="content">
             
   <section id="posts" class="posts-expand">
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/11/03/beamformer-details/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/03/beamformer-details/" itemprop="url">
+                  View Beamformer Again
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-03 03:04:47" itemprop="dateCreated datePublished" datetime="2018-11-03T03:04:47+08:00">2018-11-03</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">3.8k</span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">3 分钟</span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>上一篇关于beamformer的文章应该是一年之前，刚入门的时候看了，理解有些粗浅，现在就一些细节上的问题（也是上篇文章中没有提及的地方）补充一些理解，后面实践加深会继续补充。</p>
+<h4 id="导向向量估计"><a href="#导向向量估计" class="headerlink" title="导向向量估计"></a>导向向量估计</h4><p>首先，导向向量$\mathbf{d}_f$的估计，$\mathbf{d}_f$描述的是声源的方位信息，对波束形成器的指向性十分关键。目前常见的方法是用协方差矩阵$\mathbf{R}_{xx}$的主特征值进行估计，背后的假设在理想情况下，方向性声源的$\mathbf{R}_{xx}^\theta$是个秩为1的矩阵，即可以表示为：</p>
+<script type="math/tex; mode=display">
+\mathbf{R}_{xx}^\theta = E[s_f \mathbf{d}_{f}^\theta] = \phi_{ss} \mathbf{d}_{f}^\theta (\mathbf{d}_{f}^\theta)^H</script>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/11/03/beamformer-details/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
     
       
 
@@ -1866,182 +2037,11 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/05/12/beampattern-and-fixed-beamformer/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/12/beampattern-and-fixed-beamformer/" itemprop="url">
-                  Beam Pattern
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-05-12 23:34:23" itemprop="dateCreated datePublished" datetime="2018-05-12T23:34:23+08:00">2018-05-12</time>
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-            <div class="post-symbolscount">
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">本文字数：</span>
-                
-                <span title="本文字数">5k</span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">5 分钟</span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。</p>
-<p>beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。</p>
-<p>根据上述表述，beamformer要想表现的完美，准确的DoA不可或缺。如果可以实时的根据信号环境调整DoA，那么在工作中，beamformer的指向性便会发生改变，这种波束形成器被称为adaptive beamformer。反之，如果固定其指向性，在工作中只增强事先设定的方向信号，便被称为fixed beamformer。反映到beam weights上，如果beam weights被计算出并保持不变，对应后者，如果有声学环境的参数掺杂在其中，或者不断的update DoA，则对应前者，比如MVDR，PMWF，Max-SNR等等。</p>
-<p>上篇文章中也提到了，用NN做前端，一般用mask模型估计adaptive beamformer中target的协相关/功率谱密度矩阵，并用其最大特征向量来估计steer vector。我们更加在意系统最终对WER或者PESQ，SDR，SNR等等（根据任务不同）的贡献，而不会刻意的去分析其指向性。这种不涉及麦克风拓扑结构，不涉及声源信息的方法称为Blind方法。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/05/12/beampattern-and-fixed-beamformer/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 
@@ -2086,7 +2086,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">70</span>
+                    <span class="site-state-item-count">71</span>
                     <span class="site-state-item-name">日志</span>
                   </a>
                 </div>
@@ -2261,7 +2261,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
     
       <span class="post-meta-item-text">站点总字数：</span>
     
-    <span title="站点总字数">313k</span>
+    <span title="站点总字数">316k</span>
   
 
   
@@ -2272,7 +2272,7 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
     
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
     
-    <span title="站点阅读时长">4:44</span>
+    <span title="站点阅读时长">4:48</span>
   
 </div>
 
