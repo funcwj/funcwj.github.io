@@ -115,23 +115,25 @@
 
 
 
-  <meta name="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
-<meta property="og:type" content="website">
-<meta property="og:title" content="WJ&#39;s blog">
-<meta property="og:url" content="http://www.funcwj.cn/archives/2017/11/index.html">
+  <meta name="description" content="GMM的传统建模中，为了避免建模单元参数过多，默认只存储协方差矩阵的对角形式。实际上这里做了一个隐性的假设，就是数据各个维度之间是不相关的，显然，这一点并不成立，但是如果对于每一个GMM建模单元都采取协方差矩阵表示方差的话，模型的整体参数量会急剧增大，所以，对于这一问题，一般有以下两种方式解决：  特征方案，通过去相关算法，使得数据分布更适合用对角矩阵建模，比如DCT和LDA算法 模型方案，根据生">
+<meta name="keywords" content="ASR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="STC&#x2F;MLLT">
+<meta property="og:url" content="http://www.funcwj.cn/2017/05/29/stc-mllt/index.html">
 <meta property="og:site_name" content="WJ&#39;s blog">
-<meta property="og:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+<meta property="og:description" content="GMM的传统建模中，为了避免建模单元参数过多，默认只存储协方差矩阵的对角形式。实际上这里做了一个隐性的假设，就是数据各个维度之间是不相关的，显然，这一点并不成立，但是如果对于每一个GMM建模单元都采取协方差矩阵表示方差的话，模型的整体参数量会急剧增大，所以，对于这一问题，一般有以下两种方式解决：  特征方案，通过去相关算法，使得数据分布更适合用对角矩阵建模，比如DCT和LDA算法 模型方案，根据生">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-08-09T18:12:46.451Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="WJ&#39;s blog">
-<meta name="twitter:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+<meta name="twitter:title" content="STC&#x2F;MLLT">
+<meta name="twitter:description" content="GMM的传统建模中，为了避免建模单元参数过多，默认只存储协方差矩阵的对角形式。实际上这里做了一个隐性的假设，就是数据各个维度之间是不相关的，显然，这一点并不成立，但是如果对于每一个GMM建模单元都采取协方差矩阵表示方差的话，模型的整体参数量会急剧增大，所以，对于这一问题，一般有以下两种方式解决：  特征方案，通过去相关算法，使得数据分布更适合用对角矩阵建模，比如DCT和LDA算法 模型方案，根据生">
 
 
 
 
 
 
-  <link rel="canonical" href="http://www.funcwj.cn/archives/2017/11/">
+  <link rel="canonical" href="http://www.funcwj.cn/2017/05/29/stc-mllt/">
 
 
 
@@ -141,7 +143,7 @@
   };
 </script>
 
-  <title>归档 | WJ's blog</title>
+  <title>STC/MLLT | WJ's blog</title>
   
 
 
@@ -188,7 +190,7 @@
     
   
 
-  <div class="container sidebar-position-left page-archive">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
@@ -253,7 +255,7 @@
         
         
           
-          <li class="menu-item menu-item-archives menu-item-active">
+          <li class="menu-item menu-item-archives">
     <a href="/archives/" rel="section">
       <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">74</span></a>
   </li>
@@ -326,100 +328,283 @@
           
             
 
-    
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-    
-
-  
-
-
           
           <div id="content" class="content">
             
 
+  <div id="posts" class="posts-expand">
+    
+
+  
+
   
   
   
-  <div class="post-block archive">
-    <div id="posts" class="posts-collapse">
-      <span class="archive-move-on"></span>
 
-      
-      <span class="archive-page-counter">
-        
-        
-         
-          
-        不错! 目前共计 74 篇日志。 继续努力。
-      </span>
-      
-
-      
-
-        
-        
-        
-
-        
-          
-          <div class="collection-title">
-            <h1 class="archive-year" id="archive-year-2017">2017</h1>
-          </div>
-        
-        
-
-        
+  
 
   <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2017/05/29/stc-mllt/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2017/11/11/overview-of-beamformer/" itemprop="url">
-              
-                <span itemprop="name">Overview of Beamformer</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">STC/MLLT
+              
+            
+          </h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2017-11-11T23:39:20+08:00" content="2017-11-11">
-          11-11
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
 
-    </header>
-  </article>
+            
+            
+            
 
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
 
+              
+                
+              
+
+              <time title="创建时间：2017-05-29 10:30:21" itemprop="dateCreated datePublished" datetime="2017-05-29T10:30:21+08:00">2017-05-29</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">3.8k</span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">3 分钟</span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
+      
 
+      
+        <p>GMM的传统建模中，为了避免建模单元参数过多，默认只存储协方差矩阵的对角形式。实际上这里做了一个隐性的假设，就是数据各个维度之间是不相关的，显然，这一点并不成立，但是如果对于每一个GMM建模单元都采取协方差矩阵表示方差的话，模型的整体参数量会急剧增大，所以，对于这一问题，一般有以下两种方式解决：</p>
+<ul>
+<li>特征方案，通过去相关算法，使得数据分布更适合用对角矩阵建模，比如DCT和LDA算法</li>
+<li>模型方案，根据生成观测的不同状态，使用不同的变换算法</li>
+</ul>
+<p>Semi-Tied方法属于第二种，是基于state-specific rotation提出的一种通过在状态之间共享变换矩阵，解决该问题的方式。</p>
+<a id="more"></a>
+<h3 id="State-Specific-Rotation"><a href="#State-Specific-Rotation" class="headerlink" title="State-Specific Rotation"></a>State-Specific Rotation</h3><p>State-Specific Rotation用来对特征矩阵中的相关性建模，顺序如下</p>
+<ol>
+<li>对于每一个状态，有一个协方差矩阵，对它进行特征值分解</li>
+<li>对齐之后，关联到这个状态的特征使用特征向量去相关</li>
+<li>对该状态的多个高斯分量的对角协方差矩阵进行训练</li>
+</ol>
+<p>注：特征值分解【spectral decomposition】（线性代数学过）<br>对于一个状态$s$，它的协方差矩阵 $\Sigma_{full}^s$ 通过下式计算：</p>
+<script type="math/tex; mode=display">
+\Sigma_{full}^s = \frac{\sum_t\gamma_t^s(o_t - \mu^s)(o_t - \mu^s)^T}{\sum_t\gamma_t^s} \\
+\gamma_t^s = p(q_t^s|M, O_T)</script><p>其中$\mu^s$表示对齐到该状态的数据均值，$\gamma<em>t^s$表示在$t$时刻，来自状态$s$的概率，$\Sigma</em>{full}^s$分解如下</p>
+<script type="math/tex; mode=display">
+\Sigma_{full}^s = U^s\Lambda^sU^{sT}</script><p>其中，$U^s$是特征向量组成的特征矩阵，$\Lambda^s$是对角矩阵</p>
+<p>在训练阶段，对于每一帧观测特征$o_t$，将它关联到状态$s$，做如下变换得到状态相关的观测$o_t^s$：</p>
+<script type="math/tex; mode=display">o_t^s = U^{sT}o_t</script><p>在一个状态内，对于每一个分量$m$，均值$\mu^{sm}$和方差$\Sigma_{diag}^m$更新如下：</p>
+<script type="math/tex; mode=display">
+\mu^{sm} = \frac{\sum_t \gamma_t^m o_t^s}{\sum_t \gamma_t^m} \\
+\Sigma_{diag}^m = \frac{\sum_t \gamma_t^m(o_t^s - \mu^{sm})(o_t^s - \mu^{sm})^T}{\sum_t \gamma_t^m}</script><p>而每一个分量对应的协方差矩阵$\Sigma^m$定义为：</p>
+<script type="math/tex; mode=display">
+\Sigma^m = U^s\Sigma_{diag}^mU^{sT}</script><p>识别阶段，每一个状态下特定分量的似然为</p>
+<script type="math/tex; mode=display">
+L(o_t; \mu^m, \Sigma^m, U^s) = \mathcal N(o_t^s;\mu^{sm}, \Sigma_{diag}^m)</script><p>有一点不明白，说这种方式不能用标准的ML算法更新，也和多分量模型无关，有一些解决的方法，暂时没有看懂……</p>
+<h3 id="Semi-Tied-Covariance-Matrices"><a href="#Semi-Tied-Covariance-Matrices" class="headerlink" title="Semi-Tied Covariance Matrices"></a>Semi-Tied Covariance Matrices</h3><p>Semi-Tied理解为，对于识别器中的每一个分量，我们不使用不同的协方差矩阵，换句话说，它的协方差矩阵有两个量组成</p>
+<ol>
+<li>一个分量相关的对角协方差矩阵$\Sigma_{diag}^m$</li>
+<li>Semi-Tied的非对角矩阵$H^r$</li>
+</ol>
+<p>那么，识别器中每一个GMM中每一个分量的协方差矩阵可以表示为：</p>
+<script type="math/tex; mode=display">
+\Sigma^m = H^r\Sigma_{diag}^mH^{rT}</script><p>由上式，令$A^r = (H^r)^{-1}$：</p>
+<script type="math/tex; mode=display">
+\Sigma_{diag}^m = (H^r)^{-1}\Sigma^m(H^{rT})^{-1} \\
+= A^r\Sigma^mA^{rT}</script><p>其中$H^r$可以被多个分量共享，从这里看，STC这种模型也就是比传统的GMM模型多了一个分量间可共享的矩阵$H^r$，使用EM算法更新，需要更新每个分量中的一下几个量：</p>
+<script type="math/tex; mode=display">
+(c^m, \mu^m, \Sigma_{diag}^m, H^r)</script><p>使用EM算法对以上参数进行估计，定义$Q$函数$Q(\hat{M}, M)$（$\hat{}$表示新模型）：</p>
+<script type="math/tex; mode=display">
+Q(\hat{M}, M) = \sum_Z \log P(X,Z|\hat{M})P(Z|X, M) \\
+= \sum_{t, \; m \in M^r}\gamma_t^m \left\{ \log \left(|\hat{\Sigma}^m|^{-1}\right) - (o_t - \hat{\mu}^m)^T(\hat{\Sigma}^{m})^{-1}(o_t - \hat{\mu}^m) \right\}</script><p>上式中去除了一些优化无关的常量和系数，结合$\Sigma^m$的定义，上式展开为</p>
+<script type="math/tex; mode=display">
+Q(\hat{M},M) = \sum_{t,\; m \in M^r} \gamma_t^m\left\{\log \left(\frac{|\hat
+{A}^r|^2}{|\hat{\Sigma}_{diag}^m| } \right) - (o_t - \hat{\mu}^m)^T\left(\hat{A}^{tT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m) \right\}</script><p>这里做一个化简，原理在“状态绑定之决策树似然公式”中证明过：</p>
+<script type="math/tex; mode=display">
+\sum_{t,\; m \in M^r} \gamma_t^m\left[(o_t - \hat{\mu}^m)^T\left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)\right] \\
+= \sum_{t,\; m \in M^r} \gamma_t^m \cdot \text{tr}\left[\left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \\
+= \text{tr}\left[ \sum_{t,\; m \in M^r} \gamma_t^m \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \\
+= \text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)\sum_{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right]</script><p>由</p>
+<script type="math/tex; mode=display">
+\frac{\sum_{t}\gamma_t^m(o_t - \mu^m)(o_t - \mu^m)^T}{\sum_t \gamma_t^m} = \Sigma^m = \left(A^{rT}(\Sigma_{diag}^{m})^{-1}A^{r}\right)^{-1}</script><p>得：</p>
+<script type="math/tex; mode=display">
+\text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)\sum_{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \\
+= \text{tr}\left[ \sum_{t,\;m \in M^r} \gamma_t^m I \right] = n\sum_{t,\;m \in M^r} \gamma_t^m</script><p>于是，$Q(M, \hat{M})$可写成：</p>
+<script type="math/tex; mode=display">
+Q(\hat{M}, M) = \sum_{t,\; m \in M^r} \gamma_t^m\left\{\log \frac{|\hat{A}^r|^2}{|\hat{\Sigma}_{diag}^m| } \right\} - n\sum_{t,\;m \in M^r} \gamma_t^m</script><p>在M步，更新的均值，方差如下：</p>
+<script type="math/tex; mode=display">
+\hat{\mu}^m = \frac{\sum_t \gamma_t^m o_t}{\sum_t \gamma_t^m} \\
+\hat{\Sigma}^m = \frac{\sum_t \gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T}{\sum_t \gamma_t^m} \\
+\hat{\Sigma}_{diag}^m = \text{diag}\left( \hat{A}^r\hat{\Sigma}^m\hat{A}^{rT} \right)</script>
+      
     </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>WJ</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2017/05/29/stc-mllt/" title="STC/MLLT">http://www.funcwj.cn/2017/05/29/stc-mllt/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/28/dawg-const/" rel="next" title="后缀自动机之DAWG构造">
+                <i class="fa fa-chevron-left"></i> 后缀自动机之DAWG构造
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/06/01/splay-tree/" rel="prev" title="伸展树">
+                伸展树 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
 
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -440,8 +625,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -605,6 +799,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#State-Specific-Rotation"><span class="nav-number">1.</span> <span class="nav-text">State-Specific Rotation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Semi-Tied-Covariance-Matrices"><span class="nav-number">2.</span> <span class="nav-text">Semi-Tied Covariance Matrices</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -778,6 +988,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
 
   
 
