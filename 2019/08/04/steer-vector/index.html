@@ -115,25 +115,28 @@
 
 
 
-  <meta name="description" content="我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。 首先定义RNN的前向过程如下：  \mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\ \mathbf{h}_{t}  = \tanh(\mathbf{z">
-<meta name="keywords" content="ML">
+  <meta name="description" content="最近陆续有了一些看了本博客的读者加微信讨论一些问题，我才发现原来自己挂的这个玩意竟然是有人看的。为什么这么说呢，因为从本站点挂到云上起，我就没有在任何社交平台上公开过本博客的链接，即使是github上host的repo我也是设置成私有的状态，所以访客们能够来到这个站点，看来是google在背后起作用了。从内容上说，本站点上的东西并不全面，很多时候是自己看了或者接触了点新的东西，心血来潮想写点什么。">
+<meta name="keywords" content="Microphone Array Processing">
 <meta property="og:type" content="article">
-<meta property="og:title" content="BPTT of RNN">
-<meta property="og:url" content="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/index.html">
+<meta property="og:title" content="Steer Vector">
+<meta property="og:url" content="http://www.funcwj.cn/2019/08/04/steer-vector/index.html">
 <meta property="og:site_name" content="WJ&#39;s blog">
-<meta property="og:description" content="我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。 首先定义RNN的前向过程如下：  \mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\ \mathbf{h}_{t}  = \tanh(\mathbf{z">
+<meta property="og:description" content="最近陆续有了一些看了本博客的读者加微信讨论一些问题，我才发现原来自己挂的这个玩意竟然是有人看的。为什么这么说呢，因为从本站点挂到云上起，我就没有在任何社交平台上公开过本博客的链接，即使是github上host的repo我也是设置成私有的状态，所以访客们能够来到这个站点，看来是google在背后起作用了。从内容上说，本站点上的东西并不全面，很多时候是自己看了或者接触了点新的东西，心血来潮想写点什么。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-07-18T00:34:33.002Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/unknown-beam-peek.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/funcwj/setk/master/img/srp-phat/dev1_female3_liverec_130ms_1m_mix.png">
+<meta property="og:updated_time" content="2019-09-03T17:26:01.485Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="BPTT of RNN">
-<meta name="twitter:description" content="我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。 首先定义RNN的前向过程如下：  \mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\ \mathbf{h}_{t}  = \tanh(\mathbf{z">
+<meta name="twitter:title" content="Steer Vector">
+<meta name="twitter:description" content="最近陆续有了一些看了本博客的读者加微信讨论一些问题，我才发现原来自己挂的这个玩意竟然是有人看的。为什么这么说呢，因为从本站点挂到云上起，我就没有在任何社交平台上公开过本博客的链接，即使是github上host的repo我也是设置成私有的状态，所以访客们能够来到这个站点，看来是google在背后起作用了。从内容上说，本站点上的东西并不全面，很多时候是自己看了或者接触了点新的东西，心血来潮想写点什么。">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/unknown-beam-peek.png">
 
 
 
 
 
 
-  <link rel="canonical" href="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/">
+  <link rel="canonical" href="http://www.funcwj.cn/2019/08/04/steer-vector/">
 
 
 
@@ -143,7 +146,7 @@
   };
 </script>
 
-  <title>BPTT of RNN | WJ's blog</title>
+  <title>Steer Vector | WJ's blog</title>
   
 
 
@@ -348,7 +351,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2019/08/04/steer-vector/">
 
     <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
       <meta itemprop="name" content="WJ">
@@ -365,7 +368,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">BPTT of RNN
+          <h1 class="post-title" itemprop="name headline">Steer Vector
               
             
           </h1>
@@ -390,7 +393,7 @@
                 
               
 
-              <time title="创建时间：2018-01-05 12:59:53" itemprop="dateCreated datePublished" datetime="2018-01-05T12:59:53+08:00">2018-01-05</time>
+              <time title="创建时间：2019-08-04 01:17:32" itemprop="dateCreated datePublished" datetime="2019-08-04T01:17:32+08:00">2019-08-04</time>
             
 
             
@@ -425,7 +428,7 @@
                 
                   <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="本文字数">4.5k</span>
+                <span title="本文字数">4k</span>
               
 
               
@@ -459,48 +462,36 @@
       
 
       
-        <p>我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。</p>
-<p>首先定义RNN的前向过程如下：</p>
+        <p>最近陆续有了一些看了本博客的读者加微信讨论一些问题，我才发现原来自己挂的这个玩意竟然是有人看的。为什么这么说呢，因为从本站点挂到云上起，我就没有在任何社交平台上公开过本博客的链接，即使是github上host的repo我也是设置成私有的状态，所以访客们能够来到这个站点，看来是google在背后起作用了。从内容上说，本站点上的东西并不全面，很多时候是自己看了或者接触了点新的东西，心血来潮想写点什么。所以这里面就存在一个问题，我最初的接触或者理解可能是肤浅的，所以写下的东西未必准确到位，存在误导读者的风险。这也是我不想把这里的内容发布到公共平台上的原因之一。如果看官有什么问题的话，可以加我微信讨论，这一点上我还是非常欢迎的（当然伸手党等人除外）。</p>
+<a id="more"></a>
+<p>四月份之后我到微软这边实习，手上的工作都比较熟悉，没有接触到什么新的或者有意思的东西，所以也一直没有更新文章，这次就说一个之前频繁提到过的概念，导向向量（steer vector）。在这篇文章中，我会把它和前面几篇博客的内容关联到一起，更加系统的理一遍。</p>
+<p>导向向量是在多通道语音信号处理中经常出现的一个概念，从我的接触上说，主要集中在波束形成，声源定位里面。它描述的是声源到每个麦克风处的延时（如果不考虑信号衰减的话），通常将其表示为</p>
 <script type="math/tex; mode=display">
-\mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\
-\mathbf{h}_{t}  = \tanh(\mathbf{z}_t)</script><p>网上常见的解释是，对于RNN，在$t$时刻的输入不仅可以直接影响当前时刻的输出$\mathbf{h}_t$，而且可以通过$\mathbf{h}_t$对下一时刻的输出$\mathbf{h}_{t + 1}$产生影响，因此计算梯度的时候，需将$t + 1$时刻的误差也传递到当前时刻。个人觉得这种解释没有真实的反映出时间序列上的依赖关系，因为$t$时刻输入会对后续时刻的整个序列的输出产生影响，不仅仅是下一个时刻的输出，因此，从这里理解，$t$时刻的误差应该是后续时间步上误差传递到当前时刻值的总和，也正是由于这种在时间轴上从后向前的传递，导致了在时间步（time step）变大时，靠后时刻的误差不能传递到序列的早期时刻，引发了所谓的梯度消失问题（长期依赖问题）。下面对这段文字描述做数学推导。<br><a id="more"></a></p>
-<p>首先定义序列时长为$T$（即time_step = $T$）。假设这是一个多层的many-to-many的RNN，对于其中某一层，输入和输出表示为：</p>
+\mathbf{d}_{\theta, \omega} = [e^{-j \omega \tau_{0, \theta}}, \dots, e^{-j \omega \tau_{M - 1, \theta}}]</script><p>其中$M$表示阵列个数，$\theta$为声源方位（DoA，暂时不考虑俯仰角），$\omega$为角频率。在平面波的建模下，通常我们会选一个参考麦克风，只需要计算相对时延即可。$\theta$的范围取决于阵列的结构，一般线阵就是0到$\pi$，圆阵拓展到$2\pi$。</p>
+<h3 id="Beamformer"><a href="#Beamformer" class="headerlink" title="Beamformer"></a>Beamformer</h3><p>MVDR有几种表达式，其中一种里面有一个对steer_vector的显式依赖，所以传统signal的方法里面，都需要借助一个SSL（Sound/Speech Source Localization）模块用于声源定位得到$\theta$。目前常用的mask-based的方法，使用PCA的方法就可以直接做估计，免去了对SSL的依赖，这部分内容之前的博客已经说过，这里就不做赘述。固定波束的话，从使用的角度来说，需要已知说话人的方位，然后选取这个方向上的beam。从设计的角度说，一般预先在空间划分若干个区域，之后基于这些区域指向的方位上的导向向量进行设计，我所知道的两种设计方法都是如此：</p>
+<ol>
+<li><p>LSB （Least-square beamformer）<br>LSB思想是借助最优化方法（加上白噪声增益的约束），求解出满足beampattern（也就是MSE）的最优变量作为beam weight。</p>
+</li>
+<li><p>SDB （Super-directive beamformer）<br>设计公式和MVDR类似，使用oracle的steer vector，noise的协方差矩阵使用一些常见噪声声场的理论值（比如diffused noise field）</p>
+</li>
+</ol>
+<p>其实还有一个最简单的beamformer，延时相加（DS, Delay and Sum），steer vector直接就构成beam的权值（这里再加一个理论常识，拥有$M$个麦克风的阵列最理想情况下，使用DS beamformer可以拿到$M$dB的信噪比提升）。</p>
+<p>Beam Pattern其实就是beamformer在每个方向上频率响应的一种表示，事先计算出若干组steer vector，做beamforming之后画出频率响应（$T \times F$的矩阵）就行。前段时间遇到一个问题比较有意思，感觉可以用来当做面试题考察一下信号基础。我拿到一个设计好的fixed beamformer，但是不知道每个beam的指向了，问如何还原出这个信息？其实定义好坐标系，画出beam pattern就一目了然了。比如下图给出了编号为7，8，12，13四个beam的beam pattern，它们的指向依次为120，140，220和240度方向。</p>
+<p><img src="http://www.funcwj.cn/images/unknown-beam-peek.png" ,="" width="500"></p>
+<h3 id="Localization"><a href="#Localization" class="headerlink" title="Localization"></a>Localization</h3><p>我所接触到的定位算法和steer vector相关的（还有一些子空间方法比如MUSIC之类的没有细看）基本都是一个样式，就是formulate成下面的问题：</p>
 <script type="math/tex; mode=display">
-\mathbf{X}_l = \{\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_T\} \\
-\mathbf{H}_l = \{\mathbf{h}_1, \mathbf{h}_2, \dots, \mathbf{h}_T\}</script><p>在每个时刻，可以获得由上一层网络的传递得到误差项（实际为梯度，这里为了方便），表示为</p>
+\theta _\text{SSL} = \arg \max_{\theta} \mathcal{F}(\mathbf{d}_\theta, \mathbf{y})</script><p>简单来说就是用观测信号$\mathbf{y}$和每个方向上的导向向量计算一个$\mathcal{F}(\cdot)$，最大者对应角度就是定位的结果。由于每个麦克风的空间位置不同，因此定向声到达每个麦克风处会形成相应的延迟，空间信息由此产生。延迟是直接和相位相关的（时移在频域中体现为相移），所以我们说spatial的时候，基本都在说相位。这里面还存在一些小问题，其一，相位它是周期的，也就是我们可以从相对距离或者时延推出相位差，但是从相位差不能导出唯一的时延迟或者距离，比方说如果麦克风的间距大于一半波长的时候（所谓的空间混叠）。其二就是相位的绝对值没有什么意义，这也就是单通道中一般很少研究相位这个概念，即使有，比如Group Delay这种还是相对值（一阶差分）。多通道中可以利用的主要是通道信号之间的相位差（IPD，Inter-channal Phase Difference）这个信息。</p>
+<p>之前一篇博客也提到过，在短时傅里叶分析中的每个的sub-band上，同向声源能量占比高的TF-bin上观测到的相位差彼此接近，所以这是一个可以帮助做分离/增强的区分性信息。从steer vector中我们可以算出该方向上的声源可被观测到的理想情况下的（oracle）的相移，所以如果观测值和理论值越接近，那么该声源属于此方向上的概率就越高。由此可以将上述定位表达式进一步表示为：</p>
 <script type="math/tex; mode=display">
-\mathcal{L}_l = \{\ell_1, \ell_2, \dots, \ell_T\}</script><p>定义$\delta_k$:</p>
+\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \cos\{\angle \mathbf{d}_{i,\theta} - \angle \mathbf{d}_{j,\theta} - \angle \mathbf{y}_i + \angle \mathbf{y}_j\}</script><p>$\angle \mathbf{y}_i - \angle \mathbf{y}_j$就是IPD。注意一下，此表达式其实和下面的等价，其中$\mathcal{R}(\cdot)$表示取实部。 GCC/SRP-PHAT一般这么写，但是不太直观，不方便理解，比如为什么取实部之类的意义不明确。</p>
 <script type="math/tex; mode=display">
-\delta_k = \frac{\partial \mathcal{L}_{k \leqslant t \leqslant T}}{\partial \mathbf{z}_k} = \sum_{k \leqslant t \leqslant T} \frac{\partial \ell_t}{\partial \mathbf{z}_k} = \sum_{k \leqslant t \leqslant T} \delta_k^t</script><p>那么$\delta_k$就表示在当前输入序列下，$k \leqslant t \leqslant T$时刻范围内对$\mathbf{z}_k$的梯度之和，这也是我们最终要求的真实梯度，即在当前输入序列下，可以计算出的误差对$\mathbf{z}_k$的梯度。</p>
-<p>再看一下$\delta_k^t$：表示当前输出的误差对$\mathbf{z}_k$的梯度，在feed forward的网络结构中，这里$\delta_k^t = \delta_k$。</p>
-<p>根据$\delta_k^t$的性质：</p>
+\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \mathcal{R} \left \{ \mathbf{d}_{i,\theta} \mathbf{d}_{j,\theta}^H \cdot \mathbf{z}_i\mathbf{z}_j^H \right \}</script><p>其中</p>
 <script type="math/tex; mode=display">
-\begin{align}
-\delta_k^t & = \frac{\partial \ell_t}{\partial \mathbf{z}_k} = \frac{\partial \ell_t}{\partial \mathbf{z}_{k + 1}} \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \\ 
-& = \delta_{k + 1}^t \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \\ 
-& = \frac{\partial \ell_t}{\partial \mathbf{z}_t} \prod_{k + 1 \leqslant  i \leqslant t} \frac{\partial \mathbf{z}_{i}}{\partial \mathbf{z}_{i - 1}}
-\end{align}</script><p>结合$\delta_k^t​$和$\delta_k​$，可以得到$\delta_k​$的表达式：</p>
+\mathbf{z}_i = \frac{\mathbf{y}_i}{|\mathbf{y}_i|} = [e^{-j\theta_0}, \cdots, e^{-j\theta_{M - 1}}]</script><p>知道了基本的定位原理就可以反向利用角度信息。angle/directional feature就是在$\theta$已知的情况下，选取若干麦克风pair按照上面的方法计算出$T \times F$的特征矩阵（免去累加的过程）。和oracle相移越接近的TF bin上，特征的值越大。实际数据上在房间混响不严重，说话人的夹角比较大的情况下，angle feature是一个比较鲁棒的特征，对于分离或者增强模型的帮助也很大。</p>
 <script type="math/tex; mode=display">
-\delta_k = \sum_{k \leqslant t \leqslant T} \left(\frac{\partial \ell_t}{\partial \mathbf{z}_t} \prod_{k + 1 \leqslant  i \leqslant t} \frac{\partial \mathbf{z}_{i}}{\partial \mathbf{z}_{i - 1}} \right)</script><p>从上面的这个式子可知，如果要计算时刻$k$的梯度，那么需要两层循环，内循环处理连乘，外循环处理加和，显然，实际的bptt实现并没有这个复杂，因为$\delta_k$可以用更简洁的形式表达。下面导出这种具体形式。</p>
-<p>首先$\delta_k^t$和$\delta_{k + 1}^t$的关系为：</p>
-<script type="math/tex; mode=display">
-\delta_k^t  = \frac{\partial \ell_t}{\partial \mathbf{z}_k} = \frac{\partial \ell_t}{\partial \mathbf{z}_{k + 1}}  \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} = \delta_{k + 1}^t \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}}</script><p>根据$\delta_{k + 1}$的表达式，对其右乘$\frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_k}$</p>
-<script type="math/tex; mode=display">
-\begin{align}
-\delta_{k + 1} \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} & = \left(\sum_{k + 1\leqslant t \leqslant T} \delta_{k + 1}^t \right) \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \\
-&= \sum_{k + 1\leqslant t \leqslant T} \left(\delta_{k + 1}^t \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \right) \\ 
-& = \sum_{k + 1\leqslant t \leqslant T} \delta_k^t = \sum_{k\leqslant t \leqslant T} \delta_k^t - \delta_k^k \\
-& = \delta_k - \delta_k^k 
-\end{align}</script><p>因此得到了递推式：</p>
-<script type="math/tex; mode=display">
-\delta_k = \delta_{k + 1} \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} + \delta_k^k = \delta_{k + 1} \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}}+ \frac{\partial \ell_k}{\partial \mathbf{z}_k}</script><p>上式就是RNN的BPTT在实现时的逻辑，从这里可以更加容易看出时间依赖的本质，注意$\delta_{k + 1} \ne \delta_{k + 1}^{k + 1}$，$\delta_k$表示的是在时刻$t \in [k + 1, T]$，对时刻$\mathbf{z}_{k + 1}$梯度的累积量，而$\delta_{k + 1}^{k + 1}$仅仅表示$\ell_{k + 1}对$$\mathbf{z}_{k + 1}$的梯度。</p>
-<p>因此本质上不能理解成$t$时刻输入$\mathbf{x}_t$仅仅会对$\mathbf{h}_t, \mathbf{h}_{t + 1}$产生影响，就此在反向传播的时候将两个时刻产生的梯度相加，因为时间依赖的本质是可以无限延伸的，即沿着时间轴从$T \to 1$传播，这也就是所谓TT：through time的含义。</p>
-<p>这里还要提一下RNN的几种常见结构，many-to-one, one-to-one, one-to-many, 和many-to-many，我上面的分析是针对最后一种即从上层网络传递下来的误差向量维度和输入维度保持一致。前面三种现在理解起来也十分容易了。many-to-one就是要将最后时刻（一般是这样）的梯度传递到输入的每个时刻，one-to-many就是将每个时刻的梯度传递到起始时刻，one-to-one只需要将最后时刻传递到起始时刻就行了，即$\delta_1^T$。</p>
-<p>再以one-to-one分析一下梯度消失问题，根据上面的解释，可以写出$\delta_1^T$：</p>
-<script type="math/tex; mode=display">
-\delta_1^T = \frac{\partial \ell_T}{\partial \mathbf{z}_T} \prod_{2 \leqslant  t \leqslant T} \frac{\partial \mathbf{z}_t}{\partial \mathbf{z}_{t - 1}}</script><p>其中</p>
-<script type="math/tex; mode=display">
-\frac{\partial \mathbf{z}_t}{\partial \mathbf{z}_{t - 1}} = \frac{\partial \mathbf{z}_t}{\partial \mathbf{h}_t} \frac{\partial \mathbf{h}_t}{\partial \mathbf{z}_{t - 1}} = W_h \mathcal{D}(\tanh'(\mathbf{z}_{t - 1}))</script><p>当时间步$T$过大时，矩阵和激活值的连乘很容易导致$\delta_1^T$过大或者过小。过大的解决方法比较简单，目前都采用梯度裁剪的方法（clip gradient）。过小就是所谓的梯度消失问题，RNN无法从训练中获得远距离梯度的更新，也就无法学习到远距离的依赖关系，解决的方法可以是重新设计循环结构，合理初始化权值以及使用合适的激活函数等等。</p>
+\mathbf{A}_{t,f}^\theta = \sum_{<i,j>} \cos\{\angle \mathbf{d}_{\theta}^i - \angle \mathbf{d}_{\theta}^j - \angle \mathbf{y}_i + \angle \mathbf{y}_j\}</script><p>再看一下$\theta_\text{SSL}$的表达式，在假设说话人方位不变的情况下，就对整个句子上的每个TF-bin做一个加和，通过$\arg\max$得到DoA的估计值。如果想观测DoA的时变信息，那么可以只在频率轴上做累加，保留时间轴，得到的$T \times D$的矩阵就是所谓的angular spectrogram，这个东西我也在之前的文章中展现过，给出一个比较理想的的样例如下。如果不止一个说话人，还可以通过speaker的TF-mask做weight，从而估计出每一个说话人的角度。</p>
+<p><img src="https://raw.githubusercontent.com/funcwj/setk/master/img/srp-phat/dev1_female3_liverec_130ms_1m_mix.png" ,="" width="550"></p>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>最后简单的小结一下。我这篇文章没有介绍新的概念，主要借着steer vector把之前说过的beamformer，spatial feature，SSL算法等从一个统一的角度又过了一遍。这些东西呢，一开始也没有理解的十分到位，后面随着做东西的时间长了，反复想了几次，才发现它们背后逻辑的统一性。前端signal的东西有意思的地方主要就是集中在它背后的逻辑性的，当然我接触的只是冰山一角。借着面试时候某大佬和我说过一句话做结束：有很多work后人在复现的时候，都不需要任何signal的背景和知识就可以玩起来，但是在最开始我们做的时候，是一定有着对这些东西比较深刻的见解和认知的。否则路子那么多，你怎么能保证你这么做一定能work呢？</p>
 
       
     </div>
@@ -522,7 +513,7 @@
     <strong>本文作者： </strong>WJ</li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/" title="BPTT of RNN">http://www.funcwj.cn/2018/01/05/bptt-of-rnn/</a>
+    <a href="http://www.funcwj.cn/2019/08/04/steer-vector/" title="Steer Vector">http://www.funcwj.cn/2019/08/04/steer-vector/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
@@ -535,7 +526,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/ML/" rel="tag"><i class="fa fa-tag"></i> ML</a>
+            <a href="/tags/Microphone-Array-Processing/" rel="tag"><i class="fa fa-tag"></i> Microphone Array Processing</a>
           
         </div>
       
@@ -548,8 +539,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/12/16/csa-presentation/" rel="next" title="CSA - Clonal Selection Algorithm">
-                <i class="fa fa-chevron-left"></i> CSA - Clonal Selection Algorithm
+              <a href="/2019/03/11/setk-one-year/" rel="next" title="SETK one year">
+                <i class="fa fa-chevron-left"></i> SETK one year
               </a>
             
           </div>
@@ -557,10 +548,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/03/13/end-to-end-overview/" rel="prev" title="Overview of E2E Methods">
-                Overview of E2E Methods <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -605,8 +592,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -794,6 +790,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Beamformer"><span class="nav-number">1.</span> <span class="nav-text">Beamformer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Localization"><span class="nav-number">2.</span> <span class="nav-text">Localization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conclusion"><span class="nav-number">3.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

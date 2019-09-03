@@ -115,25 +115,23 @@
 
 
 
-  <meta name="description" content="我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。 首先定义RNN的前向过程如下：  \mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\ \mathbf{h}_{t}  = \tanh(\mathbf{z">
-<meta name="keywords" content="ML">
-<meta property="og:type" content="article">
-<meta property="og:title" content="BPTT of RNN">
-<meta property="og:url" content="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/index.html">
+  <meta name="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+<meta property="og:type" content="website">
+<meta property="og:title" content="WJ&#39;s blog">
+<meta property="og:url" content="http://www.funcwj.cn/archives/2019/08/index.html">
 <meta property="og:site_name" content="WJ&#39;s blog">
-<meta property="og:description" content="我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。 首先定义RNN的前向过程如下：  \mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\ \mathbf{h}_{t}  = \tanh(\mathbf{z">
+<meta property="og:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-07-18T00:34:33.002Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="BPTT of RNN">
-<meta name="twitter:description" content="我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。 首先定义RNN的前向过程如下：  \mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\ \mathbf{h}_{t}  = \tanh(\mathbf{z">
+<meta name="twitter:title" content="WJ&#39;s blog">
+<meta name="twitter:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
 
 
 
 
 
 
-  <link rel="canonical" href="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/">
+  <link rel="canonical" href="http://www.funcwj.cn/archives/2019/08/">
 
 
 
@@ -143,7 +141,7 @@
   };
 </script>
 
-  <title>BPTT of RNN | WJ's blog</title>
+  <title>归档 | WJ's blog</title>
   
 
 
@@ -190,7 +188,7 @@
     
   
 
-  <div class="container sidebar-position-left page-post-detail">
+  <div class="container sidebar-position-left page-archive">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
@@ -255,7 +253,7 @@
         
         
           
-          <li class="menu-item menu-item-archives">
+          <li class="menu-item menu-item-archives menu-item-active">
     <a href="/archives/" rel="section">
       <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档<span class="badge">75</span></a>
   </li>
@@ -328,263 +326,100 @@
           
             
 
+    
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+    
+
+  
+
+
           
           <div id="content" class="content">
             
 
-  <div id="posts" class="posts-expand">
-    
+  
+  
+  
+  <div class="post-block archive">
+    <div id="posts" class="posts-collapse">
+      <span class="archive-move-on"></span>
 
-  
+      
+      <span class="archive-page-counter">
+        
+        
+         
+          
+        不错! 目前共计 75 篇日志。 继续努力。
+      </span>
+      
 
-  
-  
-  
+      
 
-  
+        
+        
+        
+
+        
+          
+          <div class="collection-title">
+            <h1 class="archive-year" id="archive-year-2019">2019</h1>
+          </div>
+        
+        
+
+        
 
   <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/">
+    <header class="post-header">
 
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's blog">
-    </span>
-
-    
-      <header class="post-header">
-
+      <h2 class="post-title">
         
+            <a class="post-title-link" href="/2019/08/04/steer-vector/" itemprop="url">
+              
+                <span itemprop="name">Steer Vector</span>
+              
+            </a>
         
-          <h1 class="post-title" itemprop="name headline">BPTT of RNN
-              
-            
-          </h1>
-        
+      </h2>
 
-        <div class="post-meta">
-          <span class="post-time">
-
-            
-            
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-
-              
-                
-              
-
-              <time title="创建时间：2018-01-05 12:59:53" itemprop="dateCreated datePublished" datetime="2018-01-05T12:59:53+08:00">2018-01-05</time>
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-            <span class="post-meta-divider">|</span>
-            <span class="post-meta-item-icon">
-            <i class="fa fa-eye"></i>
-             阅读次数： 
-            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
-            </span>
-          
-
-          
-            <div class="post-symbolscount">
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-file-word-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">本文字数：</span>
-                
-                <span title="本文字数">4.5k</span>
-              
-
-              
-                <span class="post-meta-divider">|</span>
-              
-
-              
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-clock-o"></i>
-                </span>
-                
-                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
-                
-                <span title="阅读时长">4 分钟</span>
-              
-            </div>
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        <p>我在这一篇里推导一下RNN的反向传播算法，尝试从另一个角度来理解在RNN在时间轴上的依赖关系，由此导出所谓的梯度消失问题，即原始的RNN为什么难以训练。</p>
-<p>首先定义RNN的前向过程如下：</p>
-<script type="math/tex; mode=display">
-\mathbf{z}_t = W_x \mathbf{x_t} + W_h \mathbf{h}_{t - 1} + \mathbf{b} \\
-\mathbf{h}_{t}  = \tanh(\mathbf{z}_t)</script><p>网上常见的解释是，对于RNN，在$t$时刻的输入不仅可以直接影响当前时刻的输出$\mathbf{h}_t$，而且可以通过$\mathbf{h}_t$对下一时刻的输出$\mathbf{h}_{t + 1}$产生影响，因此计算梯度的时候，需将$t + 1$时刻的误差也传递到当前时刻。个人觉得这种解释没有真实的反映出时间序列上的依赖关系，因为$t$时刻输入会对后续时刻的整个序列的输出产生影响，不仅仅是下一个时刻的输出，因此，从这里理解，$t$时刻的误差应该是后续时间步上误差传递到当前时刻值的总和，也正是由于这种在时间轴上从后向前的传递，导致了在时间步（time step）变大时，靠后时刻的误差不能传递到序列的早期时刻，引发了所谓的梯度消失问题（长期依赖问题）。下面对这段文字描述做数学推导。<br><a id="more"></a></p>
-<p>首先定义序列时长为$T$（即time_step = $T$）。假设这是一个多层的many-to-many的RNN，对于其中某一层，输入和输出表示为：</p>
-<script type="math/tex; mode=display">
-\mathbf{X}_l = \{\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_T\} \\
-\mathbf{H}_l = \{\mathbf{h}_1, \mathbf{h}_2, \dots, \mathbf{h}_T\}</script><p>在每个时刻，可以获得由上一层网络的传递得到误差项（实际为梯度，这里为了方便），表示为</p>
-<script type="math/tex; mode=display">
-\mathcal{L}_l = \{\ell_1, \ell_2, \dots, \ell_T\}</script><p>定义$\delta_k$:</p>
-<script type="math/tex; mode=display">
-\delta_k = \frac{\partial \mathcal{L}_{k \leqslant t \leqslant T}}{\partial \mathbf{z}_k} = \sum_{k \leqslant t \leqslant T} \frac{\partial \ell_t}{\partial \mathbf{z}_k} = \sum_{k \leqslant t \leqslant T} \delta_k^t</script><p>那么$\delta_k$就表示在当前输入序列下，$k \leqslant t \leqslant T$时刻范围内对$\mathbf{z}_k$的梯度之和，这也是我们最终要求的真实梯度，即在当前输入序列下，可以计算出的误差对$\mathbf{z}_k$的梯度。</p>
-<p>再看一下$\delta_k^t$：表示当前输出的误差对$\mathbf{z}_k$的梯度，在feed forward的网络结构中，这里$\delta_k^t = \delta_k$。</p>
-<p>根据$\delta_k^t$的性质：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-\delta_k^t & = \frac{\partial \ell_t}{\partial \mathbf{z}_k} = \frac{\partial \ell_t}{\partial \mathbf{z}_{k + 1}} \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \\ 
-& = \delta_{k + 1}^t \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \\ 
-& = \frac{\partial \ell_t}{\partial \mathbf{z}_t} \prod_{k + 1 \leqslant  i \leqslant t} \frac{\partial \mathbf{z}_{i}}{\partial \mathbf{z}_{i - 1}}
-\end{align}</script><p>结合$\delta_k^t​$和$\delta_k​$，可以得到$\delta_k​$的表达式：</p>
-<script type="math/tex; mode=display">
-\delta_k = \sum_{k \leqslant t \leqslant T} \left(\frac{\partial \ell_t}{\partial \mathbf{z}_t} \prod_{k + 1 \leqslant  i \leqslant t} \frac{\partial \mathbf{z}_{i}}{\partial \mathbf{z}_{i - 1}} \right)</script><p>从上面的这个式子可知，如果要计算时刻$k$的梯度，那么需要两层循环，内循环处理连乘，外循环处理加和，显然，实际的bptt实现并没有这个复杂，因为$\delta_k$可以用更简洁的形式表达。下面导出这种具体形式。</p>
-<p>首先$\delta_k^t$和$\delta_{k + 1}^t$的关系为：</p>
-<script type="math/tex; mode=display">
-\delta_k^t  = \frac{\partial \ell_t}{\partial \mathbf{z}_k} = \frac{\partial \ell_t}{\partial \mathbf{z}_{k + 1}}  \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} = \delta_{k + 1}^t \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}}</script><p>根据$\delta_{k + 1}$的表达式，对其右乘$\frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_k}$</p>
-<script type="math/tex; mode=display">
-\begin{align}
-\delta_{k + 1} \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} & = \left(\sum_{k + 1\leqslant t \leqslant T} \delta_{k + 1}^t \right) \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \\
-&= \sum_{k + 1\leqslant t \leqslant T} \left(\delta_{k + 1}^t \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} \right) \\ 
-& = \sum_{k + 1\leqslant t \leqslant T} \delta_k^t = \sum_{k\leqslant t \leqslant T} \delta_k^t - \delta_k^k \\
-& = \delta_k - \delta_k^k 
-\end{align}</script><p>因此得到了递推式：</p>
-<script type="math/tex; mode=display">
-\delta_k = \delta_{k + 1} \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}} + \delta_k^k = \delta_{k + 1} \cdot \frac{\partial \mathbf{z}_{k + 1}}{\partial \mathbf{z}_{k}}+ \frac{\partial \ell_k}{\partial \mathbf{z}_k}</script><p>上式就是RNN的BPTT在实现时的逻辑，从这里可以更加容易看出时间依赖的本质，注意$\delta_{k + 1} \ne \delta_{k + 1}^{k + 1}$，$\delta_k$表示的是在时刻$t \in [k + 1, T]$，对时刻$\mathbf{z}_{k + 1}$梯度的累积量，而$\delta_{k + 1}^{k + 1}$仅仅表示$\ell_{k + 1}对$$\mathbf{z}_{k + 1}$的梯度。</p>
-<p>因此本质上不能理解成$t$时刻输入$\mathbf{x}_t$仅仅会对$\mathbf{h}_t, \mathbf{h}_{t + 1}$产生影响，就此在反向传播的时候将两个时刻产生的梯度相加，因为时间依赖的本质是可以无限延伸的，即沿着时间轴从$T \to 1$传播，这也就是所谓TT：through time的含义。</p>
-<p>这里还要提一下RNN的几种常见结构，many-to-one, one-to-one, one-to-many, 和many-to-many，我上面的分析是针对最后一种即从上层网络传递下来的误差向量维度和输入维度保持一致。前面三种现在理解起来也十分容易了。many-to-one就是要将最后时刻（一般是这样）的梯度传递到输入的每个时刻，one-to-many就是将每个时刻的梯度传递到起始时刻，one-to-one只需要将最后时刻传递到起始时刻就行了，即$\delta_1^T$。</p>
-<p>再以one-to-one分析一下梯度消失问题，根据上面的解释，可以写出$\delta_1^T$：</p>
-<script type="math/tex; mode=display">
-\delta_1^T = \frac{\partial \ell_T}{\partial \mathbf{z}_T} \prod_{2 \leqslant  t \leqslant T} \frac{\partial \mathbf{z}_t}{\partial \mathbf{z}_{t - 1}}</script><p>其中</p>
-<script type="math/tex; mode=display">
-\frac{\partial \mathbf{z}_t}{\partial \mathbf{z}_{t - 1}} = \frac{\partial \mathbf{z}_t}{\partial \mathbf{h}_t} \frac{\partial \mathbf{h}_t}{\partial \mathbf{z}_{t - 1}} = W_h \mathcal{D}(\tanh'(\mathbf{z}_{t - 1}))</script><p>当时间步$T$过大时，矩阵和激活值的连乘很容易导致$\delta_1^T$过大或者过小。过大的解决方法比较简单，目前都采用梯度裁剪的方法（clip gradient）。过小就是所谓的梯度消失问题，RNN无法从训练中获得远距离梯度的更新，也就无法学习到远距离的依赖关系，解决的方法可以是重新设计循环结构，合理初始化权值以及使用合适的激活函数等等。</p>
-
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-      <div>
-        <ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者： </strong>WJ</li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="http://www.funcwj.cn/2018/01/05/bptt-of-rnn/" title="BPTT of RNN">http://www.funcwj.cn/2018/01/05/bptt-of-rnn/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
-</ul>
-
+      <div class="post-meta">
+        <time class="post-time" itemprop="dateCreated" datetime="2019-08-04T01:17:32+08:00" content="2019-08-04">
+          08-04
+        </time>
       </div>
-    
 
-    <footer class="post-footer">
-      
-        <div class="post-tags">
-          
-            <a href="/tags/ML/" rel="tag"><i class="fa fa-tag"></i> ML</a>
-          
-        </div>
-      
-
-      
-      
-      
-
-      
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-              <a href="/2017/12/16/csa-presentation/" rel="next" title="CSA - Clonal Selection Algorithm">
-                <i class="fa fa-chevron-left"></i> CSA - Clonal Selection Algorithm
-              </a>
-            
-          </div>
-
-          <span class="post-nav-divider"></span>
-
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/03/13/end-to-end-overview/" rel="prev" title="Overview of E2E Methods">
-                Overview of E2E Methods <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
-
-      
-      
-    </footer>
-  </div>
-  
-  
-  
+    </header>
   </article>
 
 
+
+      
+
+    </div>
   </div>
-
-
-          </div>
-          
+  
+  
+  
 
   
 
 
+
+          </div>
+          
 
         </div>
         
@@ -967,10 +802,6 @@
 
 
   
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
-
-
 
   
 
