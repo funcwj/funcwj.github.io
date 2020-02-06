@@ -123,16 +123,16 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="现实任务中，我们得到的大量信息都具有很高的不确定性，比如语言识别的结果取N-best的lattice网络，其中就包括了N种可能的带权序列。在对这种不确定信息的检索不同于以往确定信息中的检索模式（显然是权值相关的）。 我们可以将这些不确定的序列统一的用一个加权自动机（状态节点和带权的转移边）表示，那么这个问题就可以抽象成一个对加权自动机的索引构造算法。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/gunqnhbdcimqq3zihwlzsisx/suffix_generation_egs.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/dfmc0zyacuwh1nigej6bn6v6/string_select.jpg">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/9r4chgjb82p8au178w3gtofw/string_rmeps.jpg">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/1ekv8axvkozmyk55n7bok3m8/string_deter.jpg">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/28xjr1g8c47t1bqfiitsdi8h/string_minim.jpg">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/suffix_generation_egs.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/string_select.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/string_rmeps.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/string_deter.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/string_minim.jpg">
+<meta property="og:updated_time" content="2020-02-06T16:05:07.215Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="加权自动机的索引构造">
 <meta name="twitter:description" content="现实任务中，我们得到的大量信息都具有很高的不确定性，比如语言识别的结果取N-best的lattice网络，其中就包括了N种可能的带权序列。在对这种不确定信息的检索不同于以往确定信息中的检索模式（显然是权值相关的）。 我们可以将这些不确定的序列统一的用一个加权自动机（状态节点和带权的转移边）表示，那么这个问题就可以抽象成一个对加权自动机的索引构造算法。">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/gunqnhbdcimqq3zihwlzsisx/suffix_generation_egs.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/suffix_generation_egs.png">
 
 
 
@@ -486,18 +486,15 @@ T_i(x) = \bigoplus_{i[\pi] = x}^{\log} \lambda_i[p[\pi]] + w[\pi] + \rho_i[n[\pi
 </ol>
 <p>$T_i$的输出信息只有下标$i$，所以将它放在终止边上就行。第三步的优化操作得到和原先等价的转换器，只是在空间复杂度更低，搜索效率更高。得到$T_i$之后，通过$T = \bigcup T_i$和进一步的确定化，得到最终整体的索引转换器。用户的查询表示可以用自动机$X$表示，查询结果$R$有下式给出：</p>
 <script type="math/tex; mode=display">R = \Pi_o(X \circ T)</script><p>举个例子，在论文<a href="http://cs.nyu.edu/~mohri/pub/nfac.pdf" target="_blank" rel="noopener">General Suffix Automaton Construction Algorithm and Space Bounds</a>中实现了从String Acceptor到后缀自动机的通用构造算法，得到后缀自动机之后，将每一个状态设置为final，再执行一些简化操作就可以得到因子自动机了（acceptor），只是没有权值信息。实际上这个构造过程也可以用上面的方式进行，原文给出的例子如下：</p>
-<p><img src="http://static.zybuluo.com/funcwj/gunqnhbdcimqq3zihwlzsisx/suffix_generation_egs.png" alt="suffix_generation_egs.png-54.7kB"></p>
+<p><img src="http://www.funcwj.cn/images/suffix_generation_egs.png" alt="suffix_generation_egs.png-54.7kB"></p>
 <p>按照上面的流程，先对左边的Acceptor进行因子选择：</p>
-<p><img src="http://static.zybuluo.com/funcwj/dfmc0zyacuwh1nigej6bn6v6/string_select.jpg" alt="string_select.jpg-53.6kB"></p>
+<p><img src="http://www.funcwj.cn/images/string_select.jpg" alt="string_select.jpg-53.6kB"></p>
 <p>由于加入的都是$\epsilon$边，所以因子选择实际上构建出了对输入自动机接受的字符串集合的所有因子的索引，只是不够简化而已，接下来对其进行简化操（等价操作）就可以得到最终的索引自动机。首先去除$\epsilon$边。</p>
-<center><img src="http://static.zybuluo.com/funcwj/9r4chgjb82p8au178w3gtofw/string_rmeps.jpg" width="450"></center>
-
+<p><img src="http://www.funcwj.cn/images/string_rmeps.jpg" width="450"></p>
 <p>上面的结果不是确定的，执行确定化操作：</p>
-<center><img src="http://static.zybuluo.com/funcwj/1ekv8axvkozmyk55n7bok3m8/string_deter.jpg" width="450"></center>
-
+<p><img src="http://www.funcwj.cn/images/string_deter.jpg" width="450"></p>
 <p>这个结果实际上就是将后缀自动机的每一个状态设为final之后的结果，但是还有优化空间，最小化之后得到最终的形式：</p>
-<center><img src="http://static.zybuluo.com/funcwj/28xjr1g8c47t1bqfiitsdi8h/string_minim.jpg" width="450"></center>
-
+<p><img src="http://www.funcwj.cn/images/string_minim.jpg" width="450"></p>
 <p>查询操作可以抽象为Compose操作，比如给出$cab$子串，查询结果为$cab$，如果是$cdb$，那么查询结果为$\epsilon$，表示子串不存在。</p>
 <p>以上说明没有考虑权值，加权因子索引构造的因子选择是要在$\epsilon$边上加上权值信息的，权值信息可由前向-后向算法完成。</p>
 <p>最后说一下TFT，整体看来kaldi-kws的TFT时间因子转换器完全继承了这套方法的衣钵，理解这部分之后再看TFT就相对容易一些。而且这个框架在论文中也提到，具有很高的通用性。TFT的修正在于，1) 将时间间隔信息带入权值之中，以便给出关键词出现的时间区间，2) 加入了聚类标识符，索引不相交的因子。</p>

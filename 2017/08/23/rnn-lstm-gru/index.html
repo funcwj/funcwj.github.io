@@ -123,16 +123,16 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="一直觉得RNN是一个可玩性很高的模型，因为现实中我们需要建模的对象往往都可以理解为时间或者空间上的序列（sequence），比如语音，视频，字迹，文本，这种特性极大丰富了RNN处理问题的种类（语言模型，声学模型，机器翻译等等）。一直很火的End-to-End，比如我知道的CTC，RNN-Transducer，Attention（encoder-decoder）也全部based on RNN。既然它">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/kmnr7ncc6s0t4y83vemwlh42/LSTM.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/j9lvkz4q660ujgcciu1za2m0/LSTMP-illustration.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/bb1oywsfo3e3ogj2y8kcgpjd/LSTM-illustration-in-tensorflow.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/ywqnmftwezzvv41ck7d5v15d/GRU-illustration.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/t6f7ztvi4135jvwjgmyg4rbv/GRU-LSTM-compare.png">
-<meta property="og:updated_time" content="2017-10-04T04:12:13.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/LSTM.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/LSTMP-illustration.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/LSTM-illustration-in-tensorflow.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/GRU-illustration.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/GRU-LSTM-compare.png">
+<meta property="og:updated_time" content="2020-02-06T15:41:57.576Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RNN &amp; LSTM &amp; GRU">
 <meta name="twitter:description" content="一直觉得RNN是一个可玩性很高的模型，因为现实中我们需要建模的对象往往都可以理解为时间或者空间上的序列（sequence），比如语音，视频，字迹，文本，这种特性极大丰富了RNN处理问题的种类（语言模型，声学模型，机器翻译等等）。一直很火的End-to-End，比如我知道的CTC，RNN-Transducer，Attention（encoder-decoder）也全部based on RNN。既然它">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/kmnr7ncc6s0t4y83vemwlh42/LSTM.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/LSTM.png">
 
 
 
@@ -431,7 +431,7 @@
                 
                   <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="本文字数">5.3k</span>
+                <span title="本文字数">5.2k</span>
               
 
               
@@ -467,12 +467,8 @@
       
         <p>一直觉得RNN是一个可玩性很高的模型，因为现实中我们需要建模的对象往往都可以理解为时间或者空间上的序列（sequence），比如语音，视频，字迹，文本，这种特性极大丰富了RNN处理问题的种类（语言模型，声学模型，机器翻译等等）。一直很火的End-to-End，比如我知道的CTC，RNN-Transducer，Attention（encoder-decoder）也全部based on RNN。既然它可以对序列建模，那么根据不同的输入和输出设计，就可以完成Classification（one-to-one），Embedding（many-to-one），序列生成（one-to-many），seq2seq（many-to-many）等任务。<br><a id="more"></a></p>
 <h3 id="RNN的进化"><a href="#RNN的进化" class="headerlink" title="RNN的进化"></a>RNN的进化</h3><p>简单说一下RNN的发展，由于FNN（前馈网络）的结果只依赖于当前输入，而实际处理问题的序列特征往往是上下文相关的，因此融入上下文信息是可以提高模型的准确度的，这一点在FNN中是通过单纯的增加输入信息量完成的。后来就有人提出了将网络隐层上一时刻的输出再次作为输入传递到下一时刻，以此获取所谓的历史信息。考虑到网络节点的信息流走向存在了自环，故称之为RNN（Recurrent，循环）。一开始纯粹的RNN会出现所谓的梯度消失问题无法长久记忆历史信息，为了解决这个问题，1997年Hochreiter &amp; Schmidhuber提出了所谓的LSTM。</p>
-<p>后来就是LSTM的不断改进，一开始LSTM的一个记忆块只有输入输出和细胞三个元素，后来在1999年，F.A.Gers et al.等人增加了遗忘门，2003年在各个门和cell之间增加了Peephole Connections，2005年，Graves &amp; Schmidhuber写了一本书《Supervised Sequence Labelling with Recurrent Neural Networks》，里面对LSTM的结构描述如下（虚线表示peephole connections）：</p>
-<center><img src="http://static.zybuluo.com/funcwj/kmnr7ncc6s0t4y83vemwlh42/LSTM.png" width="300"></center>
-
-<p>再后来，2014年谷歌的Hasim Sak et al.提出在LSTM层之后加上一个project层（如下图表示，recurrent表示recurrent project layer，memory block表示和Graves的是等效的），即LSTMP用于语音识别中；多伦多大学的Cho et al. 提出RNN encoder-decoder框架的时候设计了一种新的隐藏单元GRU，单元中只含有重置门和更新门（reset and update gate），计算复杂度更小。</p>
-<center><img src="http://static.zybuluo.com/funcwj/j9lvkz4q660ujgcciu1za2m0/LSTMP-illustration.png" width="400"></center>
-
+<p>后来就是LSTM的不断改进，一开始LSTM的一个记忆块只有输入输出和细胞三个元素，后来在1999年，F.A.Gers et al.等人增加了遗忘门，2003年在各个门和cell之间增加了Peephole Connections，2005年，Graves &amp; Schmidhuber写了一本书《Supervised Sequence Labelling with Recurrent Neural Networks》，里面对LSTM的结构描述如下（虚线表示peephole connections）：<br><img src="http://www.funcwj.cn/images/LSTM.png" width="300"></p>
+<p>再后来，2014年谷歌的Hasim Sak et al.提出在LSTM层之后加上一个project层（如下图表示，recurrent表示recurrent project layer，memory block表示和Graves的是等效的），即LSTMP用于语音识别中；多伦多大学的Cho et al. 提出RNN encoder-decoder框架的时候设计了一种新的隐藏单元GRU，单元中只含有重置门和更新门（reset and update gate），计算复杂度更小。<br><img src="http://www.funcwj.cn/images/LSTMP-illustration.png" width="400"></p>
 <h3 id="RNN"><a href="#RNN" class="headerlink" title="RNN"></a>RNN</h3><p>普通RNN涉及到自环和上一时刻的输入，定义$n$隐层的RNN，隐层输入，输出，输入变换矩阵，自环变换矩阵以及偏置向量为$(\boldsymbol{i}_i, \boldsymbol{o}_i, \boldsymbol{W}{i}, \boldsymbol{H}_{i}, \boldsymbol{b}_i)$，激活函数为$\theta$，那么前向传播可以表示为：</p>
 <script type="math/tex; mode=display">
 \begin{align}
@@ -494,13 +490,9 @@
 \boldsymbol{h}_t &= \boldsymbol{o}_t \odot h(\boldsymbol{c}_t) \notag
 \end{align}</script><p>$\boldsymbol{W}_{*h}$表示peephole connection（对角矩阵），$\sigma, g, h$为对应门的激活函数（一般$h = \tanh$，$g, \sigma$为sigmoid），$\odot$表示逐元素的相乘。project层（如果存在的话）$\boldsymbol{p}_t$由下式得到：</p>
 <script type="math/tex; mode=display">
-\boldsymbol{p}_t = \boldsymbol{W}_{pr}\boldsymbol{h}_t</script><p>tensorflow里面LSTM的细胞有两个实现版本，LSTMCell和BasicLSTMCell。前者相对丰富一些，可以选择配置peephole，project layer，cell clipping，而后者是没有这些功能的。根据代码注释，BasicLSTMCell参考论文为[7]（LSTM记忆块结构如下），而LSTMCell为Acoustic Modeling那篇。</p>
-<center><img src="http://static.zybuluo.com/funcwj/bb1oywsfo3e3ogj2y8kcgpjd/LSTM-illustration-in-tensorflow.png" width="400"></center>
-
+\boldsymbol{p}_t = \boldsymbol{W}_{pr}\boldsymbol{h}_t</script><p>tensorflow里面LSTM的细胞有两个实现版本，LSTMCell和BasicLSTMCell。前者相对丰富一些，可以选择配置peephole，project layer，cell clipping，而后者是没有这些功能的。根据代码注释，BasicLSTMCell参考论文为[7]（LSTM记忆块结构如下），而LSTMCell为Acoustic Modeling那篇。<br><img src="http://www.funcwj.cn/images/LSTM-illustration-in-tensorflow.png" width="400"></p>
 <p>从图中也可以看出，输入输出和遗忘门和cell之间没有peephole connection。这篇文章的重点是提出了一种在LSTM中使用dropout达到正则化效果的建议，即dropout不要在循环信息上作用，仅仅作用在节点的当前输入输出即可。</p>
-<h3 id="GRU"><a href="#GRU" class="headerlink" title="GRU"></a>GRU</h3><p>GRU（Gated recurrent unit）这个循环单元直观上看起来和LSTM还是有很大差别的，论文中只用了一个很简单的图示就说明了其结构（如下）。单元中仅仅含有一个更新门$z$和重置门$r$。这两个门的计算逻辑也是相同的（类似LSTM的输入输出遗忘三个门），更新门决定了当前的输入结果的影响大小，可以理解为一个权值。两者由下式得出：</p>
-<center><img src="http://static.zybuluo.com/funcwj/ywqnmftwezzvv41ck7d5v15d/GRU-illustration.png" width="300"></center>
-
+<h3 id="GRU"><a href="#GRU" class="headerlink" title="GRU"></a>GRU</h3><p>GRU（Gated recurrent unit）这个循环单元直观上看起来和LSTM还是有很大差别的，论文中只用了一个很简单的图示就说明了其结构（如下）。单元中仅仅含有一个更新门$z$和重置门$r$。这两个门的计算逻辑也是相同的（类似LSTM的输入输出遗忘三个门），更新门决定了当前的输入结果的影响大小，可以理解为一个权值。两者由下式得出：<br><img src="http://www.funcwj.cn/images/GRU-illustration.png" width="300"></p>
 <script type="math/tex; mode=display">
 \boldsymbol{r}_t = \sigma(\boldsymbol{W}_{rx}\boldsymbol{x}_t + \boldsymbol{W}_{rh}\boldsymbol{h}_{t - 1}) \\
 \boldsymbol{z}_t = \sigma(\boldsymbol{W}_{zx}\boldsymbol{x}_t + \boldsymbol{W}_{zh}\boldsymbol{h}_{t - 1})</script><p>最终的单元输出$\boldsymbol{h}_t$计算如下：</p>
@@ -512,8 +504,7 @@
 <li>LSTM并不直接的从上一时刻中获取信息，而是通过输入门和遗忘门对待选cell值和上一时刻cell值的加权得到的，GRU可以直接通过更新门获取上一时刻信息。</li>
 <li>GRU中的信息直接存储在历史状态$h$中，而LSTM存储在cell中。更新门对应遗忘门，重置门对应输入门。</li>
 </ol>
-<center><img src="http://static.zybuluo.com/funcwj/t6f7ztvi4135jvwjgmyg4rbv/GRU-LSTM-compare.png" width="500"></center>
-
+<p><img src="http://www.funcwj.cn/images/GRU-LSTM-compare.png" width="500"></p>
 <p>上图是论文[8]中对两种结构单元的对比图，详细的分析和实验对比也可以看一下这篇论文。</p>
 <h3 id="相关文献"><a href="#相关文献" class="headerlink" title="相关文献"></a>相关文献</h3><ul>
 <li>[1]. Long short-term memory（Hochreiter &amp; Schmidhuber et al.）</li>

@@ -123,13 +123,13 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/9tmr6q0vmlio8o2p4uaw8m3d/token-struct.jpg">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/decoding-shotcut.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/token-struct.jpg">
+<meta property="og:updated_time" content="2020-02-06T15:47:18.088Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="对kaldi中Online-Decoder的分析">
 <meta name="twitter:description" content="解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/decoding-shotcut.png">
 
 
 
@@ -463,7 +463,7 @@
 
       
         <p>解码是指在构建好的解码网络（图）中，根据输入的音频，生成最优序列的过程。在kaidi中，解码之前，解码网络（实际上是一个巨大的WFST）是已经构建好了的（一般称之为静态解码器），也就是熟知的HCLG。在这张图中，状态节点并无太大意义（毕竟不是自动机），信息存储在状态和状态的转移边之间。输入为tid（tid为0表示没有输入/输入为空$\epsilon$，因而可以连续跳转），输出为词，权值为语言模型的权值。解码过程中，声学模型的后验概率需要实时计算得出（特征+声学模型）。理解解码过程需要弄清以下几个方面：<br><a id="more"></a></p>
-<p><img src="http://static.zybuluo.com/funcwj/uyqsousxq7r4asfn93951n95/decoding-shotcut.png" alt="decoding-shotcut.png-163.9kB"></p>
+<p><img src="http://www.funcwj.cn/images/decoding-shotcut.png" alt="decoding-shotcut.png-163.9kB"></p>
 <ul>
 <li>解码过程中使用到的数据结构及其拓扑关系</li>
 <li>解码过程中的剪枝策略（个人觉得这部分比较抽象）</li>
@@ -484,8 +484,7 @@
 </li>
 </ul>
 <p>这几部分的关系可以用下图描述：</p>
-<center><img src="http://static.zybuluo.com/funcwj/9tmr6q0vmlio8o2p4uaw8m3d/token-struct.jpg"></center>
-
+<p><img src="http://www.funcwj.cn/images/token-struct.jpg"></p>
 <p>另一个重要的数据结构是kaldi中自己实现的<code>HashList</code>，一个类似于跳表的数据结构，里面维护的元素本质上以链表的形式相连，同时通过一个Hash表建立索引。元素和哈希通过<code>Elem</code>和<code>HashBucket</code>实现：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Elem</span> &#123;</span></span><br><span class="line">    I key;      <span class="comment">// State</span></span><br><span class="line">    T val;      <span class="comment">// Token</span></span><br><span class="line">    Elem *tail; <span class="comment">// 链表，指向下一个元素</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">HashBucket</span> &#123;</span></span><br><span class="line">    <span class="keyword">size_t</span> prev_bucket;     <span class="comment">// 指向前一个桶的下标，类似静态链表的索引方法</span></span><br><span class="line">    Elem *last_elem;        <span class="comment">// 指向挂在该桶上的最后一个元素，找到他就可以索引该桶上所有元素了</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>整个哈希结结构存在容器<code>std::vector&lt;HashBucket&gt; buckets_</code>中，通过<code>SetSize()</code>可以分配<code>buckets_</code>的大小。需要注意的是，前一个<code>HashBucket</code>的<code>last_elem.tail</code>指向当前<code>HashBucket</code>的第一个元素。其他重要的变量如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Elem *list_head_;   <span class="comment">// Elem链表会不断释放，分配，该变量记录链表头部</span></span><br><span class="line">Elem *freed_head_;  <span class="comment">// 记录空闲链表的头部，分配新的Elem就是从该头部取出一个空闲Elem</span></span><br><span class="line"><span class="keyword">size_t</span> bucket_list_tail_;   <span class="comment">// 当前活跃的最后一个桶的下标</span></span><br><span class="line"><span class="keyword">size_t</span> hash_size_;          <span class="comment">// 当前活跃的桶的个数</span></span><br></pre></td></tr></table></figure></p>
 <p>该数据结构的操作逻辑如下：</p>

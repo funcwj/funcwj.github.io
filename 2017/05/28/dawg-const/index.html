@@ -123,12 +123,12 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="最近需要参考一下文本检索的思路，所以看了一下后缀自动机并做了实现。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/nib1jc7hiwxlj50d2mfsuqmr/dawg_expand.jpg">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/dawg_expand.jpg">
+<meta property="og:updated_time" content="2020-02-06T16:04:31.671Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="后缀自动机之DAWG构造">
 <meta name="twitter:description" content="最近需要参考一下文本检索的思路，所以看了一下后缀自动机并做了实现。">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/nib1jc7hiwxlj50d2mfsuqmr/dawg_expand.jpg">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/dawg_expand.jpg">
 
 
 
@@ -587,8 +587,7 @@
 <li>通过次要转移的存在可以确认该等价类是否需要被分裂。</li>
 </ol>
 <p>下面给出$abc \to abcb \to abcbc$的拓展过程：</p>
-<center><img src="http://static.zybuluo.com/funcwj/nib1jc7hiwxlj50d2mfsuqmr/dawg_expand.jpg" width="500"></center>
-
+<p><img src="http://www.funcwj.cn/images/dawg_expand.jpg" width="500"></p>
 <p>上图中蓝色线条表示后缀指针，虚线表示次要边，实线表示首要边，宿节点默认为上一次拓展操作中添加的节点。<br>算法核心在于拓展节点和分裂节点两步，对于每一个新增字符$a$，拓展节点时，操作如下：</p>
 <ol>
 <li>新建一个节点$s$，建立一条从宿节点$e$到$s$的首要边，label为$a$。</li>

@@ -123,13 +123,13 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="Hello, Google!  本来出发点只是找一个托管blog的server……">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/ue3dtsbby6t4nbibkmvk2ydg/hello-google.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/afigfimybspnatjopy7ivkoz/youtube-test.PNG">
-<meta property="og:updated_time" content="2017-10-07T17:30:54.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/hello-google.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/youtube-test.PNG">
+<meta property="og:updated_time" content="2020-02-06T15:59:32.723Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="搭建SSR服务">
 <meta name="twitter:description" content="Hello, Google!  本来出发点只是找一个托管blog的server……">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/ue3dtsbby6t4nbibkmvk2ydg/hello-google.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/hello-google.png">
 
 
 
@@ -475,14 +475,11 @@
 <p>后来又用github的学生优惠想先使用一年的DigitalOcean（简称DO）吧，注册PayPal的时候因为没有信用卡也卡住了（因为需要先充值激活）。</p>
 <p>后来发现推荐Vultr的也比较多，加上官网做的清爽，支持支付宝（支付），价格也可以接受，因此就此尝试一下。实际上我在购买的时候新用户的优惠已经没有了，而且最低价的2.5\$的VPS已经售罄，所以选了5\$（一个月三十多）的方案。考虑到毕竟VPS搞到了国外，不做点什么有点遗憾，就此搭一个SS服务，也不需要购买什么VPN的服务了。</p>
 <h2 id="SS搭建"><a href="#SS搭建" class="headerlink" title="SS搭建"></a>SS搭建</h2><p>我这个时间段有点不讨巧，随着国家对网络安全的重视，近几个月来已经有一大批VPN提供商销声匿迹（GreenVPN等等），IOS的App Store也做出响应，把相关的软件下架，比如我使用过了Wingy以及大家推荐的什么土豆丝，shadowrocks等等，如果不换换美区的账号下载的话，实际上在iphone上是没法享受自建的服务的。还有就是关于shadowsocks（简称SS）和shadowsockR（简称SSR）的停止更新。目前github上相关的项目也只留下了一个”romoved according to regulations”的提示。话说前端时间这两个作者貌似吵起来了，我竟然没怎么关注……</p>
-<center><img src="http://static.zybuluo.com/funcwj/ue3dtsbby6t4nbibkmvk2ydg/hello-google.png" width="500"></center>
-
+<p><img src="http://www.funcwj.cn/images/hello-google.png" width="500"></p>
 <p>部署服务还是很简单的，网上的一键脚本很多，教程也不少，关于SS和SSR的区别以及概念相关的东西可以参见<a href="https://doub.io/" target="_blank" rel="noopener">DB根据地</a>，这个网站上的东西写的很详细，因此也被墙了。</p>
 <p>Vultr节点选区的话，可以看一下网上推荐，如果不确定可以多部署几个，测一下速度再把慢的删掉。实测东京节点ping值100多ms，相比洛杉矶300ms+还是明显要快很多。</p>
 <p>我这边主要搭的是SSR服务和优化加速服务，单用户的SSR安装时需要确定端口号和密码，脚本有默认值，他们是需要在客户端使用的，安装完成之后的配置在<code>/etc/shadowsocks.json</code>里面（不同版本的配置文件位置不同）。加速服务一般推荐的是锐速或者BBR。我使用的是bbr，在自动安装的过程中如果遇到不支持的内核会做一个自动的内核更新。两者的安装脚本可以在<a href="https://github.com/teddysun" target="_blank" rel="noopener">teddysun</a>的github上找到。熟悉linux的话安装是没有什么困难的。</p>
-<p>BBR装好之后我测试了一下Youtube的1080p播放效果，确实加速明显。虽然我不大可能经常逛这个视频网站，作为一种好奇心理还是确认了一下效果。</p>
-<center><img src="http://static.zybuluo.com/funcwj/afigfimybspnatjopy7ivkoz/youtube-test.PNG" width="500"></center>
-
+<p>BBR装好之后我测试了一下Youtube的1080p播放效果，确实加速明显。虽然我不大可能经常逛这个视频网站，作为一种好奇心理还是确认了一下效果。<br><img src="http://www.funcwj.cn/images/youtube-test.PNG" width="500"></p>
 <p>有的时候需要看一下ssr的log，所以还改了一下vps的时间，和本地保持一致。之后就是客户端的问题了。win和mac下的客户端蛮友好的，基本输入服务地址，端口和对应的密码和加密方式之后连接即可，我在使用的时候，这两个平台很快能接入的。我在在学校的主力机是Ubuntu，却一直没有找到方便的客户端（尝试了很多，没有成功）为此暂时转战windows了（考虑可以服务端换成ss，客户端应该方便一点）。</p>
 <p>这里没有写的太细，一是因为这方面网上资料很多，过程也很简单，个人感觉不是小白的话，基本都可以轻车熟路。二是考虑敏感话题，尽量少写一点吧。</p>
 <h2 id="后续体验"><a href="#后续体验" class="headerlink" title="后续体验"></a>后续体验</h2><p>Google Drive，Gmail，Google Search完美体验，唯一的不爽是谷歌学术访问不了。访问网页的时候，会出现 </p>

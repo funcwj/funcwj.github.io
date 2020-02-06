@@ -125,7 +125,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/gcc-phat-demo.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/srp-phat-demo.jpg">
-<meta property="og:updated_time" content="2018-05-28T16:37:32.000Z">
+<meta property="og:updated_time" content="2020-02-06T15:36:10.467Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TDOA - SRP-PHAT方法">
 <meta name="twitter:description" content="接着上次GCC-PHAT算法。 GCC-PHAT只利用了两个麦克风的信息，如果麦数多于两路，就可以使用其他的一些方法进行DoA估计，比如Music，SRP算法等等，前者是一个叫做子空间方法的应用，后者这篇文章会进行介绍。 首先认识一下SRP（steered response power）的概念。SRP可以用FS（filter and sum）beamformer的输出功率来表示，如果FS表达为：">
@@ -494,10 +494,10 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
 <p>由于SRP的计算涵盖了所有可能组合的GCC值，因此，得到的结果相比GCC稳定性更高，比如4麦的线阵，我对比GCC-PHAT（channel 1, 4）的augular spectrum和SRP-PHAT的结果如下：</p>
 <ul>
 <li><p>GCC-PHAT</p>
-<p><img src="http://www.funcwj.cn/images/gcc-phat-demo.jpg" alt="gcc-phat-demo"></p>
+<p><img src="http://www.funcwj.cn/images/gcc-phat-demo.jpg" width="400"></p>
 </li>
 <li><p>SRP-PHAT</p>
-<p><img src="http://www.funcwj.cn/images/srp-phat-demo.jpg" alt="srp-phat-demo"></p>
+<p><img src="http://www.funcwj.cn/images/srp-phat-demo.jpg" width="400"></p>
 </li>
 </ul>
 <p>图中黄色的斑点表示值大的区域，不难看出，后者augular spectrum的peak点更加明显，非peak区域的数值分布也相对平稳，因此在后处理进行DoA决策的时候，往往可靠性更高。</p>

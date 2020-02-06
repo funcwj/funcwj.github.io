@@ -125,7 +125,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/doa60_gamma0.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/5kpolar.jpg">
-<meta property="og:updated_time" content="2018-05-12T15:40:25.000Z">
+<meta property="og:updated_time" content="2020-02-06T15:58:27.087Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Beam Pattern">
 <meta name="twitter:description" content="在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。 beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。 根据上述表述，b">
@@ -517,8 +517,7 @@ A(\omega) = \frac{|\mathbf{w}_\theta(\omega)^H\mathbf{d}_\theta(\omega)|^2}{\mat
 <h4 id="Visualize-Beam-Pattern"><a href="#Visualize-Beam-Pattern" class="headerlink" title="Visualize Beam Pattern"></a>Visualize Beam Pattern</h4><p>将$\theta = 60^\circ$时的$\mathcal{B}(\omega, \phi)$整体绘制，纵轴表示DoA，横轴表示频率</p>
 <p><img src="http://www.funcwj.cn/images/doa60_gamma0.jpg" alt=""></p>
 <p>黄色区域表示响应越大，即这个部分的语音gain越多，可以看出，60度方向，全频带范围内gain值都很高，和设计初衷相符。如果固定频率比如5kHz，画出极坐标图，可以得到下面的图（图的幅值方向单位为dB）：</p>
-<center><img src="http://www.funcwj.cn/images/5kpolar.jpg" width="400"></center>
-
+<p><img src="http://www.funcwj.cn/images/5kpolar.jpg" width="400"></p>
 <p>在信号处理中，$\mathbf{w}_\theta(\omega)$可以准确的求出，因此，beam pattern是可以求出解析的表达式的，那么往往喜欢用极坐标图的形式显示。</p>
 <p>总结下来，这种套路应该是信号那边常见的方法，将beam weights的设计转为凸优化问题进行求解。实际应用中，不同DoA下设计的weights作用在相同的输入上，结果应该会有明显的不同。</p>
 <p>另外，需要注意$\omega \in [0, 2 \pi]$这个量，角频率，和频率$f$的关系是：</p>

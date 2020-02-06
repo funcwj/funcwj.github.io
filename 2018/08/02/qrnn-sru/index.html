@@ -124,9 +124,9 @@
 <meta property="og:description" content="最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。 RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：  \mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \m">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/img/QRNN.jpg">
-<meta property="og:image" content="http://www.funcwj.cn/img/tdnn-demo.png">
-<meta property="og:image" content="http://www.funcwj.cn/img/fsmn.jpg">
-<meta property="og:updated_time" content="2018-08-02T15:27:15.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/tdnn-demo.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/fsmn.jpg">
+<meta property="og:updated_time" content="2020-02-06T15:25:46.018Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="From QRNN">
 <meta name="twitter:description" content="最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。 RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：  \mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \m">
@@ -493,7 +493,7 @@
 <p>根据论文中的结论，如果处理的序列足够长，SRNN的效率提升是惊人的。 当然是否所有任务都满足训练序列越长越好，还需要具体的实验对比。在ASR任务中，我本人并不倾向于选择过长的序列进行训练。</p>
 <p>最后我再说一下TDNN[4]和FSMN[5]，这是很早以前我就想写一点的东西。这两种结构在ASR中被广泛应用，对识别率的提升做出了巨大的贡献。由于本质上他们是前馈结构，因此，在训练和推断的效率上相比RNN具有巨大的优势，对于ASR这种在实际应用中对实时要求较高的任务上，这一点就显得尤为重要。</p>
 <p>TDNN(Time Delay)的历史十分久远[1]，近年来JHU那边主推，并在kaldi的nnet2/3上做了实现，得到了大规模的尝试和应用。它的思想用四个词来表述就行，即层间拼帧。一般的DNN结构，如果要增加输入信息量，只在输入层做拼帧，但是通常不会拼帧过多，否则会导致输入层参数量过大，因此限制了网络的输入信息量。如果同时允许隐层拼帧，那么在多层叠加的情况下，网络输入的context就可以得到扩展，同时也可以保证每一层的参数量不会十分巨大，如果画出整个TDNN的依赖关系图，会得到一种类似金字塔的结构，如下：</p>
-<p><img src="/img/tdnn-demo.png" ,="" width="500"></p>
+<p><img src="http://www.funcwj.cn/images/tdnn-demo.png" ,="" width="500"></p>
 <p>以上图为例，输出$t$时刻的后验，输入的context为$[-13, +9]$。</p>
 <p>实际熟悉kaldi的人也知道，tdnn层实际配置的时候当成对线性层的一种扩展，添加了拼帧选项而已，可以放在任意网络结构中间，CNN和LSTM等。同时拼帧允许sub-sampling，以上图的layer 2为例子，context为$[-1, +2]$，相比$[-1,0,+1,+2]$，减少了隐层的参数量的同时保证了网络的context。</p>
 <p>FSMN的思想来源于信号处理中，一个无限冲击响应可以用高阶的有限冲击响应来近似。它的隐层输入来源于两部分，一部分来自上层的输入，另一部分来自一个称为memory block的结构，写为：</p>
@@ -503,7 +503,7 @@
 \mathbf{\tilde{h}}_t^\ell = \sum_{c = -M}^N \alpha_{c + M} \mathbf{h}_{t + c}^\ell \tag{3} \\</script><p>被称为sFSMN（scalar encoding FSMN）以及</p>
 <script type="math/tex; mode=display">
 \mathbf{\tilde{h}}_t^\ell = \sum_{c = -M}^N \mathbf{c}_{c + M} \odot \mathbf{h}_{t + c}^\ell \tag{4}</script><p>称为vFSMN（vector encoding FSMN）。$N &gt; 0$时，类似于双向RNN的逻辑。从$(3,4)$式可以看出，memory block强制存储下了若干时刻的记忆块，并用于当前时刻的输入，记忆长度以当前时刻为参考为$M + N$。由于最终的输入是记忆块加权和的形式，因此，FSMN的隐层维度同样不会过大。用信号流图来表示因果系统下memory block的计算如下：</p>
-<p><img src="/img/fsmn.jpg" ,="" width="400"></p>
+<p><img src="http://www.funcwj.cn/images/fsmn.jpg" ,="" width="400"></p>
 <p>FSMN后续还有相关实验，包括deep FSMN和compact FSMN等等，有兴趣的读者可以参阅一下下面的参考文献。</p>
 <blockquote>
 <p>[1]. Zhang S, Jiang H, Xiong S, et al. Compact Feedforward Sequential Memory Networks for Large Vocabulary Continuous Speech Recognition[C]//INTERSPEECH. 2016: 3389-3393. </p>

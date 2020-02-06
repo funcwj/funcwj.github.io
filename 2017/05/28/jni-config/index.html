@@ -123,12 +123,12 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="安装ndk之类的东西就不用说了。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/1jm3xthec6sew6plfetrgytf/AS_highlight_C.png">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/AS_highlight_C.png">
+<meta property="og:updated_time" content="2020-02-06T15:56:14.143Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JNI在AS下的初步配置">
 <meta name="twitter:description" content="安装ndk之类的东西就不用说了。">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/1jm3xthec6sew6plfetrgytf/AS_highlight_C.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/AS_highlight_C.png">
 
 
 
@@ -427,7 +427,7 @@
                 
                   <span class="post-meta-item-text">本文字数：</span>
                 
-                <span title="本文字数">666</span>
+                <span title="本文字数">667</span>
               
 
               
@@ -467,7 +467,8 @@
 <h3 id="build-gradle文件"><a href="#build-gradle文件" class="headerlink" title="build.gradle文件"></a>build.gradle文件</h3><p>设置ndk part的一些配置参数，最基本的下面三个即可，moduleName在java文件中需要用到，这个只的最后编译的静态链接库的名称，这里面有很多可以配置的情况，最基本的需求的话，保证这些就可以跑起来了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ndk &#123;</span><br><span class="line">    moduleName &quot;WriteLib&quot;</span><br><span class="line">    ldLibs &quot;log&quot;, &quot;z&quot;, &quot;m&quot;</span><br><span class="line">    abiFilters &quot;armeabi&quot;, &quot;armeabi-v7a&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <h3 id="java文件"><a href="#java文件" class="headerlink" title="java文件"></a>java文件</h3><p>基本是要定义一个utility的类，用来做java调用C的接口，注意要加载编译好的库，否则运行的时候是找不到实现的。</p>
 <h3 id="c-c-文件"><a href="#c-c-文件" class="headerlink" title="c/c++文件"></a>c/c++文件</h3><p>这部分比较简单，使用<code>javah</code>命令生成一个头文件，实现函数接口即可。<br>注意，一般来说AS的IDE会高亮C部分的语法的，但是有时候可能会失效，如果不是配置的原因的话，重启一次。<br>正确的画风是这样的，配色美美哒！</p>
-<center><img src="http://static.zybuluo.com/funcwj/1jm3xthec6sew6plfetrgytf/AS_highlight_C.png" width="600"></center>
+<p><img src="http://www.funcwj.cn/images/AS_highlight_C.png" width="600"></p>
+
       
     </div>
 

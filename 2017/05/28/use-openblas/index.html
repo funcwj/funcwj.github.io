@@ -123,13 +123,13 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="当时是需要对一个终端耗时任务做矩阵加速，我选了OpenBlas开源方案，事实证明在ARM平台上能用的开源的方案中，OpenBlas做的算相当可以的了。以后有时间还想自己实现一下矩阵乘法的加速。做优化这个过程还是很吸引人的。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/c7hrlkhgr990ieeeztr5dmpo/android-openblas.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/s5t4uq5ysc4nc35qid4j1tvx/openblas-error.png">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/android-openblas.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/openblas-error.png">
+<meta property="og:updated_time" content="2020-02-06T15:34:20.620Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="使用OpenBlas优化">
 <meta name="twitter:description" content="当时是需要对一个终端耗时任务做矩阵加速，我选了OpenBlas开源方案，事实证明在ARM平台上能用的开源的方案中，OpenBlas做的算相当可以的了。以后有时间还想自己实现一下矩阵乘法的加速。做优化这个过程还是很吸引人的。">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/c7hrlkhgr990ieeeztr5dmpo/android-openblas.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/android-openblas.png">
 
 
 
@@ -469,17 +469,13 @@
 <p>之后我们对这个文件夹配置环境变量即可。</p>
 <h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>不需要Fortran，针对ARMv7<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make TARGET=ARMV7 HOSTCC=gcc CC=arm-linux-androideabi-gcc NOFORTRAN=1 &gt; make.log</span><br></pre></td></tr></table></figure></p>
 <p>编译时间不长，几分钟吧，编译完会提示安装，执行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make PREFIX=/dst/path install</span><br></pre></td></tr></table></figure></p>
-<p>最终安装目录下存在头文件和静态库，这个就是我们最终需要的。</p>
-<center><img src="http://static.zybuluo.com/funcwj/c7hrlkhgr990ieeeztr5dmpo/android-openblas.png" width="400"></center>
-
+<p>最终安装目录下存在头文件和静态库，这个就是我们最终需要的。<br><img src="http://www.funcwj.cn/images/android-openblas.png" width="400"></p>
 <h3 id="AS中使用JNI链接"><a href="#AS中使用JNI链接" class="headerlink" title="AS中使用JNI链接"></a>AS中使用JNI链接</h3><p>这里有个很恶心的问题，目前我没有找到gradle中如何配置链接静态库的方法，只能借助Android.mk文件，但是由于AS默认是执行gradle的编译过程，所以需要在build.gradle中禁用JNI(否则他还是那么一套规程)，之后手动配置build的过程。<br>禁用AS默认的JNI目录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sourceSets.main &#123;</span><br><span class="line">    jni.srcDirs = []</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>配置编译规则<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">task ndkBuild(type: org.gradle.api.tasks.Exec, description: &quot;compile JNI by NDK&quot;) &#123;</span><br><span class="line">    commandLine &quot;/Users/wujian/Library/Android/sdk/ndk-bundle/ndk-build&quot;,</span><br><span class="line">            &apos;NDK_PROJECT_PATH=build/intermediates/ndk&apos;,</span><br><span class="line">            &apos;NDK_LIBS_OUT=src/main/jniLibs&apos;,</span><br><span class="line">            &apos;APP_BUILD_SCRIPT=src/main/jni/Android.mk&apos;,</span><br><span class="line">            &apos;NDK_APPLICATION_MK=src/main/jni/Application.mk&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">tasks.withType(JavaCompile) &#123;</span><br><span class="line">    compileTask-&gt;compileTask.dependsOn ndkBuild</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>同时在JNI目录下加入Android.mk和Application.mk文件，如下，具体含义之后再解释，这里先说明配置过程。Android.mk中详细说明了OpenBlas静态库的连接过程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_PATH := $(call my-dir)</span><br><span class="line"></span><br><span class="line">include $(CLEAR_VARS)</span><br><span class="line">LOCAL_MODULE := blas</span><br><span class="line">LOCAL_SRC_FILES := libopenblas_armv7p-r0.2.20.dev.a</span><br><span class="line">include $(PREBUILT_STATIC_LIBRARY)</span><br><span class="line"></span><br><span class="line">include $(CLEAR_VARS)</span><br><span class="line"></span><br><span class="line">LOCAL_MODULE    := math</span><br><span class="line">LOCAL_SRC_FILES := impl.cpp</span><br><span class="line"></span><br><span class="line">ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)</span><br><span class="line">    LOCAL_CFLAGS += -mhard-float -D_NDK_MATH_NO_SOFTFP=1</span><br><span class="line">    LOCAL_LDFLAGS += -Wl,--no-warn-mismatch -lm_hard</span><br><span class="line">	LOCAL_STATIC_LIBRARIES := blas</span><br><span class="line">endif</span><br><span class="line"></span><br><span class="line">LOCAL_CFLAGS += -DUSE_JNI</span><br><span class="line">LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE</span><br><span class="line">LOCAL_LDLIBS += -llog</span><br><span class="line"></span><br><span class="line">include $(BUILD_SHARED_LIBRARY)</span><br></pre></td></tr></table></figure></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">APP_ABI := armeabi-v7a</span><br><span class="line">APP_PLATFORM := android-19</span><br></pre></td></tr></table></figure>
 <p>再把OpenBlas的头文件加入JNI目录下，include使用即可，接下来就可以make了。</p>
-<h3 id="后续问题"><a href="#后续问题" class="headerlink" title="后续问题"></a>后续问题</h3><p>我两次做静态链接时都出现了如下问题，第一次是使用NENO库：</p>
-<center><img src="http://static.zybuluo.com/funcwj/s5t4uq5ysc4nc35qid4j1tvx/openblas-error.png" width="400"></center>
-
+<h3 id="后续问题"><a href="#后续问题" class="headerlink" title="后续问题"></a>后续问题</h3><p>我两次做静态链接时都出现了如下问题，第一次是使用NENO库：<br><img src="http://www.funcwj.cn/images/openblas-error.png" width="400"></p>
 <p>后来在网上查了许久，是编译选项和ABI的问题，这在<a href="https://github.com/xianyi/OpenBLAS/wiki/How-to-build-OpenBLAS-for-Android" target="_blank" rel="noopener">How to build OpenBLAS for Android</a>最后一部分也说明了。我采取的是第二种方案，因为这里是使用Android.mk来配置编译规则的。</p>
 
       

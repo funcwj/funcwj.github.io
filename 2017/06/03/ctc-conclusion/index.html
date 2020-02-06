@@ -123,13 +123,13 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="CTC（Connectionist Temporal Classification）是为递归神经网络设计的一种输出层的损失准则。在语音领域，识别任务实际上是一种序列标记任务。比如，识别的目标就是要将观测到的帧序列映射到字符序列。传统的识别方案需要依靠因素分类器（即声学模型）得到当前观测帧的因素后验，之后借助解码网络得到最优路径从而得到字符序列。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/4jhaokl1lg7orfy088fp2psq/ctc_pick.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/0mnfl4ugwq4sbsklsccnm6ea/ctc_feed.png">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/ctc_pick.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/ctc_feed.png">
+<meta property="og:updated_time" content="2020-02-06T16:04:33.997Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Connectionist Temporal Classification">
 <meta name="twitter:description" content="CTC（Connectionist Temporal Classification）是为递归神经网络设计的一种输出层的损失准则。在语音领域，识别任务实际上是一种序列标记任务。比如，识别的目标就是要将观测到的帧序列映射到字符序列。传统的识别方案需要依靠因素分类器（即声学模型）得到当前观测帧的因素后验，之后借助解码网络得到最优路径从而得到字符序列。">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/4jhaokl1lg7orfy088fp2psq/ctc_pick.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/ctc_pick.png">
 
 
 
@@ -471,9 +471,7 @@
 <li><p>CTC层的输出直接给出的是标注序列的出现概率。比如标记的是关键词序列$K = {c_1, c_2, c_3}$，那么，网络可以直接给出对$K$的概率预测，而不需要借助后续处理。因此，相比于分类器的“窗型”输出，CTC的输出呈现尖峰效应，如下图所示（BLSTM+CTC的数字序列预测）。</p>
 </li>
 </ol>
-<center><img src="http://static.zybuluo.com/funcwj/4jhaokl1lg7orfy088fp2psq/ctc_pick.png" width="60%"></center>
-
-
+<p><img src="http://www.funcwj.cn/images/ctc_pick.png" width="60%"></p>
 <p>假设CTC层输出可以将输入映射到label集合$A$，并在集合$A$之外定义一个空label符号$\epsilon$，令$A’ = A \cup {\epsilon}$。$\epsilon$符号表示当前输入不产生任何输出。对于一个长度为$T$的观测序列$\boldsymbol{x}$，CTC输出一条在集合$A’$上的序列$\pi$。假设每一时刻网络的输出概率都是独立的，那么可以得到序列$\pi$在给定长度为$T$的观测$\boldsymbol{x}$下的条件概率：</p>
 <script type="math/tex; mode=display">
 p(\pi | \boldsymbol{x}) = \prod_{t = 1}^{T} y_{\pi_t}^t</script><p>其中$y_{\pi_t}^t$表示在$t$时刻路径$\pi$对应的label出现的概率。考虑到最终要得到的是在集合$A$上的序列$\boldsymbol{l}$，所以还需要将$A’$上的序列$\pi$对应到$\boldsymbol{l}$上（训练阶段的抄本）。假设$A = {x, y}$，网络给出的路径$\pi$可能为${xx{\epsilon}xy{\epsilon}y, x{\epsilon}yy, x{\epsilon}{\epsilon}y}$，它们都可以对应到$A$上的一条序列$\boldsymbol{l} = xy$。若借助$\mathcal{F}: \pi \to \boldsymbol{l}$来表示这种多到一的映射关系，那么序列$\boldsymbol{l}$在给定观测$\boldsymbol{x}$下的条件概率为：</p>
@@ -491,9 +489,7 @@ p(\pi | \boldsymbol{x}) = \prod_{t = 1}^{T} y_{\pi_t}^t</script><p>其中$y_{\pi
 <script type="math/tex; mode=display">
     \theta_t(u) = \alpha_t(u)\beta_t(u) = \sum_{\pi_t = \boldsymbol{l}_u, \mathcal{F}(\pi) = \boldsymbol{l}} \prod_{i = 1}^{T} y_{\pi_t}^t = \sum_{\pi_t = \boldsymbol{l}_u, \mathcal{F}(\pi) = \boldsymbol{l}} p(\pi | \boldsymbol{x}) \notag</script><p>那么</p>
 <script type="math/tex; mode=display">
-p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)</script><p>实际在CTC的输出层是有空label $\epsilon$的，$\epsilon$被安插在每俩个相邻非空label之间。label序列$\boldsymbol{l}$被拓展为$\boldsymbol{l}’(U’ = 2U + 1)$。如果将前向，后向算法的搜索空间表示出来的话，如下图所示。</p>
-<center><img src="http://static.zybuluo.com/funcwj/0mnfl4ugwq4sbsklsccnm6ea/ctc_feed.png" width="50%"></center>
-
+p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)</script><p>实际在CTC的输出层是有空label $\epsilon$的，$\epsilon$被安插在每俩个相邻非空label之间。label序列$\boldsymbol{l}$被拓展为$\boldsymbol{l}’(U’ = 2U + 1)$。如果将前向，后向算法的搜索空间表示出来的话，如下图所示。<br><img src="http://www.funcwj.cn/images/ctc_feed.png" width="50%"></p>
 <p>在状态$(t, u)$（即在时刻$t$，当前label为$\boldsymbol{l}’_u$），对于前向概率，有如下转移情况：</p>
 <ol>
 <li><p>如果当前label为空，那么$(t, u)$可以由状态$(t - 1, u)$和$(t - 1, u - 1)$得到。</p>

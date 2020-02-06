@@ -123,14 +123,14 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="语音识别这块目前常见的端到端的方法除了CTC之外，就是attention（注意力）机制了。attention不同于CTC有着比较明确的数学定义和模式，它描述的应该是心理学现象中人注意力的某个特性，比如人的视觉上的注意力短期内只能集中在某一个区域中，而没有涵盖全部的视野范围。具体到语音识别任务（相比于图像和机器翻译领域，应用的算是比较晚的了）上，从字面意思看不出应该如何使用它。不过目前常见的使用方式">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/s0mibif9jlpvrfl5c8tf8ziw/attention-nmt.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/il510m1pjpeeykdxhga94qyk/cho-attention-for-asr.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/dqhdjuxwauepa88zysuurmau/attention-lvsr.png">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/attention-nmt.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/cho-attention-for-asr.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/attention-lvsr.png">
+<meta property="og:updated_time" content="2020-02-06T15:57:27.227Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="关于attention机制">
 <meta name="twitter:description" content="语音识别这块目前常见的端到端的方法除了CTC之外，就是attention（注意力）机制了。attention不同于CTC有着比较明确的数学定义和模式，它描述的应该是心理学现象中人注意力的某个特性，比如人的视觉上的注意力短期内只能集中在某一个区域中，而没有涵盖全部的视野范围。具体到语音识别任务（相比于图像和机器翻译领域，应用的算是比较晚的了）上，从字面意思看不出应该如何使用它。不过目前常见的使用方式">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/s0mibif9jlpvrfl5c8tf8ziw/attention-nmt.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/attention-nmt.png">
 
 
 
@@ -477,9 +477,7 @@
 <script type="math/tex; mode=display">
 \mathbf{h}_t = f(\mathbf{h}_{t - 1}, y_{t - 1}, \mathbf{c}) \\
 p(y_t | y_1, y_2, \cdots, y_{t - 1}, \mathbf{c}) = g(\mathbf{h}_t, y_{t - 1}, \mathbf{c})</script><p>从这里可以看出，$\mathbf{c}$在解码器中是一成不变的，变化的只是$\mathbf{h}_t$和$y_t$，那么attention机制常见的应用点就集中在$\mathbf{c}$上。注意$\mathbf{h}_t$和$y_t$的生成顺序。</p>
-<h3 id="Attention机制"><a href="#Attention机制" class="headerlink" title="Attention机制"></a>Attention机制</h3><p>以上描述的encoder-decoder在后续论文中基本都会提到，大部分情况下讲attention都会提到机器翻译领域的一篇文章（Neural Machine Translation by Jointly Learning to Align and Translate），包括那张经典的配图，如下</p>
-<center><img src="http://static.zybuluo.com/funcwj/s0mibif9jlpvrfl5c8tf8ziw/attention-nmt.png" width="250"></center>
-
+<h3 id="Attention机制"><a href="#Attention机制" class="headerlink" title="Attention机制"></a>Attention机制</h3><p>以上描述的encoder-decoder在后续论文中基本都会提到，大部分情况下讲attention都会提到机器翻译领域的一篇文章（Neural Machine Translation by Jointly Learning to Align and Translate），包括那张经典的配图，如下<br><img src="http://www.funcwj.cn/images/attention-nmt.png" width="250"></p>
 <p>图中的解码器的$s$和上一部分解码器中定义的$\mathbf{h}$相同。在不引入attention机制的情况下，$s$和$y$的更新如下（$\to$表示更新）：</p>
 <script type="math/tex; mode=display">
 \begin{align}
@@ -495,9 +493,7 @@ c_t, s_t, y_{t - 1} &\to y_t \notag
 c_t = \sum_{t' = 1}^Ta_{tt'}h_{t'} \\
 a_{tt'} = \text{softmax}(e_{tt'}) \\
 e_{tt'} = a(s_{t - 1}, h_{t'})</script><p>$a$这里是一个对齐模型（align model），其中$a_{tt’}$（$a_{tt’}$和$e_{tt’}$的意义一样）表示在时刻$t$，解码器中隐层状态$h_{t’}$对上一时刻预测输出$y_{t - 1}$的重要程度，越重要在$c_t$中占比越大。训练阶段，$a$需要和编解码器一块训练，在这篇论文中，$a$使用的是一个一层的前向网络。</p>
-<h3 id="attention在语音识别中的应用"><a href="#attention在语音识别中的应用" class="headerlink" title="attention在语音识别中的应用"></a>attention在语音识别中的应用</h3><p>Cho在“Attention-Based Models for Speech Recognition”中提出了一种ARSG（attention-based recurrent sequence generator）的结构来生成序列。文中给出的计算示意图如下：</p>
-<center><img src="http://static.zybuluo.com/funcwj/il510m1pjpeeykdxhga94qyk/cho-attention-for-asr.png" width="400"></center>
-
+<h3 id="attention在语音识别中的应用"><a href="#attention在语音识别中的应用" class="headerlink" title="attention在语音识别中的应用"></a>attention在语音识别中的应用</h3><p>Cho在“Attention-Based Models for Speech Recognition”中提出了一种ARSG（attention-based recurrent sequence generator）的结构来生成序列。文中给出的计算示意图如下：<br><img src="http://www.funcwj.cn/images/cho-attention-for-asr.png" width="400"></p>
 <p>论文中将$c_t$重新称为glimpse，即$g_t$，定义的计算流程如图，貌似这里$y_t$和$s_t$的生成顺序变化了。</p>
 <script type="math/tex; mode=display">
 \begin{align}
@@ -512,8 +508,7 @@ s_{t - 1}, g_t, y_t &\to s_t \notag
 \alpha_t, h &\to c_t \notag \\
 s_{t - 1}, c_t, y_{t - 1} &\to s_t \notag \\
 s_t, c_t, y_{t - 1} &\to y_t \notag
-\end{align}</script><center><img src="http://static.zybuluo.com/funcwj/dqhdjuxwauepa88zysuurmau/attention-lvsr.png" width="400"></center>
-
+\end{align}</script><p><img src="http://www.funcwj.cn/images/attention-lvsr.png" width="400"></p>
 <p>以上是对attention的一个大致学习，后续待补……</p>
 
       

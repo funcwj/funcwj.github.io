@@ -123,12 +123,12 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="语音唤醒任务的一种常见解决方案是通过评估连续语音中分段时间窗内的音频特征和预先置入的关键词模板之间的相似性来决定系统是否唤醒，而DTW（动态时间规整算法）能够有效的衡量两个不等长序列之间的最短距离/相似性，因此在这类解决思路下被广泛使用。这里可以采用的特征有声学特征，后验特征，embedding特征或者BN特征等等，鲁棒的特征对最终的系统表现有着积极的影响。将连续语音和关键词模板之间的距离矩阵绘制">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/eilkoqokz8ywhkmo36e504l8/mfcc_distmat.png">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/mfcc_distmat.png">
+<meta property="og:updated_time" content="2020-02-06T15:57:58.031Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="DTW在语音唤醒中的应用">
 <meta name="twitter:description" content="语音唤醒任务的一种常见解决方案是通过评估连续语音中分段时间窗内的音频特征和预先置入的关键词模板之间的相似性来决定系统是否唤醒，而DTW（动态时间规整算法）能够有效的衡量两个不等长序列之间的最短距离/相似性，因此在这类解决思路下被广泛使用。这里可以采用的特征有声学特征，后验特征，embedding特征或者BN特征等等，鲁棒的特征对最终的系统表现有着积极的影响。将连续语音和关键词模板之间的距离矩阵绘制">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/eilkoqokz8ywhkmo36e504l8/mfcc_distmat.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/mfcc_distmat.png">
 
 
 
@@ -461,9 +461,7 @@
       
 
       
-        <p>语音唤醒任务的一种常见解决方案是通过评估连续语音中分段时间窗内的音频特征和预先置入的关键词模板之间的相似性来决定系统是否唤醒，而DTW（动态时间规整算法）能够有效的衡量两个不等长序列之间的最短距离/相似性，因此在这类解决思路下被广泛使用。这里可以采用的特征有声学特征，后验特征，embedding特征或者BN特征等等，鲁棒的特征对最终的系统表现有着积极的影响。将连续语音和关键词模板之间的距离矩阵绘制出来（关键词模板在纵轴方向），可以得到如下的结果（使用的是MFCC特征）。图中蓝色的路径为最低代价下对齐/匹配路径。在唤醒系统中，我们将当前滑动窗下的最低匹配代价作为相似性打分，调出一个合理的阈值就可以做一个简单的唤醒演示系统了（实际表现中，打分平滑，模板平均等等还是有很多trick的）。<br><a id="more"></a></p>
-<center><img src="http://static.zybuluo.com/funcwj/eilkoqokz8ywhkmo36e504l8/mfcc_distmat.png" width="600"></center>
-
+        <p>语音唤醒任务的一种常见解决方案是通过评估连续语音中分段时间窗内的音频特征和预先置入的关键词模板之间的相似性来决定系统是否唤醒，而DTW（动态时间规整算法）能够有效的衡量两个不等长序列之间的最短距离/相似性，因此在这类解决思路下被广泛使用。这里可以采用的特征有声学特征，后验特征，embedding特征或者BN特征等等，鲁棒的特征对最终的系统表现有着积极的影响。将连续语音和关键词模板之间的距离矩阵绘制出来（关键词模板在纵轴方向），可以得到如下的结果（使用的是MFCC特征）。图中蓝色的路径为最低代价下对齐/匹配路径。在唤醒系统中，我们将当前滑动窗下的最低匹配代价作为相似性打分，调出一个合理的阈值就可以做一个简单的唤醒演示系统了（实际表现中，打分平滑，模板平均等等还是有很多trick的）。<br><a id="more"></a><br><img src="http://www.funcwj.cn/images/mfcc_distmat.png" width="600"></p>
 <p>DTW算法是一种衡量两个不同长度的序列之间距离的一种算法，主要的思想是将序列元素之间通过某种规则对应起来得到等长序列，在计算这种情况下的距离。由于这种映射方式有很多种，DTW采用动态规划思想，每一次取最小距离代价的映射方案，以此获得最小的匹配距离以及对应的匹配方案。</p>
 <p>定义序列$\boldsymbol{X}, \boldsymbol{Y}$，DTW算法可以找出一条匹配路径$\pi$满足：</p>
 <script type="math/tex; mode=display">

@@ -124,7 +124,7 @@
 <meta property="og:description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/gwpe-demo.png">
-<meta property="og:updated_time" content="2018-10-15T01:00:30.000Z">
+<meta property="og:updated_time" content="2020-02-06T16:05:18.936Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="GWPE Algorithm">
 <meta name="twitter:description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
@@ -521,8 +521,7 @@ C_{HF}(\boldsymbol{U}_1, \dots, \boldsymbol{U}_N) = \frac{1}{N}    \sum_n \log (
 \end{bmatrix} \\</script><p>最后reshape一下成为$\mathcal{\hat{G}}_f$的更新值。</p>
 <h3 id="Application"><a href="#Application" class="headerlink" title="Application"></a>Application</h3><p>目前GWPE由fgnt开源了一版python的实现（<a href="https://github.com/fgnt/nara_wpe" target="_blank" rel="noopener">https://github.com/fgnt/nara_wpe</a>），效果挺好，可以参考一下实现细节，有空的话，我自己也想实现一版。</p>
 <p>GWPE最直接的用处就是multi-channel的dereverbration，如下图（这是4麦的实录数据，混响不是非常严重），对比来看，还是可以比较明显的看出GWPE处理之后的音频扫尾现象少了很多。由于混响对识别任务而言是一个影响较大的因素，因此，在WER上往往可以比较明显的对比出差距。</p>
-<center><img src="http://www.funcwj.cn/images/gwpe-demo.png" width="500"></center>
-
+<p><img src="http://www.funcwj.cn/images/gwpe-demo.png" width="500"></p>
 <p>其次就是和前端的一些mask估计，beamforming结合起来用，因为增强/分离/定位这些任务也是混响敏感的，用GWPE做一遍数据预处理通常会有ASR上的增益。fgnt在interspeech2018上有一篇文章[2]专门分析WPE和beamforming的结合，有兴趣的同学可以参考一下。目前我手上的实验也验证了这一点，参考结果如下（WER绝对提升）：</p>
 <div class="table-container">
 <table>

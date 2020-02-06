@@ -123,12 +123,12 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/4e4jnylfzt8pwpb578oxrect/convolution-along-frequency.PNG">
-<meta property="og:updated_time" content="2017-10-07T17:20:13.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/convolution-along-frequency.PNG">
+<meta property="og:updated_time" content="2020-02-06T16:00:30.897Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CNN for ASR part-1">
 <meta name="twitter:description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/4e4jnylfzt8pwpb578oxrect/convolution-along-frequency.PNG">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/convolution-along-frequency.PNG">
 
 
 
@@ -499,9 +499,7 @@ O_i = \sigma \left(\sum_j^J I_j * W_{ji} \right)</script><p>其中$J$表示输�
 <li>feature bands：以40维FABNK特征为例子，每一维上的特征序列称为一个feature band。如果连续多帧，一个feature band对应一个特征向量，单帧仅仅为一个数值。</li>
 <li>LWS/FWS（local/full weight sharing）：默认一个卷积核一次卷积操作中保持不变，称为FWS，如果在不同的频率值上允许卷积核变化，称为LWS。</li>
 </ul>
-<p>沿着频率轴的FWS卷积过程可以参考下图理解，图选自相关文献[2]：</p>
-<center><img src="http://static.zybuluo.com/funcwj/4e4jnylfzt8pwpb578oxrect/convolution-along-frequency.PNG" width="500"></center>
-
+<p>沿着频率轴的FWS卷积过程可以参考下图理解，图选自相关文献[2]：<br><img src="http://www.funcwj.cn/images/convolution-along-frequency.PNG" width="500"></p>
 <p>CNN在文献[4]中总结的比较全面，[4]和[1]，[2]的第一作者都是一个人，因而可以看做他工作的总结。</p>
 <h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>目前在TIMIT语料上简单跑了几组实验，与很多文献不同的是，我的建模单元采用对齐模型(SAT)的1923个pdf，而不是$61 \times 3 = 183$个。评估方法依旧是标准test集合的PER。主要和传统的DNN比较结果（RNN的结果还没有出来）。模型用pytorch训练，解码使用kaldi内置的<code>latgen-faster-mapped</code>命令，将模型后验转为lattice进行PER的打分计算。其中CNN部分的频轴卷积是按照我自己的理解实现的。实验结果如下：</p>
 <div class="table-container">

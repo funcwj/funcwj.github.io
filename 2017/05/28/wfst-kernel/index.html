@@ -123,16 +123,16 @@
 <meta property="og:site_name" content="WJ&#39;s blog">
 <meta property="og:description" content="论文参考经典之作“Speech Recognition With Weighted Finite-State Transducers”，网上随便就能搜到。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/0dm0ggw7rqycr37z4jirt3av/composition-example.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/99e25fpvnxlybalu7qa6fqo7/composition">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/vnwt7z26vmtfdrtxxqq0vi1v/Determinization.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/sj8qrnuxr0u1aspapharbsl8/remove-eps.png">
-<meta property="og:image" content="http://static.zybuluo.com/funcwj/f2gy4n0w8p4s0due17neviyi/remove-eps-egs.png">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:image" content="http://www.funcwj.cn/images/composition-example.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/composition.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/Determinization.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/remove-eps.png">
+<meta property="og:image" content="http://www.funcwj.cn/images/remove-eps-egs.png">
+<meta property="og:updated_time" content="2020-02-06T15:33:07.075Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="WFST核心算法">
 <meta name="twitter:description" content="论文参考经典之作“Speech Recognition With Weighted Finite-State Transducers”，网上随便就能搜到。">
-<meta name="twitter:image" content="http://static.zybuluo.com/funcwj/0dm0ggw7rqycr37z4jirt3av/composition-example.png">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/composition-example.png">
 
 
 
@@ -503,12 +503,9 @@ P(R,x,y,R')=\bigcup_{q \in R,\ q' \in R'}P(q,x,y,q')  \\
 P(R,x,R')=\bigcup_{q \in R,\ q' \in R'}P(q,x,q')</script><p>定义一个transducer $T$在$input/output=(x,y)$时</p>
 <script type="math/tex; mode=display">T(x,y)=\bigoplus_{\pi \in P(I,x,y,F)}\ \lambda[p[\pi]]\otimes w[\pi] \otimes \rho[n[\pi]]</script><p>同理</p>
 <script type="math/tex; mode=display">T(x)=\bigoplus_{\pi \in P(I,x,F)}\ \lambda[p[\pi]]\otimes w[\pi] \otimes \rho[n[\pi]]</script><h3 id="Composition操作"><a href="#Composition操作" class="headerlink" title="Composition操作"></a>Composition操作</h3><p>定义$T_1$，$T_2$的Composition操作如下：</p>
-<script type="math/tex; mode=display">T_1\circ T_2=\bigoplus_{z \in \mathcal B^*}T_1(x,z)\otimes T_2(z,y)</script><p>示例，详细操作见OpenFST</p>
-<center><img src="http://static.zybuluo.com/funcwj/0dm0ggw7rqycr37z4jirt3av/composition-example.png" width="600"></center>
-
+<script type="math/tex; mode=display">T_1\circ T_2=\bigoplus_{z \in \mathcal B^*}T_1(x,z)\otimes T_2(z,y)</script><p>示例，详细操作见OpenFST<br><img src="http://www.funcwj.cn/images/composition-example.png" width="600"></p>
 <p>操作的伪代码如下：</p>
-<center><img src="http://static.zybuluo.com/funcwj/99e25fpvnxlybalu7qa6fqo7/composition" width="500"></center>
-
+<p><img src="http://www.funcwj.cn/images/composition.png" width="500"></p>
 <p>算法设置一个队列，初始化两个操作数的$I$集合的笛卡尔积插入队列，之后进行BFS逻辑的流程。每一次迭代过程如下($e$表示一个状态节点的所有输出转移路径)</p>
 <ol>
 <li>从队列中取出一个state pair($p_1, p_2$)，这是一对状态节点，第一次pop时必然在$I$集合的笛卡尔集合中</li>
@@ -523,9 +520,7 @@ p &: \text{带权子状态集合} \notag \\
 Q[p] &: p\text{中的状态集合} \notag \\
 E\left[Q[p]\right] &: p\text{中的状态集合的出弧集合} \notag \\
 i[E\left[Q[p]\right]] &: p\text{中的状态集合的出弧集合的输入集合} \notag \\
-\end{align}</script><p>算法如下</p>
-<center><img src="http://static.zybuluo.com/funcwj/vnwt7z26vmtfdrtxxqq0vi1v/Determinization.png" width="600"></center>
-
+\end{align}</script><p>算法如下<br><img src="http://www.funcwj.cn/images/Determinization.png" width="600"></p>
 <p>注意，确定化之后的状态本身是未确定化之前的状态集合和权值的pair</p>
 <ul>
 <li>算法采用BFS逻辑，将带权子状态集合$q$放在队列中依次处理，初始化该集合状态为所有initial状态，权值为1</li>
@@ -544,8 +539,7 @@ i[E\left[Q[p]\right]] &: p\text{中的状态集合的出弧集合的输入集合
 <li>对于每一个状态$p$，计算$\varepsilon$闭包，结果定义为<script type="math/tex; mode=display">C(p) = \{(q, w): q \in \varepsilon(p), \; d[p, q] = w \in \mathbb{K} - \overline 0\}</script></li>
 <li>对于每一个状态$p$，移除$\varepsilon$边，添加若干拓展边，这部分伪代码如下</li>
 </ul>
-<center><img src="http://static.zybuluo.com/funcwj/sj8qrnuxr0u1aspapharbsl8/remove-eps.png" width="600"></center>
-
+<p><img src="http://www.funcwj.cn/images/remove-eps.png" width="600"></p>
 <p>在该算法中，有三个状态比较重要</p>
 <ul>
 <li>当前正在处理的状态$p$</li>
@@ -553,8 +547,7 @@ i[E\left[Q[p]\right]] &: p\text{中的状态集合的出弧集合的输入集合
 <li>可以通过状态$p$到达的后继状态$r$</li>
 </ul>
 <p>若$q$是终止节点，那么$p$肯定也是终止节点</p>
-<p>举个栗子：</p>
-<center><img src="http://static.zybuluo.com/funcwj/f2gy4n0w8p4s0due17neviyi/remove-eps-egs.png" width="700"></center>
+<p>举个栗子：<br><img src="http://www.funcwj.cn/images/remove-eps-egs.png" width="700"></p>
 
       
     </div>
