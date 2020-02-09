@@ -115,23 +115,27 @@
 
 
 
-  <meta name="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
-<meta property="og:type" content="website">
-<meta property="og:title" content="WJ&#39;s blog">
-<meta property="og:url" content="http://www.funcwj.cn/tags/Microphone-Array-Processing/index.html">
+  <meta name="description" content="区别于以频域的标签（比如谱特征，时频掩码等）作为学习目标再通过iSTFT将结果转成时域信号的方法，一般会把直接以目标语音为参考，在时域上计算对应代价函数并优化网络的方法称为端到端（End-to-End，E2E）的方法。现在看来，做增强/分离的文章里面已经很少见频域+掩码预测/语谱回归的方法了，基本就是拿来做个基线的参考。而不断被提出的模型或者架构，也多是跟随这种E2E的思路，否则很难在性能上有所突">
+<meta name="keywords" content="Speech Separation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Towards E2E Speech Separation">
+<meta property="og:url" content="http://www.funcwj.cn/2019/04/30/e2e-separation-s1/index.html">
 <meta property="og:site_name" content="WJ&#39;s blog">
-<meta property="og:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+<meta property="og:description" content="区别于以频域的标签（比如谱特征，时频掩码等）作为学习目标再通过iSTFT将结果转成时域信号的方法，一般会把直接以目标语音为参考，在时域上计算对应代价函数并优化网络的方法称为端到端（End-to-End，E2E）的方法。现在看来，做增强/分离的文章里面已经很少见频域+掩码预测/语谱回归的方法了，基本就是拿来做个基线的参考。而不断被提出的模型或者架构，也多是跟随这种E2E的思路，否则很难在性能上有所突">
 <meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://www.funcwj.cn/images/misi-algothrim.png">
+<meta property="og:updated_time" content="2020-02-09T16:57:55.849Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="WJ&#39;s blog">
-<meta name="twitter:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+<meta name="twitter:title" content="Towards E2E Speech Separation">
+<meta name="twitter:description" content="区别于以频域的标签（比如谱特征，时频掩码等）作为学习目标再通过iSTFT将结果转成时域信号的方法，一般会把直接以目标语音为参考，在时域上计算对应代价函数并优化网络的方法称为端到端（End-to-End，E2E）的方法。现在看来，做增强/分离的文章里面已经很少见频域+掩码预测/语谱回归的方法了，基本就是拿来做个基线的参考。而不断被提出的模型或者架构，也多是跟随这种E2E的思路，否则很难在性能上有所突">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/misi-algothrim.png">
 
 
 
 
 
 
-  <link rel="canonical" href="http://www.funcwj.cn/tags/Microphone-Array-Processing/">
+  <link rel="canonical" href="http://www.funcwj.cn/2019/04/30/e2e-separation-s1/">
 
 
 
@@ -141,7 +145,7 @@
   };
 </script>
 
-  <title>标签: Microphone Array Processing | WJ's blog</title>
+  <title>Towards E2E Speech Separation | WJ's blog</title>
   
 
 
@@ -188,7 +192,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
@@ -245,7 +249,7 @@
         
         
           
-          <li class="menu-item menu-item-tags menu-item-active">
+          <li class="menu-item menu-item-tags">
     <a href="/tags/" rel="section">
       <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签<span class="badge">12</span></a>
   </li>
@@ -326,209 +330,275 @@
           
             
 
-    
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-      
-      
-    
-    
-
-  
-
-
           
           <div id="content" class="content">
             
 
+  <div id="posts" class="posts-expand">
+    
+
+  
+
   
   
   
-  <div class="post-block tag">
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>Microphone Array Processing<small>标签</small>
-        </h1>
-      </div>
-
-      
-        
+  
 
   <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.funcwj.cn/2019/04/30/e2e-separation-s1/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's blog">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2019/09/30/cacgmm/" itemprop="url">
-              
-                <span itemprop="name">CACGMM</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">Towards E2E Speech Separation
+              
+            
+          </h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2019-09-30T13:29:44+08:00" content="2019-09-30">
-          09-30
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
 
-    </header>
-  </article>
+            
+            
+            
 
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-04-30 00:50:33" itemprop="dateCreated datePublished" datetime="2019-04-30T00:50:33+08:00">2019-04-30</time>
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+            <div class="post-symbolscount">
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">本文字数：</span>
+                
+                <span title="本文字数">8.4k</span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长 &asymp;</span>
+                
+                <span title="阅读时长">8 分钟</span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-        
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2019/08/04/steer-vector/" itemprop="url">
-              
-                <span itemprop="name">Steer Vector</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2019-08-04T01:17:32+08:00" content="2019-08-04">
-          08-04
-        </time>
-      </div>
-
-    </header>
-  </article>
-
+      
 
       
-        
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2018/05/29/srp-phat-for-tdoa-estimate/" itemprop="url">
-              
-                <span itemprop="name">TDOA - SRP-PHAT方法</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2018-05-29T00:31:19+08:00" content="2018-05-29">
-          05-29
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2018/05/12/beampattern-and-fixed-beamformer/" itemprop="url">
-              
-                <span itemprop="name">Beam Pattern</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2018-05-12T23:34:23+08:00" content="2018-05-12">
-          05-12
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2018/05/10/gcc-phat-for-tdoa-estimate/" itemprop="url">
-              
-                <span itemprop="name">TDOA - GCC-PHAT方法</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2018-05-10T01:09:48+08:00" content="2018-05-10">
-          05-10
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-      
-        
-
-  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2017/11/11/overview-of-beamformer/" itemprop="url">
-              
-                <span itemprop="name">Overview of Beamformer</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated" datetime="2017-11-11T23:39:20+08:00" content="2017-11-11">
-          11-11
-        </time>
-      </div>
-
-    </header>
-  </article>
-
+        <p>区别于以频域的标签（比如谱特征，时频掩码等）作为学习目标再通过iSTFT将结果转成时域信号的方法，一般会把直接以目标语音为参考，在时域上计算对应代价函数并优化网络的方法称为端到端（End-to-End，E2E）的方法。现在看来，做增强/分离的文章里面已经很少见频域+掩码预测/语谱回归的方法了，基本就是拿来做个基线的参考。而不断被提出的模型或者架构，也多是跟随这种E2E的思路，否则很难在性能上有所突破。本篇文章会介绍几种在分离领域中直观简单的实现方法。</p>
+<a id="more"></a>
+<p>原始频域建模的方法中，最制约模型性能的关键在于相位的增强上，也就是重构语音阶段采用的是原始带噪音频的相位这一问题。受制于此，掩码掩蔽和语谱回归的方法均存在upper-bound。其次便是优化模型的性能是否能和最终期望的指标，比如SNR，PESQ等成正相关性。这里面基于mask的方法问题多一些。以IAM和PSM为例子。做过增强/分离实验的人都知道，PSM的性能一般会明显高于IAM，直观上我们理解的PSM就是使用混合语音在ground truth方向上的投影和其的比率。当混合语音的相位和ground truth成反向关系时，这时候PSM的值为负，训练时我们会把这部分截断成0，这便是这种场景下的最优解（向量距离最小）。但是对于IAM而言，由于在重构阶段使用的是噪声相位，其值始又始终为正，所以网络实际估计的值越逼近真实参考值（越大），和ground truth的向量误差就越大，显然不是我们期望的结果。而如果将其转换到时域上进行模型训练，很多时候就不需要显示的定义中间具体的mask参考值，从评估指标的层面自动的去优化mask预测的分布。</p>
+<h3 id="Loss-Function"><a href="#Loss-Function" class="headerlink" title="Loss Function"></a>Loss Function</h3><p>在时域上的代价函数最好和模型评估的指标相吻合，比如PESQ，STOI [1]，Si-SNR [2]等等，目前均可以直接用来优化网络。分离中目前用Si-SNR的比较多，其定义如下：</p>
+<script type="math/tex; mode=display">
+\text{Si-SNR} \left(\mathbf{s}_e, \mathbf{s}_r \right) = 20 \log_{10} \frac{\Vert \alpha \cdot \mathbf{s}_r \Vert_2}{\Vert \mathbf{s}_e - \alpha \cdot \mathbf{s}_r \Vert_2}. \tag{1}</script><p>$\alpha = \mathbf{s}_e^T \mathbf{s}_r / \mathbf{s}_r^T \mathbf{s}_r$是一个正交缩放因子，使得最终计算的值和信号的缩放程度无关，$\mathbf{s}_r$表示目标参考信号，值越大表示信号质量越高。用它写成的网络的代价函数为：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{\text{uPIT}, \text{Si-SNR}} = \max_{\pi \in \mathcal{P}} \text{Si-SNR} \left(\hat{\mathbf{s}}_{\pi(c)}, \mathbf{s}_c \right). \tag{2}</script><p>$\mathcal{P}$表示说话人的所有排列方式。如将$\alpha$视为一个常数，优化$(2)$式本身相当于优化下面的MSE形式：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{\text{uPIT}, \text{MSE}} = \min_{\pi \in \mathcal{P}}  \left \Vert \mathbf{s}_{\pi(c)} - \alpha \cdot \mathbf{s}_c \right \Vert_2. \tag{3}</script><p>因此，也有一些文章[3]中用$L_1$代价函数进行代替（但是没有考虑scale的问题）：</p>
+<script type="math/tex; mode=display">
+\mathcal{L}_{\text{uPIT}, \text{WA}} = \min_{\pi \in \mathcal{P}} \left \Vert \hat{\mathbf{s}}_{\pi(c)} - \mathbf{s}_c \right \Vert_1. \tag{4}</script><h3 id="With-i-STFT"><a href="#With-i-STFT" class="headerlink" title="With (i)STFT"></a>With (i)STFT</h3><p>如果我们想在频域的建模网络中使用时域的代价函数，就需要先对(i)STFT进行分析，加深理解，以便在网络中自由的进行时频转换等操作。时域到频域转换的STFT可以理解为分帧加窗之后，对每一帧$\mathbf{x}_t \in \mathbb{R}^N$进行的DFT变换：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}_t = \text{DFT}(\mathbf{x}_t) = \mathbf{x}_t \mathbf{K}_{\text{DFT}}, \tag{5}</script><p>其中$N$表示帧长，为了分析方便，这里认为$N$默认取2的幂次。$\mathbf{K}_{\text{DFT}} \in \mathbb{C}^{N \times N}$是DFT变换矩阵，满足酉矩阵的性质。$\mathbf{y}_t$从频域到时域的变换通过iDFT进行：</p>
+<script type="math/tex; mode=display">
+\mathbf{x}_t = \text{iDFT}(\mathbf{y}_t) = \mathbf{y}_t \mathbf{K}_{\text{DFT}}^{-1} = \mathbf{y}_t \mathbf{K}_{\text{DFT}}^H. \tag{6}</script><p>当帧移为$H$，分析窗函数为$\mathbf{w}$时， STFT的计算可以用一维卷积表达，帧移为卷积的stride步长，卷积核为DFT变换矩阵，虽然其为复数矩阵，但是可以写成实部和虚部拼接的形式：</p>
+<script type="math/tex; mode=display">
+[\mathbf{Y}^{\mathfrak{R}}, \mathbf{Y}^{\mathfrak{I}}] = \text{conv}_{\text{1D}} \left(\mathbf{x}, 
+\mathbf{w} \cdot \left[\mathbf{K}_{\text{DFT}}^{\mathfrak{R}}, \mathbf{K}_{\text{DFT}}^{\mathfrak{I}} \right], H \right), \tag{7}</script><p>其中$\mathbf{Y}^K = [\mathbf{y}_0^K, \cdots, \mathbf{y}_{T - 1}^K], K \in [\mathfrak{R},<br>\mathfrak{I}]$，$(\cdot)^{\mathfrak{R}}, (\cdot)^{\mathfrak{I}}$表示对应矩阵的实部和虚部。由于iDCT变换之后的结果为实数（虚部为0），所以对应的iSTFT可以用转置卷积（解卷积）表示，注意，此处并不需要对$\mathbf{K}_{\text{DFT}}^{\mathfrak{I}}$加一个负号表示共轭，因为我们最终取的是实部：</p>
+<script type="math/tex; mode=display">
+\mathbf{x} = \text{deconv}_{\text{1D}} \left( \left[\mathbf{Y}^{\mathfrak{R}}, \mathbf{Y}^{\mathfrak{I}} \right], 
+\mathbf{w}' \cdot \left[\mathbf{K}_{\text{DFT}}^{\mathfrak{R}}, \mathbf{K}_{\text{DFT}}^{\mathfrak{I}} \right], H \right). \tag{8}</script><p>$\mathbf{w}’$表示使用的合成窗函数，理想情况下，我们希望窗$\mathbf{w}’$和$\mathbf{w}$尽量的满足完美重构准则。由于式$(7)$和$(8)$均是可导操作，因此，我们可以在神经网络中自由的实现信号时域和频域的转换，并在时域上进行代价函数的计算，比如上面提到的$(2,4)$式等。但是，由于一般频域模型通过预测掩码$\hat{\mathbf{M}}$来进行语音增强，实际中，式$(8)$一般写成</p>
+<script type="math/tex; mode=display">
+\mathbf{x} = \text{deconv}_{\text{1D}} \left( \left[ \left(\mathbf{Y} \odot \hat{\mathbf{M}} \right)^\mathfrak{R}, 
+\left(\mathbf{Y} \odot \hat{\mathbf{M}} \right)^\mathfrak{I} \right], 
+\mathbf{w}' \cdot \left[\mathbf{K}_{\text{DFT}}^{\mathfrak{R}}, \mathbf{K}_{\text{DFT}}^{\mathfrak{I}} \right], H \right) \tag{9}</script><p>的形式，在重构阶段使用噪声相位，$\mathbf{Y}$表示带噪信号的STFT变换结果。在原始的框架下，使用iSTFT得到增强的时域音频并进行代价函数计算，可以得到更好的结果。但是由于其本身并没有突破相位增强问题这一限制，所以还存在着改进的空间。</p>
+<h3 id="Frequency-Domain"><a href="#Frequency-Domain" class="headerlink" title="Frequency Domain"></a>Frequency Domain</h3><p>2018年王中秋首先提出在分离任务中，使用MISI进行相位修正[3]，同时使用代价函数$(4)$进行网络训练，在分离指标SDR上取得了明显的提升。$C$个混合说话人下的算法的描述见下图：</p>
+<p><img src="http://www.funcwj.cn/images/misi-algothrim.png" width="600"></p>
+<p>在迭代过程中，每个说话人的语谱幅度保持固定，只更新相位估计，并采用混合信号的相位初始化。算法中的(i)STFT使用卷积操作实现，因此可以将MISI和时域的代价函数结合起来，负责修正相位。</p>
+<p>此外，在增强中被实践的复数掩码也可以在分离任务中使用。复数比率掩码（Complex Ratio Mask，CRM）最早在工作中被提出，旨在同时恢复目标语音的实部谱和虚部谱。对于增强的信号模型$\mathbf{Y} = \mathbf{S} + \mathbf{N}$，CRM的定义为：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_{\text{CRM}} = \mathbf{S} / \mathbf{Y} = |\mathbf{S}| \odot e^{j(\angle \mathbf{S} - \angle \mathbf{Y})} / |\mathbf{Y}|. \tag{10}</script><p>其中的实部对应着PSM。上式中的CRM本身实部和虚部都是无界的，加上符号的问题，直接使用网络预测比较困难。原始文章在训练中使用经双曲正切函数压缩后的结果为目标。测试阶段对应的进行解压之后，再做频谱掩蔽还原增强信号：</p>
+<script type="math/tex; mode=display">
+\hat{\mathbf{s}} = \text{iSTFT} \left( \left\vert \hat{\mathbf{M}}_\text{CRM} \odot \mathbf{Y} \right \vert, \angle \left(\hat{\mathbf{M}}_\text{CRM} \odot \mathbf{Y} \right) \right). \tag{11}</script><p>然而，这种压缩-解压算法的精度和训练集的掩码分布密切相关，一旦选取的参数失配，则有可能取得适得其反的结果。另一种极坐标形式的复数掩码在中被提出[4]，并配合时域上的代价函数和复数卷积层，取得了相对较好的结果。在本篇文章中，我们称之为PC-CRM（Polar Coordinate-wise CRM）。对于CIM，我们之前也提到，PC-CRM的相位采用网络产生的复数输出$\mathbf{O}_c \in \mathbb{C}^{T \times F}$通过$\hat{\mathbf{M}}_{\text{pha}} = \mathbf{O}_c / \left|\mathbf{O}_c \right|$的计算得到，而复数掩码的模被控制在$[0, 1]$之间：$\hat{\mathbf{M}}_{\text{mag}} = \tanh(|\mathbf{O}_c|) \in \mathbb{R}^{T \times F}$，PC-CRM通过下面的式子产生：</p>
+<script type="math/tex; mode=display">
+\hat{\mathbf{M}}_{\text{pc}} = \hat{\mathbf{M}}_{\text{mag}} \odot \text{exp} \left(-j \hat{\mathbf{M}}_{\text{pha}} \right). \tag{12}</script><p>因此，整体看来PC-CRM被控制在一个单位圆的分布内。之后配合类似式$(5)$的</p>
+<script type="math/tex; mode=display">
+\mathbf{x} = \text{deconv}_{\text{1D}} \left( \left[ \left(\mathbf{Y} \odot \hat{\mathbf{M}}_\text{pc} \right)^\mathfrak{R}, 
+\left(\mathbf{Y} \odot \hat{\mathbf{M}}_\text{pc} \right)^\mathfrak{I} \right], 
+\mathbf{w}' \cdot \left[\mathbf{K}_{\text{DFT}}^{\mathfrak{R}}, \mathbf{K}_{\text{DFT}}^{\mathfrak{I}} \right], H \right) \tag{13}</script><p>就可以将增强之后的复数谱转到时域进行目标优化和网络训练了。后续还有一些频域上针对相位问题的工作，但是介绍起来相对复杂一些，后面会考虑单独写一篇来详细介绍。</p>
+<h3 id="Time-Domain"><a href="#Time-Domain" class="headerlink" title="Time Domain"></a>Time Domain</h3><p>在时域上比较有代表性的有罗艺提出的基于编码-解码（Encoder-Decoder）架构的TasNet [2,5]。从本节开始处的对(i)STFT的分析可以看出，频域上的模型本质上是使用了DFT作为编解码操作的核心，只不过它的变换矩阵满足酉矩阵的性质，并且在训练阶段保持不变。罗艺提出使用一维卷积和反卷积的方式，在分离任务的驱动下，自动的学习音频最佳特征的解析与重构。对于混合信号$\mathbf{y} \in \mathbb{R}^{N}$，TasNet首先使用编码操作将其编码成非负的向量表示，可以写成：</p>
+<script type="math/tex; mode=display">
+\mathbf{W}_y = \text{Encoder}(\mathbf{y}). \tag{14}</script><p>其中$\mathbf{W}_y = [\mathbf{w}_0, \cdots, \mathbf{w}_{T - 1}]$。之后，设计主分离网络Separator，在$\mathbf{W}_y$表示的空间上，估计每个说话人的掩码：</p>
+<script type="math/tex; mode=display">
+[\mathbf{M}_0, \cdots, \mathbf{M}_{C - 1}] = \text{Separator}(\mathbf{W}_y). \tag{15}</script><p>分离网络的性能对这种结构下的模型表现影响较大，在使用TCN的结构替换双向LSTM之后，模型在wsj0-2mix上超越了oracle IRM的结果。得到说话人$c$的掩码估计之后，再使用解码器将掩蔽的向量表示转换成时域的说话人信号$\hat{\mathbf{s}}_c$：</p>
+<script type="math/tex; mode=display">
+\hat{\mathbf{s}}_c = \text{Decoder}(\mathbf{M}_c \odot \mathbf{W}_y). \tag{16}</script><p>一维卷积中，卷积核和步长的大小等价于帧长和帧移动，输出通道数相当于频域中的FFT点数，即特征的维度，分别用$K, S, C$表示这些参数时，编解码过程可以表示为：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\text{Encoder}(\mathbf{Y}) & = \text{ReLU} \left(\text{conv}_\text{1D}(\mathbf{Y}, K, S, C) \right), \\
+\text{Decoder}(\mathbf{M}_c \odot \mathbf{W}_y) & = \text{deconv}_\text{1D}(\mathbf{M}_c \odot \mathbf{W}_y, K, S, C),
+\end{aligned} \tag{17}</script><p>其中Encoder的输出$\mathbf{W}_y \in \mathbb{R}^{T \times C}$，ReLU用于保证其非负性。相比频域的DFT，Encoder和Decoder学出来的卷积核是不能保证信号可以被完美重构的，而卷积核本身也没有DFT的正交性质（这一点在后续的一些工作中似乎并不十分重要）。但是时域上建模的好处是可以不用显式考虑相位这一因素，选择鲁棒的分离网络结构，通过端到端的训练，就可以达到媲美频域，甚至超越频域理想掩码的结果。TasNet存在一个问题，在重构的语音语谱上可能会存在一些固定频率上的“亮线”现象，我个人推测是反卷积使用的问题，类似的现象在图像中也存在过，详见<a href="https://distill.pub/2016/deconv-checkerboard/" target="_blank" rel="noopener">Deconvolution and Checkerboard Artifacts</a>。</p>
+<p>此外，U形网络（UNet）也是一种基于编解码架构的网络，在增强和audio source分离任务中均有实践，但是结构上没有罗艺设计的所谓分离网络。Encoder使用一维卷积层对输入audio进行降采样，Decoder进行升采样，二者的层数一致，对称的block之间存在残差连接。在Wave-U-Net中，针对使用反卷积进行上采用产生的混叠效应，文章提出使用线性差值层进行改进。我本人还没有将此结构用于分离任务中去，因此不能确定能否在解决混叠效应的同时，保证分离性能。</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. S.-W. Fu, Y. Tsao, X. Lu, and H. Kawai, “End-to-End Waveform Utterance Enhancement for Direct Evaluation Metrics Optimization by Fully Convolutional Neural Networks,” arXiv preprint arXiv:1709.03658, 2017.<br>[2]. Luo Y, Mesgarani N. Tasnet: time-domain audio separation network for real-time, single-channel speech separation[C]//2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2018: 696-700. MLA<br>[3]. Wang Z Q, Roux J L, Wang D L, et al. End-to-end speech separation with unfolded iterative phase reconstruction[J]. arXiv preprint arXiv:1804.10204, 2018.<br>[4]. Choi H S, Kim J H, Huh J, et al. Phase-aware speech enhancement with deep complex u-net[J]. arXiv preprint arXiv:1903.03107, 2019.<br>[5]. Luo Y, Mesgarani N. Conv-tasnet: Surpassing ideal time–frequency magnitude masking for speech separation[J]. IEEE/ACM transactions on audio, speech, and language processing, 2019, 27(8): 1256-1266.<br>[6]. Pascual S, Bonafonte A, Serra J. SEGAN: Speech enhancement generative adversarial network[J]. arXiv preprint arXiv:1703.09452, 2017.<br>[7]. Stoller D, Ewert S, Dixon S. Wave-u-net: A multi-scale neural network for end-to-end audio source separation[J]. arXiv preprint arXiv:1806.03185, 2018.</p>
 
       
     </div>
 
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>WJ</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.funcwj.cn/2019/04/30/e2e-separation-s1/" title="Towards E2E Speech Separation">http://www.funcwj.cn/2019/04/30/e2e-separation-s1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/11/setk-one-year/" rel="next" title="SETK One Year">
+                <i class="fa fa-chevron-left"></i> SETK One Year
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/04/steer-vector/" rel="prev" title="Steer Vector">
+                Steer Vector <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
+
+  </div>
 
 
           </div>
           
+
+  
+
+
 
         </div>
         
@@ -549,8 +619,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -795,6 +874,22 @@
       </section>
 
       
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Loss-Function"><span class="nav-number">1.</span> <span class="nav-text">Loss Function</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#With-i-STFT"><span class="nav-number">2.</span> <span class="nav-text">With (i)STFT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Frequency-Domain"><span class="nav-number">3.</span> <span class="nav-text">Frequency Domain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Time-Domain"><span class="nav-number">4.</span> <span class="nav-text">Time Domain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
 
       
 
@@ -976,6 +1071,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.2"></script>
+
+
 
   
 
