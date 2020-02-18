@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="本篇文章主要说一下多通道的Hybrid声学模型。Google在CLDNN之后，大约在2015年到2017年之间围绕远场语音识别，做了一系列 [1-6] 的工作，相关的技术也被用在了Google Home [7] 上。17年的时候我看了其中的一部分，觉得工作做的很漂亮，一骑绝尘，一枝独秀。原因主要有两方面，其一是多通道声学模型是一个比较新的概念，当时很少见其他高校和公司有相关的工作，基本还停留在神经">
-<meta name="keywords" content="ASR,Speech Enhancement">
+<meta name="keywords" content="Beamformer,E2E,Multi-channel">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Multi-Channel Hybrid AM">
 <meta property="og:url" content="https://www.funcwj.cn/2019/11/10/multi-channel-hybrid-am/index.html">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://www.funcwj.cn/images/clp-learned-filters.jpg">
 <meta property="og:image" content="https://www.funcwj.cn/images/amazon-am-design.png">
 <meta property="og:image" content="https://www.funcwj.cn/images/amazon-mc-design.png">
-<meta property="og:updated_time" content="2020-02-08T13:35:30.156Z">
+<meta property="og:updated_time" content="2020-02-18T10:12:32.385Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Multi-Channel Hybrid AM">
 <meta name="twitter:description" content="本篇文章主要说一下多通道的Hybrid声学模型。Google在CLDNN之后，大约在2015年到2017年之间围绕远场语音识别，做了一系列 [1-6] 的工作，相关的技术也被用在了Google Home [7] 上。17年的时候我看了其中的一部分，觉得工作做的很漂亮，一骑绝尘，一枝独秀。原因主要有两方面，其一是多通道声学模型是一个比较新的概念，当时很少见其他高校和公司有相关的工作，基本还停留在神经">
@@ -136,14 +136,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -221,6 +226,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2019-11-10 21:23:01" itemprop="dateCreated datePublished" datetime="2019-11-10T21:23:01+08:00">2019-11-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -312,8 +328,9 @@ s_t^\theta = \sum_c \mathbf{y}_t * \mathbf{h}_{\theta, c} \tag{3}</script><p>其
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
-              <a href="/tags/Speech-Enhancement/" rel="tag"><i class="fa fa-tag"></i> Speech Enhancement</a>
+              <a href="/tags/Beamformer/" rel="tag"><i class="fa fa-tag"></i> Beamformer</a>
+              <a href="/tags/E2E/" rel="tag"><i class="fa fa-tag"></i> E2E</a>
+              <a href="/tags/Multi-channel/" rel="tag"><i class="fa fa-tag"></i> Multi-channel</a>
           </div>
 
         
@@ -404,10 +421,16 @@ s_t^\theta = \sum_c \mathbf{y}_t * \mathbf{h}_{\theta, c} \tag{3}</script><p>其
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

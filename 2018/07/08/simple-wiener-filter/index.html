@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="维纳滤波信号领域最基本，最常见的滤波方法之一，陈老师的麦克风阵列处理一书中首先介绍的就是维纳滤波。本篇文章中我简单的介绍一下维纳滤波。 因为是从ASR看到前端来的，因此，对维纳滤波的理解做不到十分深入。在我看来，维纳滤波的典型特征是MMSE准则，由此就带来一个困惑，没有参考信号或者目标信号，如何做均方误差最小化。换句话说，很多时候，如果已经知道参考信号了，那何须继续滤波呢……">
-<meta name="keywords" content="Speech Enhancement">
+<meta name="keywords" content="Code,Wiener">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Introduction to Wiener Filter">
 <meta property="og:url" content="https://www.funcwj.cn/2018/07/08/simple-wiener-filter/index.html">
@@ -31,7 +31,7 @@
 <meta property="og:description" content="维纳滤波信号领域最基本，最常见的滤波方法之一，陈老师的麦克风阵列处理一书中首先介绍的就是维纳滤波。本篇文章中我简单的介绍一下维纳滤波。 因为是从ASR看到前端来的，因此，对维纳滤波的理解做不到十分深入。在我看来，维纳滤波的典型特征是MMSE准则，由此就带来一个困惑，没有参考信号或者目标信号，如何做均方误差最小化。换句话说，很多时候，如果已经知道参考信号了，那何须继续滤波呢……">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/wiener-demo-1.jpg">
-<meta property="og:updated_time" content="2018-10-20T02:34:38.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:37:55.790Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Introduction to Wiener Filter">
 <meta name="twitter:description" content="维纳滤波信号领域最基本，最常见的滤波方法之一，陈老师的麦克风阵列处理一书中首先介绍的就是维纳滤波。本篇文章中我简单的介绍一下维纳滤波。 因为是从ASR看到前端来的，因此，对维纳滤波的理解做不到十分深入。在我看来，维纳滤波的典型特征是MMSE准则，由此就带来一个困惑，没有参考信号或者目标信号，如何做均方误差最小化。换句话说，很多时候，如果已经知道参考信号了，那何须继续滤波呢……">
@@ -134,14 +134,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -219,6 +224,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-07-08 08:24:11" itemprop="dateCreated datePublished" datetime="2018-07-08T08:24:11+08:00">2018-07-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Enhancement/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Enhancement</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -302,7 +318,8 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Enhancement/" rel="tag"><i class="fa fa-tag"></i> Speech Enhancement</a>
+              <a href="/tags/Code/" rel="tag"><i class="fa fa-tag"></i> Code</a>
+              <a href="/tags/Wiener/" rel="tag"><i class="fa fa-tag"></i> Wiener</a>
           </div>
 
         
@@ -315,8 +332,8 @@
       <i class="fa fa-chevron-left"></i> Speech Separation - DPCL & uPIT
     </a></div>
       <div class="post-nav-item">
-    <a href="/2018/08/02/qrnn-sru/" rel="next" title="From QRNN">
-      From QRNN <i class="fa fa-chevron-right"></i>
+    <a href="/2018/08/02/qrnn-sru/" rel="next" title="From Quasi-recurrent Networks">
+      From Quasi-recurrent Networks <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -395,10 +412,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

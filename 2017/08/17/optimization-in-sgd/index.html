@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="模型训练中的学习率是最重要的超参数之一，目前的学习率优化方法主要有两大类，一类可以在训练过程中定义存在其他动态的超参数参与的调整更新规则，另一类是预先设定的更新（一般是衰减）规则，比如线性衰减，指数衰减等。 min-batch SGD从训练集中随机fetch出大小为m的batch，执行更新规则如下：  \mathbf{g}_t = \nabla_\theta \sum_{i = 1}^m \mat">
-<meta name="keywords" content="ML">
+<meta name="keywords" content="Optimization">
 <meta property="og:type" content="article">
 <meta property="og:title" content="梯度下降中的优化策略">
 <meta property="og:url" content="https://www.funcwj.cn/2017/08/17/optimization-in-sgd/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="模型训练中的学习率是最重要的超参数之一，目前的学习率优化方法主要有两大类，一类可以在训练过程中定义存在其他动态的超参数参与的调整更新规则，另一类是预先设定的更新（一般是衰减）规则，比如线性衰减，指数衰减等。 min-batch SGD从训练集中随机fetch出大小为m的batch，执行更新规则如下：  \mathbf{g}_t = \nabla_\theta \sum_{i = 1}^m \mat">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:29:56.916Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="梯度下降中的优化策略">
 <meta name="twitter:description" content="模型训练中的学习率是最重要的超参数之一，目前的学习率优化方法主要有两大类，一类可以在训练过程中定义存在其他动态的超参数参与的调整更新规则，另一类是预先设定的更新（一般是衰减）规则，比如线性衰减，指数衰减等。 min-batch SGD从训练集中随机fetch出大小为m的batch，执行更新规则如下：  \mathbf{g}_t = \nabla_\theta \sum_{i = 1}^m \mat">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -217,6 +222,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-08-17 20:05:09" itemprop="dateCreated datePublished" datetime="2017-08-17T20:05:09+08:00">2017-08-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/DL/" itemprop="url" rel="index">
+                    <span itemprop="name">DL</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -314,7 +330,7 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ML/" rel="tag"><i class="fa fa-tag"></i> ML</a>
+              <a href="/tags/Optimization/" rel="tag"><i class="fa fa-tag"></i> Optimization</a>
           </div>
 
         
@@ -408,10 +424,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

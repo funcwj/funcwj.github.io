@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="CTC（Connectionist Temporal Classification）是为递归神经网络设计的一种输出层的损失准则。在语音领域，识别任务实际上是一种序列标记任务。比如，识别的目标就是要将观测到的帧序列映射到字符序列。传统的识别方案需要依靠因素分类器（即声学模型）得到当前观测帧的因素后验，之后借助解码网络得到最优路径从而得到字符序列。">
-<meta name="keywords" content="ASR,ML">
+<meta name="keywords" content="E2E,CTC">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Connectionist Temporal Classification">
 <meta property="og:url" content="https://www.funcwj.cn/2017/06/03/ctc-conclusion/index.html">
@@ -32,7 +32,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/ctc_pick.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/ctc_feed.png">
-<meta property="og:updated_time" content="2020-02-06T16:04:33.997Z">
+<meta property="og:updated_time" content="2020-02-18T08:59:18.374Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Connectionist Temporal Classification">
 <meta name="twitter:description" content="CTC（Connectionist Temporal Classification）是为递归神经网络设计的一种输出层的损失准则。在语音领域，识别任务实际上是一种序列标记任务。比如，识别的目标就是要将观测到的帧序列映射到字符序列。传统的识别方案需要依靠因素分类器（即声学模型）得到当前观测帧的因素后验，之后借助解码网络得到最优路径从而得到字符序列。">
@@ -135,14 +135,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -220,6 +225,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-06-03 23:31:26" itemprop="dateCreated datePublished" datetime="2017-06-03T23:31:26+08:00">2017-06-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -339,8 +355,8 @@ p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
-              <a href="/tags/ML/" rel="tag"><i class="fa fa-tag"></i> ML</a>
+              <a href="/tags/E2E/" rel="tag"><i class="fa fa-tag"></i> E2E</a>
+              <a href="/tags/CTC/" rel="tag"><i class="fa fa-tag"></i> CTC</a>
           </div>
 
         
@@ -349,8 +365,8 @@ p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2017/06/01/kaldi-based-reconstruction/" rel="prev" title="基于kaidi谱特征的语音重构">
-      <i class="fa fa-chevron-left"></i> 基于kaidi谱特征的语音重构
+    <a href="/2017/06/01/kaldi-based-reconstruction/" rel="prev" title="基于Kaidi谱特征的语音重构">
+      <i class="fa fa-chevron-left"></i> 基于Kaidi谱特征的语音重构
     </a></div>
       <div class="post-nav-item">
     <a href="/2017/06/04/get-things-done/" rel="next" title="小结一下">
@@ -433,10 +449,16 @@ p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

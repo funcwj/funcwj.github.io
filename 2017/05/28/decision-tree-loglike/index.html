@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="对于一般决策树而言，每一次的最优划分，是要找到一个标准，使得在这种标准之下进行的划分获取的信息增益最大，这里的信息增益一般表示划分之后信息熵的增量。在ASR中，决策树的划分标准是获取最大似然提升，在GMM模型中，对于一个状态集合$S$，其似然表示为：">
-<meta name="keywords" content="ASR">
+<meta name="keywords" content="Kaldi,Tree">
 <meta property="og:type" content="article">
 <meta property="og:title" content="状态绑定之决策树似然公式">
 <meta property="og:url" content="https://www.funcwj.cn/2017/05/28/decision-tree-loglike/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="对于一般决策树而言，每一次的最优划分，是要找到一个标准，使得在这种标准之下进行的划分获取的信息增益最大，这里的信息增益一般表示划分之后信息熵的增量。在ASR中，决策树的划分标准是获取最大似然提升，在GMM模型中，对于一个状态集合$S$，其似然表示为：">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:17:31.009Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="状态绑定之决策树似然公式">
 <meta name="twitter:description" content="对于一般决策树而言，每一次的最优划分，是要找到一个标准，使得在这种标准之下进行的划分获取的信息增益最大，这里的信息增益一般表示划分之后信息熵的增量。在ASR中，决策树的划分标准是获取最大似然提升，在GMM模型中，对于一个状态集合$S$，其似然表示为：">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -217,6 +222,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-05-28 02:54:47" itemprop="dateCreated datePublished" datetime="2017-05-28T02:54:47+08:00">2017-05-28</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -306,7 +322,8 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/Kaldi/" rel="tag"><i class="fa fa-tag"></i> Kaldi</a>
+              <a href="/tags/Tree/" rel="tag"><i class="fa fa-tag"></i> Tree</a>
           </div>
 
         
@@ -399,10 +416,16 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="语音唤醒任务的一种常见解决方案是通过评估连续语音中分段时间窗内的音频特征和预先置入的关键词模板之间的相似性来决定系统是否唤醒，而DTW（动态时间规整算法）能够有效的衡量两个不等长序列之间的最短距离/相似性，因此在这类解决思路下被广泛使用。这里可以采用的特征有声学特征，后验特征，embedding特征或者BN特征等等，鲁棒的特征对最终的系统表现有着积极的影响。将连续语音和关键词模板之间的距离矩阵绘制">
-<meta name="keywords" content="ASR">
+<meta name="keywords" content="KWS,DTW">
 <meta property="og:type" content="article">
 <meta property="og:title" content="DTW在语音唤醒中的应用">
 <meta property="og:url" content="https://www.funcwj.cn/2017/06/20/apply-dtw-in-kws/index.html">
@@ -31,7 +31,7 @@
 <meta property="og:description" content="语音唤醒任务的一种常见解决方案是通过评估连续语音中分段时间窗内的音频特征和预先置入的关键词模板之间的相似性来决定系统是否唤醒，而DTW（动态时间规整算法）能够有效的衡量两个不等长序列之间的最短距离/相似性，因此在这类解决思路下被广泛使用。这里可以采用的特征有声学特征，后验特征，embedding特征或者BN特征等等，鲁棒的特征对最终的系统表现有着积极的影响。将连续语音和关键词模板之间的距离矩阵绘制">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/mfcc_distmat.png">
-<meta property="og:updated_time" content="2020-02-06T15:57:58.031Z">
+<meta property="og:updated_time" content="2020-02-18T08:48:48.107Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="DTW在语音唤醒中的应用">
 <meta name="twitter:description" content="语音唤醒任务的一种常见解决方案是通过评估连续语音中分段时间窗内的音频特征和预先置入的关键词模板之间的相似性来决定系统是否唤醒，而DTW（动态时间规整算法）能够有效的衡量两个不等长序列之间的最短距离/相似性，因此在这类解决思路下被广泛使用。这里可以采用的特征有声学特征，后验特征，embedding特征或者BN特征等等，鲁棒的特征对最终的系统表现有着积极的影响。将连续语音和关键词模板之间的距离矩阵绘制">
@@ -134,14 +134,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -219,6 +224,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-06-20 23:38:15" itemprop="dateCreated datePublished" datetime="2017-06-20T23:38:15+08:00">2017-06-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -303,7 +319,8 @@ S_{ij} &= 1 + S_{uv} \notag
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/KWS/" rel="tag"><i class="fa fa-tag"></i> KWS</a>
+              <a href="/tags/DTW/" rel="tag"><i class="fa fa-tag"></i> DTW</a>
           </div>
 
         
@@ -316,8 +333,8 @@ S_{ij} &= 1 + S_{uv} \notag
       <i class="fa fa-chevron-left"></i> LDA线性判别分析
     </a></div>
       <div class="post-nav-item">
-    <a href="/2017/07/20/link-kaldi-on-android/" rel="next" title="在安卓上使用kaldi进行模型开发">
-      在安卓上使用kaldi进行模型开发 <i class="fa fa-chevron-right"></i>
+    <a href="/2017/07/20/link-kaldi-on-android/" rel="next" title="在安卓上使用Kaldi进行模型开发">
+      在安卓上使用Kaldi进行模型开发 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -396,10 +413,16 @@ S_{ij} &= 1 + S_{uv} \notag
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

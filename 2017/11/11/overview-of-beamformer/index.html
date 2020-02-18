@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="好久没更……过去一段时间接触了一下beamforming，连看论文加做实验，大概理出了一些头绪。初步理解beamforming就是对多路信号进行频域滤波，从而获取一路增强信号，所谓的增强就是最大可能的滤除噪声，同时保留我们期望的信号。比较经典的方法有：延时相加，Max-SNR，MVDR，GSC（LCMV）等等（详细可学习陈老师的麦克风阵列信号处理[2]一书）。学习期间会接触到一些非常频繁的概念，比">
-<meta name="keywords" content="Microphone Array Processing">
+<meta name="keywords" content="Beamformer,Multi-channel,MVDR,GEVD">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Overview of Beamformer">
 <meta property="og:url" content="https://www.funcwj.cn/2017/11/11/overview-of-beamformer/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="好久没更……过去一段时间接触了一下beamforming，连看论文加做实验，大概理出了一些头绪。初步理解beamforming就是对多路信号进行频域滤波，从而获取一路增强信号，所谓的增强就是最大可能的滤除噪声，同时保留我们期望的信号。比较经典的方法有：延时相加，Max-SNR，MVDR，GSC（LCMV）等等（详细可学习陈老师的麦克风阵列信号处理[2]一书）。学习期间会接触到一些非常频繁的概念，比">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-05-09T17:15:05.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:54:39.230Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Overview of Beamformer">
 <meta name="twitter:description" content="好久没更……过去一段时间接触了一下beamforming，连看论文加做实验，大概理出了一些头绪。初步理解beamforming就是对多路信号进行频域滤波，从而获取一路增强信号，所谓的增强就是最大可能的滤除噪声，同时保留我们期望的信号。比较经典的方法有：延时相加，Max-SNR，MVDR，GSC（LCMV）等等（详细可学习陈老师的麦克风阵列信号处理[2]一书）。学习期间会接触到一些非常频繁的概念，比">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -217,6 +222,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-11-11 23:39:20" itemprop="dateCreated datePublished" datetime="2017-11-11T23:39:20+08:00">2017-11-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Microphone-Array-Processing/" itemprop="url" rel="index">
+                    <span itemprop="name">Microphone Array Processing</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -361,7 +377,10 @@ Z(\omega) = \mathbf{h}^H(\omega) \mathbf{y}(\omega) = \mathbf{h}^H(\omega)\mathb
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Microphone-Array-Processing/" rel="tag"><i class="fa fa-tag"></i> Microphone Array Processing</a>
+              <a href="/tags/Beamformer/" rel="tag"><i class="fa fa-tag"></i> Beamformer</a>
+              <a href="/tags/Multi-channel/" rel="tag"><i class="fa fa-tag"></i> Multi-channel</a>
+              <a href="/tags/MVDR/" rel="tag"><i class="fa fa-tag"></i> MVDR</a>
+              <a href="/tags/GEVD/" rel="tag"><i class="fa fa-tag"></i> GEVD</a>
           </div>
 
         
@@ -370,8 +389,8 @@ Z(\omega) = \mathbf{h}^H(\omega) \mathbf{y}(\omega) = \mathbf{h}^H(\omega)\mathb
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2017/10/08/deep-rnn/" rel="prev" title="Deep RNN">
-      <i class="fa fa-chevron-left"></i> Deep RNN
+    <a href="/2017/10/08/deep-rnn/" rel="prev" title="Deep RNN in Acoustic Model">
+      <i class="fa fa-chevron-left"></i> Deep RNN in Acoustic Model
     </a></div>
       <div class="post-nav-item">
     <a href="/2017/12/05/internship-in-idst/" rel="next" title="Internship in iDST">
@@ -454,10 +473,16 @@ Z(\omega) = \mathbf{h}^H(\omega) \mathbf{y}(\omega) = \mathbf{h}^H(\omega)\mathb
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

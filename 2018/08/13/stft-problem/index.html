@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="这里提一个(i)STFT的细节。做短时傅里叶分析的时候，通常会选取窗函数，缓解频谱泄露。把频域的谱通过OLA（overlap add）转换到时域上时，我以前的做法是选取相同的窗函数。这么做会带来一个问题，如果直接把OLA的结果写入磁盘，特别容易出现clipping，所以我通常会在OLA之后对samples做一个renorm/rescale操作，避免数值超出wav的采样单元，但是这么一做，往往就丢失">
-<meta name="keywords" content="Speech Separation">
+<meta name="keywords" content="STFT">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Analysis&#x2F;Synthesis window of STFT">
 <meta property="og:url" content="https://www.funcwj.cn/2018/08/13/stft-problem/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="这里提一个(i)STFT的细节。做短时傅里叶分析的时候，通常会选取窗函数，缓解频谱泄露。把频域的谱通过OLA（overlap add）转换到时域上时，我以前的做法是选取相同的窗函数。这么做会带来一个问题，如果直接把OLA的结果写入磁盘，特别容易出现clipping，所以我通常会在OLA之后对samples做一个renorm/rescale操作，避免数值超出wav的采样单元，但是这么一做，往往就丢失">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-10-19T17:50:05.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:41:30.016Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Analysis&#x2F;Synthesis window of STFT">
 <meta name="twitter:description" content="这里提一个(i)STFT的细节。做短时傅里叶分析的时候，通常会选取窗函数，缓解频谱泄露。把频域的谱通过OLA（overlap add）转换到时域上时，我以前的做法是选取相同的窗函数。这么做会带来一个问题，如果直接把OLA的结果写入磁盘，特别容易出现clipping，所以我通常会在OLA之后对samples做一个renorm/rescale操作，避免数值超出wav的采样单元，但是这么一做，往往就丢失">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -217,6 +222,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-08-13 23:04:08" itemprop="dateCreated datePublished" datetime="2018-08-13T23:04:08+08:00">2018-08-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Separation/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Separation</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -300,7 +316,7 @@ x_t(n - tS) = w(n - tS) s(n)</script><p>带入$(2)$式</p>
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
+              <a href="/tags/STFT/" rel="tag"><i class="fa fa-tag"></i> STFT</a>
           </div>
 
         
@@ -309,12 +325,12 @@ x_t(n - tS) = w(n - tS) s(n)</script><p>带入$(2)$式</p>
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2018/08/02/qrnn-sru/" rel="prev" title="From QRNN">
-      <i class="fa fa-chevron-left"></i> From QRNN
+    <a href="/2018/08/02/qrnn-sru/" rel="prev" title="From Quasi-recurrent Networks">
+      <i class="fa fa-chevron-left"></i> From Quasi-recurrent Networks
     </a></div>
       <div class="post-nav-item">
-    <a href="/2018/09/20/gwpe-algorithm/" rel="next" title="GWPE Algorithm">
-      GWPE Algorithm <i class="fa fa-chevron-right"></i>
+    <a href="/2018/09/20/gwpe-algorithm/" rel="next" title="GWPE - Multi-channel Dereverberation">
+      GWPE - Multi-channel Dereverberation <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -393,10 +409,16 @@ x_t(n - tS) = w(n - tS) s(n)</script><p>带入$(2)$式</p>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

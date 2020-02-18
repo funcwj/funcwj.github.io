@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="首先说明这不是近期写的东西，主要想通过它来看看站点显示是否正常。时间应该回退到2016年的七月，由于某些原因，要啃一下grpc的源码，回想起来还是蛮痛苦的（可怜现在已经忘的差不多了……）。">
-<meta name="keywords" content="C&#x2F;C++,Network">
+<meta name="keywords" content="C&#x2F;C++,Socket">
 <meta property="og:type" content="article">
 <meta property="og:title" content="非阻塞套接字模型">
 <meta property="og:url" content="https://www.funcwj.cn/2017/05/23/nonblock-socket-demo/index.html">
@@ -31,7 +31,7 @@
 <meta property="og:description" content="首先说明这不是近期写的东西，主要想通过它来看看站点显示是否正常。时间应该回退到2016年的七月，由于某些原因，要啃一下grpc的源码，回想起来还是蛮痛苦的（可怜现在已经忘的差不多了……）。">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/exit-log.png">
-<meta property="og:updated_time" content="2020-02-06T15:26:23.560Z">
+<meta property="og:updated_time" content="2020-02-18T09:27:23.431Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="非阻塞套接字模型">
 <meta name="twitter:description" content="首先说明这不是近期写的东西，主要想通过它来看看站点显示是否正常。时间应该回退到2016年的七月，由于某些原因，要啃一下grpc的源码，回想起来还是蛮痛苦的（可怜现在已经忘的差不多了……）。">
@@ -134,14 +134,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -220,6 +225,17 @@
 
               <time title="创建时间：2017-05-23 00:12:43" itemprop="dateCreated datePublished" datetime="2017-05-23T00:12:43+08:00">2017-05-23</time>
             </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">Engineering</span>
+                  </a>
+                </span>
+            </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -288,7 +304,7 @@
           
           <div class="post-tags">
               <a href="/tags/C-C/" rel="tag"><i class="fa fa-tag"></i> C/C++</a>
-              <a href="/tags/Network/" rel="tag"><i class="fa fa-tag"></i> Network</a>
+              <a href="/tags/Socket/" rel="tag"><i class="fa fa-tag"></i> Socket</a>
           </div>
 
         
@@ -381,10 +397,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

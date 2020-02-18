@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="嗯，现在正式结合着我自己的实践，开讲mask在Speech Enhancement中的应用。 开门见山，本文主要focus下面三点：  mask的定义 mask的估计 mask的使用">
-<meta name="keywords" content="Speech Enhancement">
+<meta name="keywords" content="Beamformer,Mask,CGMM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Mask Based Methods">
 <meta property="og:url" content="https://www.funcwj.cn/2018/05/26/mask-methods/index.html">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://www.funcwj.cn/images/ratio-mask-demo.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/nnet-ratio-mask-demo.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/cgmm-mask-demo.png">
-<meta property="og:updated_time" content="2018-11-03T13:45:06.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:23:52.481Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Mask Based Methods">
 <meta name="twitter:description" content="嗯，现在正式结合着我自己的实践，开讲mask在Speech Enhancement中的应用。 开门见山，本文主要focus下面三点：  mask的定义 mask的估计 mask的使用">
@@ -137,14 +137,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -222,6 +227,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-05-26 01:24:11" itemprop="dateCreated datePublished" datetime="2018-05-26T01:24:11+08:00">2018-05-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Enhancement/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Enhancement</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -380,7 +396,9 @@ m_{ft}^k = \frac{\alpha_f^k \mathcal{N}_c(\mathbf{y}_{ft}|0, \phi^k_{ft}\mathbf{
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Enhancement/" rel="tag"><i class="fa fa-tag"></i> Speech Enhancement</a>
+              <a href="/tags/Beamformer/" rel="tag"><i class="fa fa-tag"></i> Beamformer</a>
+              <a href="/tags/Mask/" rel="tag"><i class="fa fa-tag"></i> Mask</a>
+              <a href="/tags/CGMM/" rel="tag"><i class="fa fa-tag"></i> CGMM</a>
           </div>
 
         
@@ -474,10 +492,16 @@ m_{ft}^k = \frac{\alpha_f^k \mathcal{N}_c(\mathbf{y}_{ft}|0, \phi^k_{ft}\mathbf{
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

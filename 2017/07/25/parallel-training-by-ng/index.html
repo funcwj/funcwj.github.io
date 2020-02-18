@@ -22,18 +22,18 @@
     var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。">
-<meta name="keywords" content="ASR">
+  <meta name="description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。 摘要我们描述了一种在kaidi语音识别工具中使用的一种面向多核，多GPU机器的神经网络训练框架。为了尽可能与硬件无关，我们需要一种方法来使用多台机器，而不会产生过多的网络流量。这里使用的方法是周期性的平均网络参数（每一或者两">
+<meta name="keywords" content="Kaldi,Optimization">
 <meta property="og:type" content="article">
 <meta property="og:title" content="使用自然梯度的神经网络并行训练【译】">
 <meta property="og:url" content="https://www.funcwj.cn/2017/07/25/parallel-training-by-ng/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
-<meta property="og:description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。">
+<meta property="og:description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。 摘要我们描述了一种在kaidi语音识别工具中使用的一种面向多核，多GPU机器的神经网络训练框架。为了尽可能与硬件无关，我们需要一种方法来使用多台机器，而不会产生过多的网络流量。这里使用的方法是周期性的平均网络参数（每一或者两">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:31:46.329Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="使用自然梯度的神经网络并行训练【译】">
-<meta name="twitter:description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。">
+<meta name="twitter:description" content="本篇是对论文 Parallel training of DNNs with Natural Gradient and Parameter Averaging前几个部分的翻译。 摘要我们描述了一种在kaidi语音识别工具中使用的一种面向多核，多GPU机器的神经网络训练框架。为了尽可能与硬件无关，我们需要一种方法来使用多台机器，而不会产生过多的网络流量。这里使用的方法是周期性的平均网络参数（每一或者两">
 
 <link rel="canonical" href="https://www.funcwj.cn/2017/07/25/parallel-training-by-ng/">
 
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -218,6 +223,17 @@
 
               <time title="创建时间：2017-07-25 00:15:55" itemprop="dateCreated datePublished" datetime="2017-07-25T00:15:55+08:00">2017-07-25</time>
             </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
+            </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -252,8 +268,8 @@
 
       
         <p>本篇是对论文 <a href="https://arxiv.org/abs/1410.7455" target="_blank" rel="noopener">Parallel training of DNNs with Natural Gradient and Parameter Averaging</a>前几个部分的翻译。</p>
-<a id="more"></a>
 <h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>我们描述了一种在kaidi语音识别工具中使用的一种面向多核，多GPU机器的神经网络训练框架。为了尽可能与硬件无关，我们需要一种方法来使用多台机器，而不会产生过多的网络流量。这里使用的方法是周期性的平均网络参数（每一或者两分钟），然后将平均之后的参数重新分布到机器上进行进一步的训练。每台机器都只能看见自己的训练数据。本身来说，这种方法并不能很好的工作。但是，我们有另外一种方法，就是正确且有效的实现了针对随机梯度下降的自然梯度，它可以允许我们的周期性平均方法工作的很好，并且极大的提高了在单个机器上的SGD收敛程度。</p>
+<a id="more"></a>
 <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>神经网络的并行训练一般是数据并行和模型并行的结合。一般的数据并行的方法是每个minibatch交换一下模型参数。这里我们介绍的并行训练框架使用了不同的数据并行方式：我们在不同的机器上有多个执行SGD的进程，每隔几分钟平均一下模型参数并且将他们重新分布到各自的机器上。这对于大规模的语音识别系统训练是非常有效的，但是在我们的例子中，只有和我们实现的有效的自然梯度随机梯度下降结合起来工作的才比较好。考虑到DNN的非收敛性，在这篇文章中我们不解释为什么参数平均可以工作的很好，或者为什么NG-SGD作用很大。这篇文章的要点在于描述我们的方法，并且从经验上说明他们工作的很好。这篇文章的重要性在于，我们展现了当增加GPU数量时，可以收获线性的加速效果，在没有平凡的数据传输的情况下。</p>
 <p>在第二部分我们描述了问题的设置，就是DNN在语音识别中的应用-虽然我们的点子比这更加宽泛。在第三部分我们介绍了并行训练方法。在第四部分我们描述了在自然梯度方法背后更加一般的点子，虽然大部分技术细节都被放在了附录部分。在这篇文章中我们不给出任何证明，但是我们在第五部分讨论一些我们认为可以但是证明不了的东西。第六部分有带有/不带有自然梯度和并行的SGD收敛性的实验。我们在第七部分做总结。</p>
 <p>NG-SGD有两个版本，一个是简单的版本，还有一个在线版本。技术细节分别在附录A和B。附录C有关于我们DNN实现的背景知识。</p>
@@ -341,7 +357,8 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/Kaldi/" rel="tag"><i class="fa fa-tag"></i> Kaldi</a>
+              <a href="/tags/Optimization/" rel="tag"><i class="fa fa-tag"></i> Optimization</a>
           </div>
 
         
@@ -354,8 +371,8 @@
       <i class="fa fa-chevron-left"></i> 全连接神经网络的BP推导
     </a></div>
       <div class="post-nav-item">
-    <a href="/2017/07/27/learn-about-ivector/" rel="next" title="ivector的初步了解">
-      ivector的初步了解 <i class="fa fa-chevron-right"></i>
+    <a href="/2017/07/27/learn-about-ivector/" rel="next" title="iVector的初步了解">
+      iVector的初步了解 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -435,10 +452,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

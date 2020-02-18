@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="FFT最后一步，解释RealFFT的算法原理。RealFFT输入，对于实序列$x_n(0 \le n \le N - 1)$，以$(x_{2n }, x_{2n + 1})$的形式输入，输出为实序列FFT变换结果的前$N / 2$个点。">
-<meta name="keywords" content="ASR">
+<meta name="keywords" content="C&#x2F;C++,FFT">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RealFFT算法实现">
 <meta property="og:url" content="https://www.funcwj.cn/2017/05/28/realfft-2/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="FFT最后一步，解释RealFFT的算法原理。RealFFT输入，对于实序列$x_n(0 \le n \le N - 1)$，以$(x_{2n }, x_{2n + 1})$的形式输入，输出为实序列FFT变换结果的前$N / 2$个点。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-04T04:16:30.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:34:12.085Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RealFFT算法实现">
 <meta name="twitter:description" content="FFT最后一步，解释RealFFT的算法原理。RealFFT输入，对于实序列$x_n(0 \le n \le N - 1)$，以$(x_{2n }, x_{2n + 1})$的形式输入，输出为实序列FFT变换结果的前$N / 2$个点。">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -218,6 +223,17 @@
 
               <time title="创建时间：2017-05-28 00:21:31" itemprop="dateCreated datePublished" datetime="2017-05-28T00:21:31+08:00">2017-05-28</time>
             </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
+                  </a>
+                </span>
+            </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -293,7 +309,8 @@ X_{n-k}^* = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/C-C/" rel="tag"><i class="fa fa-tag"></i> C/C++</a>
+              <a href="/tags/FFT/" rel="tag"><i class="fa fa-tag"></i> FFT</a>
           </div>
 
         
@@ -386,10 +403,16 @@ X_{n-k}^* = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

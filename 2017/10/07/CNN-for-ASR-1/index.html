@@ -23,17 +23,17 @@
   </script>
 
   <meta name="description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
-<meta name="keywords" content="ASR">
+<meta name="keywords" content="CNN">
 <meta property="og:type" content="article">
-<meta property="og:title" content="CNN for ASR part-1">
+<meta property="og:title" content="CNN in Acoustic Model">
 <meta property="og:url" content="https://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/convolution-along-frequency.PNG">
-<meta property="og:updated_time" content="2020-02-06T16:00:30.897Z">
+<meta property="og:updated_time" content="2020-02-18T10:03:07.237Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="CNN for ASR part-1">
+<meta name="twitter:title" content="CNN in Acoustic Model">
 <meta name="twitter:description" content="ASR这块的CNN&amp;amp;RNN大约从13年开始就已经被陆续玩烂了。从CLDNN之后，最近几年貌似在深度和端到端上更加引人关注，例如DeepRNN（Highway, Residual等等）声学建模，DeepCNN的前端增强，前段时间看了一下Interspeech的论文，发现声学模型这块RNN和E2E明显成为两大热门专题。我之前看过KWS和解码的一些东西，没有过多的花精力在声学模型上。因此，也一直">
 <meta name="twitter:image" content="http://www.funcwj.cn/images/convolution-along-frequency.PNG">
 
@@ -49,7 +49,7 @@
   };
 </script>
 
-  <title>CNN for ASR part-1 | WJ's site</title>
+  <title>CNN in Acoustic Model | WJ's site</title>
   
 
 
@@ -134,14 +134,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -208,7 +213,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          CNN for ASR part-1
+          CNN in Acoustic Model
         </h1>
 
         <div class="post-meta">
@@ -219,6 +224,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-10-07 23:12:25" itemprop="dateCreated datePublished" datetime="2017-10-07T23:12:25+08:00">2017-10-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -352,7 +368,7 @@ O_i = \sigma \left(\sum_j^J I_j * W_{ji} \right)</script><p>其中$J$表示输�
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/" title="CNN for ASR part-1">https://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/</a>
+    <a href="https://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/" title="CNN in Acoustic Model">https://www.funcwj.cn/2017/10/07/CNN-for-ASR-1/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -364,7 +380,7 @@ O_i = \sigma \left(\sum_j^J I_j * W_{ji} \right)</script><p>其中$J$表示输�
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/CNN/" rel="tag"><i class="fa fa-tag"></i> CNN</a>
           </div>
 
         
@@ -377,8 +393,8 @@ O_i = \sigma \left(\sum_j^J I_j * W_{ji} \right)</script><p>其中$J$表示输�
       <i class="fa fa-chevron-left"></i> 搭建SSR服务
     </a></div>
       <div class="post-nav-item">
-    <a href="/2017/10/08/deep-rnn/" rel="next" title="Deep RNN">
-      Deep RNN <i class="fa fa-chevron-right"></i>
+    <a href="/2017/10/08/deep-rnn/" rel="next" title="Deep RNN in Acoustic Model">
+      Deep RNN in Acoustic Model <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -458,10 +474,16 @@ O_i = \sigma \left(\sum_j^J I_j * W_{ji} \right)</script><p>其中$J$表示输�
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

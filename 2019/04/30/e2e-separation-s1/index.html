@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="区别于以频域的标签（比如谱特征，时频掩码等）作为学习目标再通过iSTFT将结果转成时域信号的方法，一般会把直接以目标语音为参考，在时域上计算对应代价函数并优化网络的方法称为端到端（End-to-End，E2E）的方法。现在看来，做增强/分离的文章里面已经很少见频域+掩码预测/语谱回归的方法了，基本就是拿来做个基线的参考。而不断被提出的模型或者架构，也多是跟随这种E2E的思路，否则很难在性能上有所突">
-<meta name="keywords" content="Speech Separation">
+<meta name="keywords" content="BSS,E2E,uPIT">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Towards E2E Speech Separation">
 <meta property="og:url" content="https://www.funcwj.cn/2019/04/30/e2e-separation-s1/index.html">
@@ -31,7 +31,7 @@
 <meta property="og:description" content="区别于以频域的标签（比如谱特征，时频掩码等）作为学习目标再通过iSTFT将结果转成时域信号的方法，一般会把直接以目标语音为参考，在时域上计算对应代价函数并优化网络的方法称为端到端（End-to-End，E2E）的方法。现在看来，做增强/分离的文章里面已经很少见频域+掩码预测/语谱回归的方法了，基本就是拿来做个基线的参考。而不断被提出的模型或者架构，也多是跟随这种E2E的思路，否则很难在性能上有所突">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/misi-algothrim.png">
-<meta property="og:updated_time" content="2020-02-09T16:57:55.849Z">
+<meta property="og:updated_time" content="2020-02-18T10:19:01.445Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Towards E2E Speech Separation">
 <meta name="twitter:description" content="区别于以频域的标签（比如谱特征，时频掩码等）作为学习目标再通过iSTFT将结果转成时域信号的方法，一般会把直接以目标语音为参考，在时域上计算对应代价函数并优化网络的方法称为端到端（End-to-End，E2E）的方法。现在看来，做增强/分离的文章里面已经很少见频域+掩码预测/语谱回归的方法了，基本就是拿来做个基线的参考。而不断被提出的模型或者架构，也多是跟随这种E2E的思路，否则很难在性能上有所突">
@@ -134,14 +134,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -219,6 +224,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2019-04-30 00:50:33" itemprop="dateCreated datePublished" datetime="2019-04-30T00:50:33+08:00">2019-04-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Separation/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Separation</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -334,7 +350,9 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
+              <a href="/tags/BSS/" rel="tag"><i class="fa fa-tag"></i> BSS</a>
+              <a href="/tags/E2E/" rel="tag"><i class="fa fa-tag"></i> E2E</a>
+              <a href="/tags/uPIT/" rel="tag"><i class="fa fa-tag"></i> uPIT</a>
           </div>
 
         
@@ -428,10 +446,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

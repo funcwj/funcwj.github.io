@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="伸展树是一种二叉平衡树，普通搜索树在构造序列不是很理想的情况下，访问复杂度会退化。相比于较高级的一点平衡树，伸展树实现上还是比较简单的，只有左旋和右旋两个操作。这种数据结构的优化思路是利用数据访问的局部性，将上次访问的数据节点旋转到根节点，而不破坏平衡树的结构。">
-<meta name="keywords" content="C&#x2F;C++">
+<meta name="keywords" content="C&#x2F;C++,Code,Tree">
 <meta property="og:type" content="article">
 <meta property="og:title" content="伸展树">
 <meta property="og:url" content="https://www.funcwj.cn/2017/06/01/splay-tree/index.html">
@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://www.funcwj.cn/images/visit_node1.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/visit_node7.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/visit_node6.jpg">
-<meta property="og:updated_time" content="2020-02-06T15:38:58.003Z">
+<meta property="og:updated_time" content="2020-02-18T09:52:38.027Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="伸展树">
 <meta name="twitter:description" content="伸展树是一种二叉平衡树，普通搜索树在构造序列不是很理想的情况下，访问复杂度会退化。相比于较高级的一点平衡树，伸展树实现上还是比较简单的，只有左旋和右旋两个操作。这种数据结构的优化思路是利用数据访问的局部性，将上次访问的数据节点旋转到根节点，而不破坏平衡树的结构。">
@@ -138,14 +138,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -224,6 +229,17 @@
 
               <time title="创建时间：2017-06-01 02:32:29" itemprop="dateCreated datePublished" datetime="2017-06-01T02:32:29+08:00">2017-06-01</time>
             </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
+                  </a>
+                </span>
+            </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -299,6 +315,8 @@
           
           <div class="post-tags">
               <a href="/tags/C-C/" rel="tag"><i class="fa fa-tag"></i> C/C++</a>
+              <a href="/tags/Code/" rel="tag"><i class="fa fa-tag"></i> Code</a>
+              <a href="/tags/Tree/" rel="tag"><i class="fa fa-tag"></i> Tree</a>
           </div>
 
         
@@ -311,8 +329,8 @@
       <i class="fa fa-chevron-left"></i> STC/MLLT
     </a></div>
       <div class="post-nav-item">
-    <a href="/2017/06/01/kaldi-based-reconstruction/" rel="next" title="基于kaidi谱特征的语音重构">
-      基于kaidi谱特征的语音重构 <i class="fa fa-chevron-right"></i>
+    <a href="/2017/06/01/kaldi-based-reconstruction/" rel="next" title="基于Kaidi谱特征的语音重构">
+      基于Kaidi谱特征的语音重构 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -391,10 +409,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

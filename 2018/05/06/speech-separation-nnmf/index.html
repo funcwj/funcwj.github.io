@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="最近在看一些语音分离的文章，时间旧了，需要做一些总结。这篇文章先说一种传统而有效的方法，NMF（非负矩阵分解）。 将一个矩阵$\mathbf{V}$分解成两个非负矩阵的乘积形式，这种方法就叫非负矩阵分解，数学表达为：  \mathbf{V} \approx \mathbf{W} \mathbf{H}若$\mathbf{V} \in \mathbf{R}^{F \times T}$，那么$\math">
-<meta name="keywords" content="Speech Separation">
+<meta name="keywords" content="BSS,Single-channel,NMF">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Speech Separation - NMF methods">
 <meta property="og:url" content="https://www.funcwj.cn/2018/05/06/speech-separation-nnmf/index.html">
@@ -35,7 +35,7 @@
 <meta property="og:image" content="http://www.funcwj.cn/images/online_oracle_snmf_demo1.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/online_oracle_snmf_demo2.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/online_oracle_snmf_demo3.jpg">
-<meta property="og:updated_time" content="2018-07-08T14:09:03.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:43:03.789Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Speech Separation - NMF methods">
 <meta name="twitter:description" content="最近在看一些语音分离的文章，时间旧了，需要做一些总结。这篇文章先说一种传统而有效的方法，NMF（非负矩阵分解）。 将一个矩阵$\mathbf{V}$分解成两个非负矩阵的乘积形式，这种方法就叫非负矩阵分解，数学表达为：  \mathbf{V} \approx \mathbf{W} \mathbf{H}若$\mathbf{V} \in \mathbf{R}^{F \times T}$，那么$\math">
@@ -138,14 +138,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -223,6 +228,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-05-06 02:34:47" itemprop="dateCreated datePublished" datetime="2018-05-06T02:34:47+08:00">2018-05-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Separation/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Separation</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -366,7 +382,9 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
+              <a href="/tags/BSS/" rel="tag"><i class="fa fa-tag"></i> BSS</a>
+              <a href="/tags/Single-channel/" rel="tag"><i class="fa fa-tag"></i> Single-channel</a>
+              <a href="/tags/NMF/" rel="tag"><i class="fa fa-tag"></i> NMF</a>
           </div>
 
         
@@ -460,10 +478,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

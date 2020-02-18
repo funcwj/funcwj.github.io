@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="最近搞项目期间需要频繁的操作数据文件，之前都是用C进行操作，转到java的时候出现了一点小问题：在Android平台上进行wave的特征重构，重构的wave文件希望使用C直接输入，因为这部分代码在PC上已经验证通过了。Android的话，Application的Context本身提供了openFileInput和openFileOutput，用于创建，写入存在目录/data/data/packag">
-<meta name="keywords" content="Android">
+<meta name="keywords" content="Android,JNI">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JNI下C读写大小端和权限问题">
 <meta property="og:url" content="https://www.funcwj.cn/2017/05/28/jni-write-permission/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="最近搞项目期间需要频繁的操作数据文件，之前都是用C进行操作，转到java的时候出现了一点小问题：在Android平台上进行wave的特征重构，重构的wave文件希望使用C直接输入，因为这部分代码在PC上已经验证通过了。Android的话，Application的Context本身提供了openFileInput和openFileOutput，用于创建，写入存在目录/data/data/packag">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:17:42.820Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JNI下C读写大小端和权限问题">
 <meta name="twitter:description" content="最近搞项目期间需要频繁的操作数据文件，之前都是用C进行操作，转到java的时候出现了一点小问题：在Android平台上进行wave的特征重构，重构的wave文件希望使用C直接输入，因为这部分代码在PC上已经验证通过了。Android的话，Application的Context本身提供了openFileInput和openFileOutput，用于创建，写入存在目录/data/data/packag">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -218,6 +223,17 @@
 
               <time title="创建时间：2017-05-28 02:36:02" itemprop="dateCreated datePublished" datetime="2017-05-28T02:36:02+08:00">2017-05-28</time>
             </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">Engineering</span>
+                  </a>
+                </span>
+            </span>
 
           
             <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
@@ -288,6 +304,7 @@
           
           <div class="post-tags">
               <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+              <a href="/tags/JNI/" rel="tag"><i class="fa fa-tag"></i> JNI</a>
           </div>
 
         
@@ -380,10 +397,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

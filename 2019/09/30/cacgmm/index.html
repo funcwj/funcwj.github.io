@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="今天谈一下多通道分离算法里面一个比较成熟的系列，spatial clustering。在声源分布比较分散的情况下，这个算法有着稳定的表现，mask估计也比较准确。NTT在这块做了很多工作，在CHiME3到CHiME5的历次测评中，此算法的合理使用均拿到了十分不错的结果。因为聚类算法都是无监督的，所以相比用网络去估计mask，它的一个好处是不存在数据层面的mismatch，加上复杂度上不算高，onl">
-<meta name="keywords" content="Speech Separation,Microphone Array Processing">
+<meta name="keywords" content="CACGMM,Multi-channel">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CACGMM">
 <meta property="og:url" content="https://www.funcwj.cn/2019/09/30/cacgmm/index.html">
@@ -31,7 +31,7 @@
 <meta property="og:description" content="今天谈一下多通道分离算法里面一个比较成熟的系列，spatial clustering。在声源分布比较分散的情况下，这个算法有着稳定的表现，mask估计也比较准确。NTT在这块做了很多工作，在CHiME3到CHiME5的历次测评中，此算法的合理使用均拿到了十分不错的结果。因为聚类算法都是无监督的，所以相比用网络去估计mask，它的一个好处是不存在数据层面的mismatch，加上复杂度上不算高，onl">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://www.funcwj.cn/images/cacgmm_demo.png">
-<meta property="og:updated_time" content="2020-02-07T05:07:24.644Z">
+<meta property="og:updated_time" content="2020-02-18T10:01:58.736Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="CACGMM">
 <meta name="twitter:description" content="今天谈一下多通道分离算法里面一个比较成熟的系列，spatial clustering。在声源分布比较分散的情况下，这个算法有着稳定的表现，mask估计也比较准确。NTT在这块做了很多工作，在CHiME3到CHiME5的历次测评中，此算法的合理使用均拿到了十分不错的结果。因为聚类算法都是无监督的，所以相比用网络去估计mask，它的一个好处是不存在数据层面的mismatch，加上复杂度上不算高，onl">
@@ -134,14 +134,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -219,6 +224,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2019-09-30 13:29:44" itemprop="dateCreated datePublished" datetime="2019-09-30T13:29:44+08:00">2019-09-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Separation/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Separation</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -344,8 +360,8 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
-              <a href="/tags/Microphone-Array-Processing/" rel="tag"><i class="fa fa-tag"></i> Microphone Array Processing</a>
+              <a href="/tags/CACGMM/" rel="tag"><i class="fa fa-tag"></i> CACGMM</a>
+              <a href="/tags/Multi-channel/" rel="tag"><i class="fa fa-tag"></i> Multi-channel</a>
           </div>
 
         
@@ -439,10 +455,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

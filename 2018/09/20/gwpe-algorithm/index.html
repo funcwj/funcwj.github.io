@@ -23,17 +23,17 @@
   </script>
 
   <meta name="description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
-<meta name="keywords" content="Speech Enhancement">
+<meta name="keywords" content="WPE,Dereverberation,Multi-channel">
 <meta property="og:type" content="article">
-<meta property="og:title" content="GWPE Algorithm">
+<meta property="og:title" content="GWPE - Multi-channel Dereverberation">
 <meta property="og:url" content="https://www.funcwj.cn/2018/09/20/gwpe-algorithm/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/gwpe-demo.png">
-<meta property="og:updated_time" content="2020-02-06T16:05:18.936Z">
+<meta property="og:updated_time" content="2020-02-18T10:04:37.137Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="GWPE Algorithm">
+<meta name="twitter:title" content="GWPE - Multi-channel Dereverberation">
 <meta name="twitter:description" content="最近在一批实录的数据上尝试了一下GWPE算法，发现有一定的效果，随之研究了一下原始论文，并在这里对其原理做一下简要介绍。 GWPE算法在提出的时候，对应用的声学环境没有建立一些常见的约束条件，比如speaker数量（原始WPE算法要求single source），noise环境等等，因此在一些复杂条件下的鲁棒性会相对强一些。原论文中将一些随机向量用黑体大写字母表示，实际观测向量用小写字母，在这篇文">
 <meta name="twitter:image" content="http://www.funcwj.cn/images/gwpe-demo.png">
 
@@ -49,7 +49,7 @@
   };
 </script>
 
-  <title>GWPE Algorithm | WJ's site</title>
+  <title>GWPE - Multi-channel Dereverberation | WJ's site</title>
   
 
 
@@ -134,14 +134,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -208,7 +213,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          GWPE Algorithm
+          GWPE - Multi-channel Dereverberation
         </h1>
 
         <div class="post-meta">
@@ -219,6 +224,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-09-20 23:03:51" itemprop="dateCreated datePublished" datetime="2018-09-20T23:03:51+08:00">2018-09-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Microphone-Array-Processing/" itemprop="url" rel="index">
+                    <span itemprop="name">Microphone Array Processing</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -354,7 +370,7 @@ C_{HF}(\boldsymbol{U}_1, \dots, \boldsymbol{U}_N) = \frac{1}{N}    \sum_n \log (
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://www.funcwj.cn/2018/09/20/gwpe-algorithm/" title="GWPE Algorithm">https://www.funcwj.cn/2018/09/20/gwpe-algorithm/</a>
+    <a href="https://www.funcwj.cn/2018/09/20/gwpe-algorithm/" title="GWPE - Multi-channel Dereverberation">https://www.funcwj.cn/2018/09/20/gwpe-algorithm/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -366,7 +382,9 @@ C_{HF}(\boldsymbol{U}_1, \dots, \boldsymbol{U}_N) = \frac{1}{N}    \sum_n \log (
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Enhancement/" rel="tag"><i class="fa fa-tag"></i> Speech Enhancement</a>
+              <a href="/tags/WPE/" rel="tag"><i class="fa fa-tag"></i> WPE</a>
+              <a href="/tags/Dereverberation/" rel="tag"><i class="fa fa-tag"></i> Dereverberation</a>
+              <a href="/tags/Multi-channel/" rel="tag"><i class="fa fa-tag"></i> Multi-channel</a>
           </div>
 
         
@@ -379,8 +397,8 @@ C_{HF}(\boldsymbol{U}_1, \dots, \boldsymbol{U}_N) = \frac{1}{N}    \sum_n \log (
       <i class="fa fa-chevron-left"></i> Analysis/Synthesis window of STFT
     </a></div>
       <div class="post-nav-item">
-    <a href="/2018/09/30/omlsa-noise-reduction/" rel="next" title="OMLSA">
-      OMLSA <i class="fa fa-chevron-right"></i>
+    <a href="/2018/09/30/omlsa-noise-reduction/" rel="next" title="OMLSA - Single-channel Speech Enhancement">
+      OMLSA - Single-channel Speech Enhancement <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -460,10 +478,16 @@ C_{HF}(\boldsymbol{U}_1, \dots, \boldsymbol{U}_N) = \frac{1}{N}    \sum_n \log (
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

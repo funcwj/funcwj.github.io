@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="EM算法优化的目标是观测数据对参数$\theta$的对数似然函数，如果不存在隐变量的话，可以直接用最大似然法估计，在隐变量存在的情况下，使用EM算法进行迭代估计。本篇是当时学李航的统计学习方法写下的笔记，可能有理解不正确的地方。">
-<meta name="keywords" content="ML">
+<meta name="keywords" content="EM">
 <meta property="og:type" content="article">
 <meta property="og:title" content="EM算法">
 <meta property="og:url" content="https://www.funcwj.cn/2017/05/28/em-algorithm/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="EM算法优化的目标是观测数据对参数$\theta$的对数似然函数，如果不存在隐变量的话，可以直接用最大似然法估计，在隐变量存在的情况下，使用EM算法进行迭代估计。本篇是当时学李航的统计学习方法写下的笔记，可能有理解不正确的地方。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-04T04:14:05.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:59:07.728Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="EM算法">
 <meta name="twitter:description" content="EM算法优化的目标是观测数据对参数$\theta$的对数似然函数，如果不存在隐变量的话，可以直接用最大似然法估计，在隐变量存在的情况下，使用EM算法进行迭代估计。本篇是当时学李航的统计学习方法写下的笔记，可能有理解不正确的地方。">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -217,6 +222,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-05-28 01:36:19" itemprop="dateCreated datePublished" datetime="2017-05-28T01:36:19+08:00">2017-05-28</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -309,7 +325,7 @@ H(\Theta,\Theta^t) = \sum_x \log P(X|Y,\Theta) \cdot P(X|Y,\Theta^t)</script><h3
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ML/" rel="tag"><i class="fa fa-tag"></i> ML</a>
+              <a href="/tags/EM/" rel="tag"><i class="fa fa-tag"></i> EM</a>
           </div>
 
         
@@ -403,10 +419,16 @@ H(\Theta,\Theta^t) = \sum_x \log P(X|Y,\Theta) \cdot P(X|Y,\Theta^t)</script><h3
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="本篇主要解析Token Passing算法实现的核心过程，主要是四个步奏，配合代码理解如下，最后一部分是词网络拓展，个人感觉复杂度大于解码过程，所以放在最后交代。">
-<meta name="keywords" content="ASR">
+<meta name="keywords" content="HTK,Decoder,Code">
 <meta property="og:type" content="article">
 <meta property="og:title" content="HTK解码器部分代码走读">
 <meta property="og:url" content="https://www.funcwj.cn/2017/05/24/HTK-decoder-analysis/index.html">
@@ -40,7 +40,7 @@
 <meta property="og:image" content="http://www.funcwj.cn/images/CreateIEModels.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/ProcessCrossWordLinks.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/struction.png">
-<meta property="og:updated_time" content="2020-02-06T15:54:55.032Z">
+<meta property="og:updated_time" content="2020-02-18T09:14:42.565Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="HTK解码器部分代码走读">
 <meta name="twitter:description" content="本篇主要解析Token Passing算法实现的核心过程，主要是四个步奏，配合代码理解如下，最后一部分是词网络拓展，个人感觉复杂度大于解码过程，所以放在最后交代。">
@@ -143,14 +143,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -228,6 +233,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-05-24 23:33:41" itemprop="dateCreated datePublished" datetime="2017-05-24T23:33:41+08:00">2017-05-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -355,7 +371,9 @@
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/HTK/" rel="tag"><i class="fa fa-tag"></i> HTK</a>
+              <a href="/tags/Decoder/" rel="tag"><i class="fa fa-tag"></i> Decoder</a>
+              <a href="/tags/Code/" rel="tag"><i class="fa fa-tag"></i> Code</a>
           </div>
 
         
@@ -368,8 +386,8 @@
       <i class="fa fa-chevron-left"></i> 非阻塞套接字模型
     </a></div>
       <div class="post-nav-item">
-    <a href="/2017/05/25/meeting-ubuntu/" rel="next" title="遇见ubuntu">
-      遇见ubuntu <i class="fa fa-chevron-right"></i>
+    <a href="/2017/05/25/meeting-ubuntu/" rel="next" title="遇见Ubuntu">
+      遇见Ubuntu <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -449,10 +467,16 @@
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

@@ -23,18 +23,18 @@
   </script>
 
   <meta name="description" content="话说图像分类那边喜欢把网络往深处设计，语音这边也跟风走势，DeepRNN和DeepCNN接连出现在各种实验论文中。不过在网络成功走向深处之前，它的难点也是疑问在于，不加修正的加深网络层数，并不能获得相应的结果提升。于是各方大佬就进行了各种尝试和改良。截止目前，成功尝试包括以下三种：  Highway Network Residual Network，可以看做HN的特殊情况，ResNet在图像分类上">
-<meta name="keywords" content="ASR">
+<meta name="keywords" content="RNN">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Deep RNN">
+<meta property="og:title" content="Deep RNN in Acoustic Model">
 <meta property="og:url" content="https://www.funcwj.cn/2017/10/08/deep-rnn/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="话说图像分类那边喜欢把网络往深处设计，语音这边也跟风走势，DeepRNN和DeepCNN接连出现在各种实验论文中。不过在网络成功走向深处之前，它的难点也是疑问在于，不加修正的加深网络层数，并不能获得相应的结果提升。于是各方大佬就进行了各种尝试和改良。截止目前，成功尝试包括以下三种：  Highway Network Residual Network，可以看做HN的特殊情况，ResNet在图像分类上">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/HW-LSTM.JPG">
 <meta property="og:image" content="http://www.funcwj.cn/images/recurrent-highway-networks.JPG">
-<meta property="og:updated_time" content="2017-10-08T15:28:16.000Z">
+<meta property="og:updated_time" content="2020-02-18T10:03:37.609Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Deep RNN">
+<meta name="twitter:title" content="Deep RNN in Acoustic Model">
 <meta name="twitter:description" content="话说图像分类那边喜欢把网络往深处设计，语音这边也跟风走势，DeepRNN和DeepCNN接连出现在各种实验论文中。不过在网络成功走向深处之前，它的难点也是疑问在于，不加修正的加深网络层数，并不能获得相应的结果提升。于是各方大佬就进行了各种尝试和改良。截止目前，成功尝试包括以下三种：  Highway Network Residual Network，可以看做HN的特殊情况，ResNet在图像分类上">
 <meta name="twitter:image" content="http://www.funcwj.cn/images/HW-LSTM.JPG">
 
@@ -50,7 +50,7 @@
   };
 </script>
 
-  <title>Deep RNN | WJ's site</title>
+  <title>Deep RNN in Acoustic Model | WJ's site</title>
   
 
 
@@ -135,14 +135,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -209,7 +214,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Deep RNN
+          Deep RNN in Acoustic Model
         </h1>
 
         <div class="post-meta">
@@ -220,6 +225,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-10-08 23:24:58" itemprop="dateCreated datePublished" datetime="2017-10-08T23:24:58+08:00">2017-10-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -323,7 +339,7 @@ s_1^t  = s_{L}^{t - 1} \odot T(x_1, s_{L}^{t - 1}) + H(x_1, s_{L}^{t - 1}) \odot
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://www.funcwj.cn/2017/10/08/deep-rnn/" title="Deep RNN">https://www.funcwj.cn/2017/10/08/deep-rnn/</a>
+    <a href="https://www.funcwj.cn/2017/10/08/deep-rnn/" title="Deep RNN in Acoustic Model">https://www.funcwj.cn/2017/10/08/deep-rnn/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -335,7 +351,7 @@ s_1^t  = s_{L}^{t - 1} \odot T(x_1, s_{L}^{t - 1}) + H(x_1, s_{L}^{t - 1}) \odot
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/RNN/" rel="tag"><i class="fa fa-tag"></i> RNN</a>
           </div>
 
         
@@ -344,8 +360,8 @@ s_1^t  = s_{L}^{t - 1} \odot T(x_1, s_{L}^{t - 1}) + H(x_1, s_{L}^{t - 1}) \odot
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2017/10/07/CNN-for-ASR-1/" rel="prev" title="CNN for ASR part-1">
-      <i class="fa fa-chevron-left"></i> CNN for ASR part-1
+    <a href="/2017/10/07/CNN-for-ASR-1/" rel="prev" title="CNN in Acoustic Model">
+      <i class="fa fa-chevron-left"></i> CNN in Acoustic Model
     </a></div>
       <div class="post-nav-item">
     <a href="/2017/11/11/overview-of-beamformer/" rel="next" title="Overview of Beamformer">
@@ -429,10 +445,16 @@ s_1^t  = s_{L}^{t - 1} \odot T(x_1, s_{L}^{t - 1}) + H(x_1, s_{L}^{t - 1}) \odot
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

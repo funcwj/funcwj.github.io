@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="上一篇关于beamformer的文章应该是一年之前，刚入门的时候看了，理解有些粗浅，现在就一些细节上的问题（也是上篇文章中没有提及的地方）补充一些理解，后面实践加深会继续补充。 导向向量估计首先，导向向量$\mathbf{d}_f$的估计，$\mathbf{d}_f$描述的是声源的方位信息，对波束形成器的指向性十分关键。目前常见的方法是用协方差矩阵$\mathbf{R}_{xx}$的主特征值进行估">
-<meta name="keywords" content="Speech Enhancement">
+<meta name="keywords" content="Beamformer,Steer vector">
 <meta property="og:type" content="article">
 <meta property="og:title" content="View Beamformer Again">
 <meta property="og:url" content="https://www.funcwj.cn/2018/11/03/beamformer-details/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="上一篇关于beamformer的文章应该是一年之前，刚入门的时候看了，理解有些粗浅，现在就一些细节上的问题（也是上篇文章中没有提及的地方）补充一些理解，后面实践加深会继续补充。 导向向量估计首先，导向向量$\mathbf{d}_f$的估计，$\mathbf{d}_f$描述的是声源的方位信息，对波束形成器的指向性十分关键。目前常见的方法是用协方差矩阵$\mathbf{R}_{xx}$的主特征值进行估">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2018-12-21T19:19:01.000Z">
+<meta property="og:updated_time" content="2020-02-18T08:50:37.061Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="View Beamformer Again">
 <meta name="twitter:description" content="上一篇关于beamformer的文章应该是一年之前，刚入门的时候看了，理解有些粗浅，现在就一些细节上的问题（也是上篇文章中没有提及的地方）补充一些理解，后面实践加深会继续补充。 导向向量估计首先，导向向量$\mathbf{d}_f$的估计，$\mathbf{d}_f$描述的是声源的方位信息，对波束形成器的指向性十分关键。目前常见的方法是用协方差矩阵$\mathbf{R}_{xx}$的主特征值进行估">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -217,6 +222,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-11-03 03:04:47" itemprop="dateCreated datePublished" datetime="2018-11-03T03:04:47+08:00">2018-11-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Enhancement/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Enhancement</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -321,7 +337,8 @@ r = \arg \max_r \text{SNR}_r = \arg \max_r \left(\frac{\sum_f \mathbf{h}_{f,r}^H
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Enhancement/" rel="tag"><i class="fa fa-tag"></i> Speech Enhancement</a>
+              <a href="/tags/Beamformer/" rel="tag"><i class="fa fa-tag"></i> Beamformer</a>
+              <a href="/tags/Steer-vector/" rel="tag"><i class="fa fa-tag"></i> Steer vector</a>
           </div>
 
         
@@ -415,10 +432,16 @@ r = \arg \max_r \text{SNR}_r = \arg \max_r \left(\frac{\sum_f \mathbf{h}_{f,r}^H
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

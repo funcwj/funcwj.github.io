@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="考虑到后面的时间可能不会继续深入声学前端这块了，因此想着近期补充一些前面一直想写，没写的东西，趁着年底也算是做一些小结。这次先谈一谈前端中一个比较重要的概念，spatial。 在文献中，spatial和spectral成一对。以前做的声学模型，输入大多采用单通道，从谱上衍生的的声学特征，mfcc/fbank等等，因为这种情况下，谱上的特征区分性更加明显。但是如果可以获取麦克风阵列的多路输入，cha">
-<meta name="keywords" content="Speech Separation">
+<meta name="keywords" content="Multi-channel,Spatial">
 <meta property="og:type" content="article">
 <meta property="og:title" content="On Spatial Features">
 <meta property="og:url" content="https://www.funcwj.cn/2018/11/20/on-spatial-feature/index.html">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="http://www.funcwj.cn/images/ideal-ipd-frequency.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/df-egs01.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/msc-egs01.png">
-<meta property="og:updated_time" content="2020-02-07T05:10:42.867Z">
+<meta property="og:updated_time" content="2020-02-18T09:29:24.496Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="On Spatial Features">
 <meta name="twitter:description" content="考虑到后面的时间可能不会继续深入声学前端这块了，因此想着近期补充一些前面一直想写，没写的东西，趁着年底也算是做一些小结。这次先谈一谈前端中一个比较重要的概念，spatial。 在文献中，spatial和spectral成一对。以前做的声学模型，输入大多采用单通道，从谱上衍生的的声学特征，mfcc/fbank等等，因为这种情况下，谱上的特征区分性更加明显。但是如果可以获取麦克风阵列的多路输入，cha">
@@ -137,14 +137,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -222,6 +227,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-11-20 12:31:38" itemprop="dateCreated datePublished" datetime="2018-11-20T12:31:38+08:00">2018-11-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Separation/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Separation</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -339,7 +355,8 @@ p_{\text{cacgmm}}^k(\mathbf{z}_{tf}) = \mathcal{P}(\mathbf{z}_{tf} | k, \Theta_{
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Speech-Separation/" rel="tag"><i class="fa fa-tag"></i> Speech Separation</a>
+              <a href="/tags/Multi-channel/" rel="tag"><i class="fa fa-tag"></i> Multi-channel</a>
+              <a href="/tags/Spatial/" rel="tag"><i class="fa fa-tag"></i> Spatial</a>
           </div>
 
         
@@ -433,10 +450,16 @@ p_{\text{cacgmm}}^k(\mathbf{z}_{tf}) = \mathcal{P}(\mathbf{z}_{tf} | k, \Theta_{
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

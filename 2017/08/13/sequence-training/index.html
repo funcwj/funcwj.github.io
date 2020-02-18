@@ -23,14 +23,14 @@
   </script>
 
   <meta name="description" content="在识别任务中，我们会产生这样的一个疑问，即分类器训练的越充分，是否会带来更高的识别率？从经验上来说不能承认这一点，因为基于CE的分类只是针对frame级别的判别（误差定义在frame上）而识别的本质是一个序列mapping的任务。序列区分性训练尝试在识别序列上定义误差，从这一点上来看，更加接近于识别的最终目标，因而也会相应的获得较高的识别率。">
-<meta name="keywords" content="ASR">
+<meta name="keywords" content="Sequence Training">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Sequence Training in ASR">
 <meta property="og:url" content="https://www.funcwj.cn/2017/08/13/sequence-training/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="在识别任务中，我们会产生这样的一个疑问，即分类器训练的越充分，是否会带来更高的识别率？从经验上来说不能承认这一点，因为基于CE的分类只是针对frame级别的判别（误差定义在frame上）而识别的本质是一个序列mapping的任务。序列区分性训练尝试在识别序列上定义误差，从这一点上来看，更加接近于识别的最终目标，因而也会相应的获得较高的识别率。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2017-10-04T03:48:11.000Z">
+<meta property="og:updated_time" content="2020-02-18T09:53:09.896Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sequence Training in ASR">
 <meta name="twitter:description" content="在识别任务中，我们会产生这样的一个疑问，即分类器训练的越充分，是否会带来更高的识别率？从经验上来说不能承认这一点，因为基于CE的分类只是针对frame级别的判别（误差定义在frame上）而识别的本质是一个序列mapping的任务。序列区分性训练尝试在识别序列上定义误差，从这一点上来看，更加接近于识别的最终目标，因而也会相应的获得较高的识别率。">
@@ -132,14 +132,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -217,6 +222,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2017-08-13 20:00:09" itemprop="dateCreated datePublished" datetime="2017-08-13T20:00:09+08:00">2017-08-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -300,7 +316,7 @@ H(p, q) = - \sum_{i}p(i) \log q(i)</script><p>$p$为真实分布，$q$为网络�
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/ASR/" rel="tag"><i class="fa fa-tag"></i> ASR</a>
+              <a href="/tags/Sequence-Training/" rel="tag"><i class="fa fa-tag"></i> Sequence Training</a>
           </div>
 
         
@@ -309,8 +325,8 @@ H(p, q) = - \sum_{i}p(i) \log q(i)</script><p>$p$为真实分布，$q$为网络�
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2017/08/02/kaldi-online-decoder/" rel="prev" title="对kaldi中Online-Decoder的分析">
-      <i class="fa fa-chevron-left"></i> 对kaldi中Online-Decoder的分析
+    <a href="/2017/08/02/kaldi-online-decoder/" rel="prev" title="对Kaldi中Online-Decoder的分析">
+      <i class="fa fa-chevron-left"></i> 对Kaldi中Online-Decoder的分析
     </a></div>
       <div class="post-nav-item">
     <a href="/2017/08/17/optimization-in-sgd/" rel="next" title="梯度下降中的优化策略">
@@ -394,10 +410,16 @@ H(p, q) = - \sum_{i}p(i) \log q(i)</script><p>$p$为真实分布，$q$为网络�
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

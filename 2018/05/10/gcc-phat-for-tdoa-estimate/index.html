@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="TDOA（Time Difference of Arrival，到达时间差）是一个在语音前端信号处理中很常见的名词，和它比较相像，也同样重要的还有一个DOA（Direction of Arrival，到达方向）。在麦克风拓扑结构已知的情况下，两者可以相互转换。TDOA表示不同通道之间语音信号的延迟程度，是一个相对的概念，一般用$\tau$表示。最简单的beamforming方法delay and">
-<meta name="keywords" content="Microphone Array Processing">
+<meta name="keywords" content="GCC-PHAT,SSL,DoA">
 <meta property="og:type" content="article">
 <meta property="og:title" content="TDOA - GCC-PHAT方法">
 <meta property="og:url" content="https://www.funcwj.cn/2018/05/10/gcc-phat-for-tdoa-estimate/index.html">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://www.funcwj.cn/images/tdoa_and_doa.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/angular-spectrum-demo1.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/angular-spectrum-demo2.png">
-<meta property="og:updated_time" content="2020-02-06T16:04:30.643Z">
+<meta property="og:updated_time" content="2020-02-18T09:58:36.066Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TDOA - GCC-PHAT方法">
 <meta name="twitter:description" content="TDOA（Time Difference of Arrival，到达时间差）是一个在语音前端信号处理中很常见的名词，和它比较相像，也同样重要的还有一个DOA（Direction of Arrival，到达方向）。在麦克风拓扑结构已知的情况下，两者可以相互转换。TDOA表示不同通道之间语音信号的延迟程度，是一个相对的概念，一般用$\tau$表示。最简单的beamforming方法delay and">
@@ -136,14 +136,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -221,6 +226,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-05-10 01:09:48" itemprop="dateCreated datePublished" datetime="2018-05-10T01:09:48+08:00">2018-05-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Microphone-Array-Processing/" itemprop="url" rel="index">
+                    <span itemprop="name">Microphone Array Processing</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -328,7 +344,9 @@ R^{xy}_\tau = E[x_k y_{k + \tau}] = \sum_k x_k y_{k+\tau}</script><p>从上式�
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Microphone-Array-Processing/" rel="tag"><i class="fa fa-tag"></i> Microphone Array Processing</a>
+              <a href="/tags/GCC-PHAT/" rel="tag"><i class="fa fa-tag"></i> GCC-PHAT</a>
+              <a href="/tags/SSL/" rel="tag"><i class="fa fa-tag"></i> SSL</a>
+              <a href="/tags/DoA/" rel="tag"><i class="fa fa-tag"></i> DoA</a>
           </div>
 
         
@@ -421,10 +439,16 @@ R^{xy}_\tau = E[x_k y_{k + \tau}] = \sum_k x_k y_{k+\tau}</script><p>从上式�
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

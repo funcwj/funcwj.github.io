@@ -23,7 +23,7 @@
   </script>
 
   <meta name="description" content="接着上次GCC-PHAT算法。 GCC-PHAT只利用了两个麦克风的信息，如果麦数多于两路，就可以使用其他的一些方法进行DoA估计，比如Music，SRP算法等等，前者是一个叫做子空间方法的应用，后者这篇文章会进行介绍。 首先认识一下SRP（steered response power）的概念。SRP可以用FS（filter and sum）beamformer的输出功率来表示，如果FS表达为：">
-<meta name="keywords" content="Microphone Array Processing">
+<meta name="keywords" content="SSL,DoA,SRP-PHAT">
 <meta property="og:type" content="article">
 <meta property="og:title" content="TDOA - SRP-PHAT方法">
 <meta property="og:url" content="https://www.funcwj.cn/2018/05/29/srp-phat-for-tdoa-estimate/index.html">
@@ -32,7 +32,7 @@
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/gcc-phat-demo.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/srp-phat-demo.jpg">
-<meta property="og:updated_time" content="2020-02-06T15:36:10.467Z">
+<meta property="og:updated_time" content="2020-02-18T09:52:17.259Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TDOA - SRP-PHAT方法">
 <meta name="twitter:description" content="接着上次GCC-PHAT算法。 GCC-PHAT只利用了两个麦克风的信息，如果麦数多于两路，就可以使用其他的一些方法进行DoA估计，比如Music，SRP算法等等，前者是一个叫做子空间方法的应用，后者这篇文章会进行介绍。 首先认识一下SRP（steered response power）的概念。SRP可以用FS（filter and sum）beamformer的输出功率来表示，如果FS表达为：">
@@ -135,14 +135,19 @@
     <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
 
   </li>
-        <li class="menu-item menu-item-tags">
-
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">12</span></a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">78</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">19</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">101</span></a>
 
   </li>
       <li class="menu-item menu-item-search">
@@ -220,6 +225,17 @@
               <span class="post-meta-item-text">发表于</span>
 
               <time title="创建时间：2018-05-29 00:31:19" itemprop="dateCreated datePublished" datetime="2018-05-29T00:31:19+08:00">2018-05-29</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Microphone-Array-Processing/" itemprop="url" rel="index">
+                    <span itemprop="name">Microphone Array Processing</span>
+                  </a>
+                </span>
             </span>
 
           
@@ -321,7 +337,9 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
       <footer class="post-footer">
           
           <div class="post-tags">
-              <a href="/tags/Microphone-Array-Processing/" rel="tag"><i class="fa fa-tag"></i> Microphone Array Processing</a>
+              <a href="/tags/SSL/" rel="tag"><i class="fa fa-tag"></i> SSL</a>
+              <a href="/tags/DoA/" rel="tag"><i class="fa fa-tag"></i> DoA</a>
+              <a href="/tags/SRP-PHAT/" rel="tag"><i class="fa fa-tag"></i> SRP-PHAT</a>
           </div>
 
         
@@ -414,10 +432,16 @@ Y(\omega, t) = \sum_{m = 1}^M G(\omega)_m X_m(\omega, t) e^{-j\omega \tau_m} \ta
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">19</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-count">101</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
