@@ -22,20 +22,18 @@
     var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="kaldi中ivector的提取程序在ivector-extract和ivector-extract-online2中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。">
-<meta name="keywords" content="Code,Kaldi,iVector">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Kaldi中iVector的提取【一】">
-<meta property="og:url" content="https://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/index.html">
+  <meta name="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+<meta property="og:type" content="website">
+<meta property="og:title" content="WJ&#39;s site">
+<meta property="og:url" content="https://www.funcwj.cn/tags/Code/page/2/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
-<meta property="og:description" content="kaldi中ivector的提取程序在ivector-extract和ivector-extract-online2中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。">
+<meta property="og:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-02-18T10:04:59.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Kaldi中iVector的提取【一】">
-<meta name="twitter:description" content="kaldi中ivector的提取程序在ivector-extract和ivector-extract-online2中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。">
+<meta name="twitter:title" content="WJ&#39;s site">
+<meta name="twitter:description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
 
-<link rel="canonical" href="https://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/">
+<link rel="canonical" href="https://www.funcwj.cn/tags/Code/page/2/">
 
 
 <script id="page-configurations">
@@ -43,11 +41,11 @@
   CONFIG.page = {
     sidebar: "",
     isHome: false,
-    isPost: true
+    isPost: false
   };
 </script>
 
-  <title>Kaldi中iVector的提取【一】 | WJ's site</title>
+  <title>标签: Code | WJ's site</title>
   
 
 
@@ -189,164 +187,73 @@
           <div class="content">
             
 
-  <div class="posts-expand">
-      
   
   
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/">
-
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's site">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          Kaldi中iVector的提取【一】
+  
+  <div class="post-block">
+    <div class="posts-collapse">
+      <div class="collection-title">
+        <h1 class="collection-header">Code
+          <small>标签</small>
         </h1>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2017-07-28 23:43:29" itemprop="dateCreated datePublished" datetime="2017-07-28T23:43:29+08:00">2017-07-28</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
-                  <a href="/categories/ASR/" itemprop="url" rel="index">
-                    <span itemprop="name">ASR</span>
-                  </a>
-                </span>
-            </span>
-
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span><br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>0</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
+      </div>
 
       
-        <p>kaldi中ivector的提取程序在<code>ivector-extract</code>和<code>ivector-extract-online2</code>中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。<br><a id="more"></a></p>
-<h3 id="离线方法"><a href="#离线方法" class="headerlink" title="离线方法"></a>离线方法</h3><p>离线方法是指，在事先获取了句子的特征和高斯后验的情况下，估计出一个ivector向量。<br>对于句子 $\mathbf{U}_{T \times F} = \{\mathbf{x}_1, \mathbf{x}_2, \cdots, \mathbf{x}_T\}^T$和对应的高斯后验 $\mathbf{P}_{T \times C}= \{\mathbf{p}_1, \mathbf{p}_2, \cdots, \mathbf{p}_T\}^T$，首先得到提取ivector所需要的零阶和一阶统计量：</p>
-<script type="math/tex; mode=display">
-\gamma_c = \sum_{t = 1}^T \mathbf{p}_{t,c} \\
-\mathbf{F}_c = \sum_{t = 1}^T \mathbf{p}_{t,c} \mathbf{x}_t</script><p>存储在$\boldsymbol{\gamma}_{C \times 1}$和$\mathbf{F}_{C \times F}$中。</p>
-<p>之后利用加载好的ivector提取器，调用<code>GetIvectorDistribution</code>函数并传入上述统计量将得到的均值作为ivector。ivector提取器<code>IvectorExtractor</code>中维护ivector提取过程中说话人无关的一些量，比如$\mathbf{T}$矩阵和UBM方差等等，由于kaldi代码中变量命名和我们常见的公式中不一致，这里以论文中常见的表示为标准。比较重要的量如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Matrix&lt;<span class="keyword">double</span>&gt; &gt; M_;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;SpMatrix&lt;<span class="keyword">double</span>&gt; &gt; Sigma_inv_;</span><br><span class="line">Matrix&lt;<span class="keyword">double</span>&gt; U_; <span class="comment">//上三角作为一行</span></span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Matrix&lt;<span class="keyword">double</span>&gt; &gt; Sigma_inv_M_;</span><br></pre></td></tr></table></figure></p>
-<p>其中<code>M_</code>表示$\mathbf{T}_{C \times F \times R}$，表示为：</p>
-<script type="math/tex; mode=display">
-\mathbf{T} = [\mathbf{T}_1, \mathbf{T}_2, \cdots, \mathbf{T}_C]</script><p><code>Sigma_inv_</code>表示$\mathbf{\Sigma}^{-1}_{C \times F \times F}$，表示为：</p>
-<script type="math/tex; mode=display">
-\mathbf{\Sigma}^{-1} = [\mathbf{\Sigma}^{-1}_1, \mathbf{\Sigma}^{-1}_2, \cdots, \mathbf{\Sigma}^{-1}_C]</script><p><code>U_</code>和<code>Sigma_inv_M_</code>由上面两个变量计算得到，分别定义为$\mathbf{U}_{C \times R \times R}, \mathbf{B}_{C \times F \times R}$：</p>
-<script type="math/tex; mode=display">
-\mathbf{U} = \mathbf{T}^T \cdot \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{T}_2^T \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{T}_C^T \mathbf{\Sigma}^{-1}_C\mathbf{T}_C ] \\
-\mathbf{B} = \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{\Sigma}^{-1}_C \mathbf{T}_C]</script><p>令$\mathbf{w} = \mathbf{Q}^{-1}\mathbf{L}$，那么$\mathbf{Q}, \mathbf{L}$的计算过程如下：</p>
-<script type="math/tex; mode=display">
-\mathbf{L}_{R \times 1} = \sum_{c = 1}^C (\mathbf{B}_c^T)_{R \times F} (\mathbf{F}_c)_{F \times 1} \\
-\mathbf{Q}_{R \times R} = \sum_{c = 1}^C \mathbf{U}_c\gamma_c + \mathbf{I}</script><p>观察到$\mathbf{T}_i^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_i$为对称矩阵，所以为了存储高效，保留上三角即可，因而$\mathbf{U}_{C \times R \times R}$可以退化为$\mathbf{U}_{C \times (R + 1) / 2}$，写成：</p>
-<script type="math/tex; mode=display">
-\mathbf{U}_{C \times (R + 1) / 2} = 
-\begin{vmatrix}
-\text{Utri}(\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_1) \\
-\text{Utri}(\mathbf{T}_2^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_2) \\
-\cdots \\
-\text{Utri}(\mathbf{T}_C^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_C)
-\end{vmatrix}</script><p>那么$\mathbf{Q}_{R \times R}$可由$\mathbf{U}^T_{(R + 1) / 2 \times C} \boldsymbol{\gamma}_{C \times 1}$计算得到。</p>
-<p>上述过程对应的代码在下面的函数中实现，参数<code>mean</code>即为传入的ivector向量。<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> IvectorExtractor::GetIvectorDistribution (</span><br><span class="line">    <span class="keyword">const</span> IvectorExtractorUtteranceStats &amp;utt_stats,</span><br><span class="line">    VectorBase&lt;<span class="keyword">double</span>&gt; *mean,</span><br><span class="line">    SpMatrix&lt;<span class="keyword">double</span>&gt; *var) <span class="keyword">const</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="在线方法"><a href="#在线方法" class="headerlink" title="在线方法"></a>在线方法</h3><p>在线方法需要提供一个配置文件，这个文件使用脚本<code>prepare_online_decoding.sh</code>生成，一个典型的配置文件如下：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">--splice-config=$PREFIX/exp/nnet2_online/nnet2_ms_online/conf/splice.conf</span><br><span class="line">--cmvn-config=$PREFIX/exp/nnet2_online/nnet2_ms_online/conf/online_cmvn.conf</span><br><span class="line">--lda-matrix=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/final.mat</span><br><span class="line">--global-cmvn-stats=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/global_cmvn.stats</span><br><span class="line">--diag-ubm=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/final.dubm</span><br><span class="line">--ivector-extractor=$PREFIX/exp/nnet2_online/nnet2_ms_online/ivector_extractor/final.ie</span><br><span class="line">--num-gselect=5</span><br><span class="line">--min-post=0.025</span><br><span class="line">--posterior-scale=0.1</span><br><span class="line">--max-remembered-frames=1000</span><br><span class="line">--max-count=100</span><br></pre></td></tr></table></figure></p>
-<p>其中前六个比较熟悉，分别是拼帧配置，在线cmvn配置，LDA变换矩阵，全局cmvn统计量，UBM和训练好的ivector提取器。还有两个配置参数比较重要，分别是<code>--use_most_recent_ivector</code>和<code>--ivector_period</code>。前者默认为<code>true</code>，表示每次使用最估计的ivector，否则计算出的ivector需要缓存下来，以便获取到设定时间估计出的ivector，后者设置每多少帧估计一个ivector。</p>
-<p>这些配置文件用来初始化<code>OnlineIvectorExtractionConfig</code>，具体的对象载入在<code>OnlineIvectorExtractionInfo</code>中完成，前者作为后者初始化的参数。核心代码流程如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (; !spk2utt_reader.Done(); spk2utt_reader.Next()) &#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">string</span> spk = spk2utt_reader.Key();</span><br><span class="line">    <span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::<span class="built_in">string</span>&gt; &amp;uttlist = spk2utt_reader.Value();</span><br><span class="line">    <span class="comment">// adaptation_state是针对一个同一个说话人的，结构体成员：</span></span><br><span class="line">    <span class="comment">// OnlineCmvnState cmvn_state;  </span></span><br><span class="line">    <span class="comment">// OnlineIvectorEstimationStats ivector_stats;</span></span><br><span class="line">    <span class="function">OnlineIvectorExtractorAdaptationState <span class="title">adaptation_state</span><span class="params">(ivector_info)</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 对于同一个说话人的所有句子</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> i = <span class="number">0</span>; i &lt; uttlist.size(); i++) &#123;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">string</span> utt = uttlist[i];</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// 得到该句子的特征</span></span><br><span class="line">        <span class="keyword">const</span> Matrix&lt;BaseFloat&gt; &amp;feats = feature_reader.Value(utt);</span><br><span class="line">        <span class="function">OnlineMatrixFeature <span class="title">matrix_feature</span><span class="params">(feats)</span></span>;</span><br><span class="line">        <span class="comment">// 根据ivector_info初始化一系列具体的online特征</span></span><br><span class="line">        <span class="comment">// 比如OnlineSpliceFrames，OnlineTransform，OnlineCmvn等等</span></span><br><span class="line">        <span class="function">OnlineIvectorFeature <span class="title">ivector_feature</span><span class="params">(ivector_info, &amp;matrix_feature)</span></span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ivector_stats_和cmvn_初始化</span></span><br><span class="line">        ivector_feature.SetAdaptationState(adaptation_state);</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// repeat 默认false，ivector_period表示每多少帧取一个ivector，默认为10</span></span><br><span class="line">        int32 T = feats.NumRows(),</span><br><span class="line">            n = (repeat ? <span class="number">1</span> : ivector_config.ivector_period),</span><br><span class="line">            num_ivectors = (T + n - <span class="number">1</span>) / n;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// num_ivectors 决定一句话提取多少个ivector</span></span><br><span class="line">        Matrix&lt;BaseFloat&gt; ivectors(num_ivectors, ivector_feature.Dim());</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">for</span> (int32 i = <span class="number">0</span>; i &lt; num_ivectors; i++) &#123;</span><br><span class="line">            int32 t = i * n;</span><br><span class="line">            <span class="comment">// 对应第i个ivector</span></span><br><span class="line">            SubVector&lt;BaseFloat&gt; ivector(ivectors, i);</span><br><span class="line">            <span class="comment">// 核心过程，调用函数UpdateStatsUntilFrame</span></span><br><span class="line">            ivector_feature.GetFrame(t, &amp;ivector);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// Update diagnostics.</span></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="comment">// 更新adaptation_state</span></span><br><span class="line">        ivector_feature.GetAdaptationState(&amp;adaptation_state);</span><br><span class="line">        <span class="comment">// 完成提取</span></span><br><span class="line">        ivector_writer.Write(utt, ivectors);</span><br><span class="line">        num_done++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>上述过程的核心：<code>GetFrame</code>方法的逻辑会在kaldi中ivector的提取【二】中详细分析。</p>
-
+    <div class="collection-year">
+      <h1 class="collection-header">2017</h1>
     </div>
 
-    
-    
-    
-        
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
 
-<div>
-<ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者： </strong>WJ
-  </li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="https://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/" title="Kaldi中iVector的提取【一】">https://www.funcwj.cn/2017/07/28/kaldi-ivector-extract-1/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-</div>
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2017-05-27T23:38:26+08:00"
+              content="2017-05-27">
+          05-27
+        </time>
+      </div>
 
+      <h2 class="post-title">
+          <a class="post-title-link" href="/2017/05/27/realfft-1/" itemprop="url">
+            <span itemprop="name">RealFFT算法铺垫</span>
+          </a>
+      </h2>
 
-      <footer class="post-footer">
-          
-          <div class="post-tags">
-              <a href="/tags/Code/" rel="tag"><i class="fa fa-tag"></i> Code</a>
-              <a href="/tags/Kaldi/" rel="tag"><i class="fa fa-tag"></i> Kaldi</a>
-              <a href="/tags/iVector/" rel="tag"><i class="fa fa-tag"></i> iVector</a>
-          </div>
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item">
-    <a href="/2017/07/27/learn-about-ivector/" rel="prev" title="iVector的初步了解">
-      <i class="fa fa-chevron-left"></i> iVector的初步了解
-    </a></div>
-      <div class="post-nav-item">
-    <a href="/2017/08/02/kaldi-online-decoder/" rel="next" title="对Kaldi中Online-Decoder的分析">
-      对Kaldi中Online-Decoder的分析 <i class="fa fa-chevron-right"></i>
-    </a></div>
-    </div>
-      </footer>
-    
+    </header>
   </article>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2017-05-24T23:33:41+08:00"
+              content="2017-05-24">
+          05-24
+        </time>
+      </div>
+
+      <h2 class="post-title">
+          <a class="post-title-link" href="/2017/05/24/HTK-decoder-analysis/" itemprop="url">
+            <span itemprop="name">HTK解码器部分代码走读</span>
+          </a>
+      </h2>
+
+    </header>
+  </article>
+
+    </div>
+  </div>
   
   
   
 
-  </div>
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/tags/Code/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/tags/Code/">1</a><span class="page-number current">2</span>
+  </nav>
+
 
 
           </div>
@@ -397,7 +304,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#离线方法"><span class="nav-number">1.</span> <span class="nav-text">离线方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在线方法"><span class="nav-number">2.</span> <span class="nav-text">在线方法</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
