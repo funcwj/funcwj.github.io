@@ -30,14 +30,14 @@
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。 RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：  \mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \m">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://www.funcwj.cn/img/QRNN.jpg">
+<meta property="og:image" content="http://www.funcwj.cn/images/QRNN.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/tdnn-demo.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/fsmn.jpg">
-<meta property="og:updated_time" content="2020-02-18T10:17:39.208Z">
+<meta property="og:updated_time" content="2020-02-19T16:36:41.875Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="From Quasi-recurrent Networks">
 <meta name="twitter:description" content="最近听说上交提了一个SRNN，相比普通RNN的效率提升100+倍，这让想起了去年的QRNN[1]和SRU[2]，借这篇文章说一下关于RNN的长期依赖和计算效率的问题。 RNN的效率瓶颈在于时间轴上state的传递依赖，借鉴现在大部分DL框架api的设计，可以用下式表示：  \mathbf{y}_t, \mathbf{h}_t = \mathcal{C}(\mathbf{x}_{t - 1}, \m">
-<meta name="twitter:image" content="https://www.funcwj.cn/img/QRNN.jpg">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/QRNN.png">
 
 <link rel="canonical" href="https://www.funcwj.cn/2018/08/02/qrnn-sru/">
 
@@ -278,21 +278,21 @@
 \mathbf{G} = \sigma(\mathbf{W}_g * \mathbf{X}_s) \tag{2}</script><p>$\mathbf{X}_s$表示根据$k$拼帧的结果。需要注意的是，实现的时候，$*$用一个线性层就行了，并没有像论文中所说的卷积操作。</p>
 <p>以上是QRNN的parallel部分，不可缺少的recurrent部分，QRNN中称为“dynamic average pooling”，描述cell之间的依赖关系，这部分和LSTM &amp; GRU很像，以fo-pooling为例：</p>
 <script type="math/tex; mode=display">
-\begin{align}
+\begin{aligned}
 \mathbf{c}_t &= \mathbf{f}_t \odot \mathbf{c}_{t - 1} + (1 - \mathbf{f}_t) \odot \mathbf{z}_{t - 1} \\
 \mathbf{h}_t  &= \mathbf{o}_t \odot \mathbf{c}_t
-\end{align}</script><p>这部分的计算量集中在Hadamard Product（逐元素相乘）上，相比原始RNN/LSTM中的矩阵乘法，加上在CUDA上的优化，recurrent部分的计算效率得到了极大的提升。</p>
+\end{aligned}</script><p>这部分的计算量集中在Hadamard Product（逐元素相乘）上，相比原始RNN/LSTM中的矩阵乘法，加上在CUDA上的优化，recurrent部分的计算效率得到了极大的提升。</p>
 <p>总结一下QRNN的设计思路，将门状态的计算独立到循环逻辑之外，仅仅保留cell的循环依赖，宏观上就是高计算量的部分parallel进行，小计算量的部分串行计算。这时候再看论文中的QRNN的Block diagrams就很容易体会其中的思想了：</p>
-<p><img src="/img/QRNN.jpg" ,="" width="300"></p>
+<p><img src="http://www.funcwj.cn/images/QRNN.png" ,="" width="300"></p>
 <p>红色区域表示$(2)$式的计算，一次将门状态计算完毕，之后用”dynamic average pooling“层计算recurrent依赖。</p>
 <p>SRU和QRNN中$k = 1$的结构十分相似，思路上也都是解除门状态的依赖关系。不添加highway的情况下只设置一个forget门，网络结构写成：</p>
 <script type="math/tex; mode=display">
-\begin{align}
+\begin{aligned}
 \hat{\mathbf{x}_t} &= \mathbf{W}_x \mathbf{x}_t \\
  \mathbf{f}_t  &= \sigma(\mathbf{W}_f \mathbf{x}_t  + \mathbf{b}_f) \\
  \mathbf{c}_t &= \mathbf{f}_t \odot \mathbf{c}_{t - 1} + (1 - \mathbf{f}_t) \odot \hat{\mathbf{x}_t}  \\
  \mathbf{h}_t  &= g(\mathbf{c}_t)
- \end{align}</script><p>可以看出$\mathbf{f}_t$的计算逻辑也是基于当前输入的一个线性层激活层。</p>
+ \end{aligned}</script><p>可以看出$\mathbf{f}_t$的计算逻辑也是基于当前输入的一个线性层激活层。</p>
 <p><a href="https://arxiv.org/abs/1807.02291" target="_blank" rel="noopener">SRNN</a>（Spliced Recurrent Neural Networks）的逻辑是把长序列划分成若干的等长的子序列，再将每个子序列的最后一个状态视为新的序列进行划分，直到新形成的序列长度不能被继续划分为子序列为止。循环过程在每个子序列中进行，并用每个子序列的最后一个状态值初始化父序列的state。由于同一层的每个子序列之间被强制分割，断开了时间上的依赖性，因此可以并行计算状态值。</p>
 <p>根据论文中的结论，如果处理的序列足够长，SRNN的效率提升是惊人的。 当然是否所有任务都满足训练序列越长越好，还需要具体的实验对比。在ASR任务中，我本人并不倾向于选择过长的序列进行训练。</p>
 <p>最后我再说一下TDNN[4]和FSMN[5]，这是很早以前我就想写一点的东西。这两种结构在ASR中被广泛应用，对识别率的提升做出了巨大的贡献。由于本质上他们是前馈结构，因此，在训练和推断的效率上相比RNN具有巨大的优势，对于ASR这种在实际应用中对实时要求较高的任务上，这一点就显得尤为重要。</p>
