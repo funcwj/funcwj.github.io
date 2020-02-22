@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 3.8.0">
+<meta name="generator" content="Hexo 4.2.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png">
@@ -14,26 +14,26 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="可能是C/C++用的多一些，看代码的时候总是习惯先看内存分配和管理部分的内容，看完之后心里才觉得踏实。之前看HTK源码的时候发现HTK中实现了一个简单的内存管理器（MemHeap），当时好奇，看了一下实现思路，非常朴素。">
-<meta name="keywords" content="C&#x2F;C++">
+  <meta name="description" content="可能是C&#x2F;C++用的多一些，看代码的时候总是习惯先看内存分配和管理部分的内容，看完之后心里才觉得踏实。之前看HTK源码的时候发现HTK中实现了一个简单的内存管理器（MemHeap），当时好奇，看了一下实现思路，非常朴素。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="一个简单内存管理器的实现">
 <meta property="og:url" content="https://www.funcwj.cn/2017/06/05/htk-memheap-demo/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
-<meta property="og:description" content="可能是C/C++用的多一些，看代码的时候总是习惯先看内存分配和管理部分的内容，看完之后心里才觉得踏实。之前看HTK源码的时候发现HTK中实现了一个简单的内存管理器（MemHeap），当时好奇，看了一下实现思路，非常朴素。">
-<meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-02-18T09:57:49.497Z">
+<meta property="og:description" content="可能是C&#x2F;C++用的多一些，看代码的时候总是习惯先看内存分配和管理部分的内容，看完之后心里才觉得踏实。之前看HTK源码的时候发现HTK中实现了一个简单的内存管理器（MemHeap），当时好奇，看了一下实现思路，非常朴素。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-06-04T17:36:09.000Z">
+<meta property="article:modified_time" content="2020-02-19T17:51:13.412Z">
+<meta property="article:author" content="WJ">
+<meta property="article:tag" content="C&#x2F;C++">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="一个简单内存管理器的实现">
-<meta name="twitter:description" content="可能是C/C++用的多一些，看代码的时候总是习惯先看内存分配和管理部分的内容，看完之后心里才觉得踏实。之前看HTK源码的时候发现HTK中实现了一个简单的内存管理器（MemHeap），当时好奇，看了一下实现思路，非常朴素。">
 
 <link rel="canonical" href="https://www.funcwj.cn/2017/06/05/htk-memheap-demo/">
 
@@ -161,7 +161,9 @@
     <i class="fa fa-search"></i>
   </span>
   <div class="search-input-container">
-    <input autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="搜索..." spellcheck="false" type="search" class="search-input">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
   </div>
   <span class="popup-btn-close">
     <i class="fa fa-times-circle"></i>
@@ -178,7 +180,7 @@
 
     
 
-  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewbox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a>
+  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
 
 
     <main class="main">
@@ -193,16 +195,16 @@
       
   
   
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2017/06/05/htk-memheap-demo/">
 
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.JPG">
       <meta itemprop="name" content="WJ">
       <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
     </span>
 
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
       <meta itemprop="name" content="WJ's site">
     </span>
       <header class="post-header">
@@ -224,34 +226,27 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/Engineering/" itemprop="url" rel="index">
                     <span itemprop="name">Engineering</span>
                   </a>
                 </span>
             </span>
 
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span><br>
+          <br>
             <span class="post-meta-item" title="本文字数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>0</span>
+              <span>3.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>3 分钟</span>
             </span>
 
         </div>
@@ -271,10 +266,8 @@
 </ul>
 <p>我尝试实现了第一种。本身是想在移植的时候替换的，后来发现没必要就没有使用。</p>
 <p>第一种的实现逻辑就是先一次性申请一大块内存区域，称为一个Block，它的大小常常是注册分配单元的整数倍。Block通过一个单向链表管理，当有申请请求到来时，找出第一个非空Block的第一个非空区域首地址返回，并标记该区域已经分配。释放的话，只需要简单的将该标记置为未分配即可。如果没有非空Block，就在链表尾部继续分配一块。因为指针本身就是无符号的地址，所以释放内存时，定位需要“释放”的空间在哪个Block里面就很简单，只要依次和当前Block的首地址比较一下地址关系即可。</p>
-<p>Demo提供如下接口：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// init and free</span></span><br><span class="line"><span class="function">Segment *<span class="title">NewSegment</span><span class="params">(<span class="keyword">int</span> segLen, <span class="keyword">int</span> eleLen)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeSegment</span><span class="params">(Segment *seg)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// alloc/free items</span></span><br><span class="line"><span class="function">byte* <span class="title">NewItem</span><span class="params">(Segment *seg)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeItem</span><span class="params">(Segment *seg, byte *addr)</span></span>;</span><br></pre></td></tr></table></figure></p>
-<p>其中<code>Segment</code>定义如下<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> byte;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">MemHeap</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> segLen;</span><br><span class="line">    <span class="keyword">int</span> eleLen;</span><br><span class="line">    <span class="keyword">int</span> newIdx;</span><br><span class="line">    byte *vis;      <span class="comment">// 采用bit标记</span></span><br><span class="line">    byte *data;     <span class="comment">// 空间地址</span></span><br><span class="line">    MemHeap *next;  <span class="comment">// next指针</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>由于分配，释放的逻辑在上面已经说明了，代码也很简单，下面直接给出简单实现了。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Segment *<span class="title">NewSegment</span><span class="params">(<span class="keyword">int</span> segLen, <span class="keyword">int</span> eleLen)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *seg = (Segment*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Segment));</span><br><span class="line">    seg-&gt;segLen = segLen;</span><br><span class="line">    seg-&gt;eleLen = eleLen;</span><br><span class="line">    seg-&gt;newIdx = <span class="number">0</span>;</span><br><span class="line">    seg-&gt;vis = (byte*)<span class="built_in">malloc</span>(segLen / <span class="number">8</span> + <span class="number">1</span>);</span><br><span class="line">    seg-&gt;data = (byte*)<span class="built_in">malloc</span>(segLen * eleLen);</span><br><span class="line">    seg-&gt;next = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="built_in">memset</span>(seg-&gt;vis, <span class="number">0</span>, segLen / <span class="number">8</span> + <span class="number">1</span>);</span><br><span class="line">    <span class="built_in">memset</span>(seg-&gt;data, <span class="number">0</span>, segLen * eleLen);</span><br><span class="line">    <span class="keyword">return</span> seg;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeSegment</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur, *next;</span><br><span class="line">    <span class="keyword">for</span>(cur = seg; cur != <span class="literal">NULL</span>; cur = next)</span><br><span class="line">    &#123;</span><br><span class="line">        next = cur-&gt;next;</span><br><span class="line">        <span class="keyword">if</span>(cur-&gt;vis)</span><br><span class="line">            <span class="built_in">free</span>(cur-&gt;vis);</span><br><span class="line">        <span class="keyword">if</span>(cur-&gt;data)</span><br><span class="line">            <span class="built_in">free</span>(cur-&gt;data);</span><br><span class="line">        <span class="built_in">free</span>(cur);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SetSegVisited</span><span class="params">(Segment *seg, <span class="keyword">int</span> pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(pos &gt;= seg-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"SetSegVisited: Accessed out of index: %d/%d\n"</span>, pos, seg-&gt;segLen);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    seg-&gt;vis[pos &gt;&gt; <span class="number">3</span>] |= <span class="number">1</span> &lt;&lt; (<span class="number">7</span> - (pos &amp; <span class="number">7</span>));</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SetSegUnvisited</span><span class="params">(Segment *seg, <span class="keyword">int</span> pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(pos &gt;= seg-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"SetSegUnvisited: Accessed out of index: %d/%d\n"</span>, pos, seg-&gt;segLen);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    seg-&gt;vis[pos &gt;&gt; <span class="number">3</span>] &amp;= ~(<span class="number">1</span> &lt;&lt; (<span class="number">7</span> - (pos &amp; <span class="number">7</span>)));</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">IsSegVisited</span><span class="params">(Segment *seg, <span class="keyword">int</span> pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(pos &gt;= seg-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"IsSegVisited: Accessed out of index: %d/%d\n"</span>, pos, seg-&gt;segLen);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (seg-&gt;vis[pos &gt;&gt; <span class="number">3</span>] &amp; (<span class="number">1</span> &lt;&lt; (<span class="number">7</span> - (pos &amp; <span class="number">7</span>)))) != <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">IsSegUsedUp</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> seg-&gt;newIdx == seg-&gt;segLen;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Segment* <span class="title">GetNextSeg</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur, *pre;</span><br><span class="line">    <span class="keyword">for</span>(cur = seg; cur != <span class="literal">NULL</span>; cur = cur-&gt;next)</span><br><span class="line">    &#123;</span><br><span class="line">        pre = cur;</span><br><span class="line">        <span class="keyword">if</span>(!IsSegUsedUp(cur))</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(cur == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        pre-&gt;next = NewSegment(pre-&gt;segLen, pre-&gt;eleLen);</span><br><span class="line">        <span class="keyword">return</span> pre-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> cur;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">byte* <span class="title">NewItem</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur = GetNextSeg(seg);</span><br><span class="line"></span><br><span class="line">    byte *p = cur-&gt;data + cur-&gt;eleLen * cur-&gt;newIdx;</span><br><span class="line">    SetSegVisited(cur, cur-&gt;newIdx);</span><br><span class="line">    <span class="comment">// update newIdx</span></span><br><span class="line">    <span class="keyword">while</span>(cur-&gt;newIdx &lt; cur-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!IsSegVisited(cur, cur-&gt;newIdx))</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        cur-&gt;newIdx++;</span><br><span class="line">    &#125;</span><br><span class="line">    ShowSegUse(seg);</span><br><span class="line">    <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Segment* <span class="title">LocateSeg</span><span class="params">(Segment *seg, byte *addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur;</span><br><span class="line">    <span class="keyword">for</span>(cur = seg; cur != <span class="literal">NULL</span>; cur = cur-&gt;next)</span><br><span class="line">        <span class="keyword">if</span>(addr - cur-&gt;data &lt; cur-&gt;segLen * cur-&gt;eleLen)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">return</span> cur;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeItem</span><span class="params">(Segment *seg, byte *addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur = LocateSeg(seg, addr);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> pos = (addr - cur-&gt;data) / cur-&gt;eleLen;</span><br><span class="line"></span><br><span class="line">    SetSegUnvisited(cur, pos);</span><br><span class="line">    <span class="comment">// update newIdx</span></span><br><span class="line">    <span class="keyword">if</span>(pos &lt; cur-&gt;newIdx)</span><br><span class="line">        cur-&gt;newIdx = pos;</span><br><span class="line">    ShowSegUse(seg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>我觉得这么做在某些情况下还是有较高的可用性的，比如你要（前提是用C）维护一个巨大的Hash表，二叉树，链表，有向图等这些结构的时候，在节点的分配阶段，你不需要注意太多，但是当销毁这些巨大的结构时，特别容易出现所谓的double free错误。有可能在之前动态更新结构的时候，某个节点已经被释放或者重置为<code>NULL</code>了，所以，每次释放，你可能都要无尽的重复着内存合法性的判断。当然，如果用的不是C语言，比如C++的话，我觉得完全没有必要，一方面，析构函数本身就可以处理内存释放的工作，其次就是，数据结构没必要从头自己实现了。</p>
+<p>Demo提供如下接口：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// init and free</span></span><br><span class="line"><span class="function">Segment *<span class="title">NewSegment</span><span class="params">(<span class="keyword">int</span> segLen, <span class="keyword">int</span> eleLen)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeSegment</span><span class="params">(Segment *seg)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// alloc/free items</span></span><br><span class="line"><span class="function"><span class="keyword">byte</span>* <span class="title">NewItem</span><span class="params">(Segment *seg)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeItem</span><span class="params">(Segment *seg, <span class="keyword">byte</span> *addr)</span></span>;</span><br></pre></td></tr></table></figure></p>
+<p>其中<code>Segment</code>定义如下<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> <span class="keyword">byte</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">MemHeap</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="keyword">int</span> segLen;</span><br><span class="line">    <span class="keyword">int</span> eleLen;</span><br><span class="line">    <span class="keyword">int</span> newIdx;</span><br><span class="line">    <span class="keyword">byte</span> *vis;      <span class="comment">// 采用bit标记</span></span><br><span class="line">    <span class="keyword">byte</span> *data;     <span class="comment">// 空间地址</span></span><br><span class="line">    MemHeap *next;  <span class="comment">// next指针</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><br>由于分配，释放的逻辑在上面已经说明了，代码也很简单，下面直接给出简单实现了。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Segment *<span class="title">NewSegment</span><span class="params">(<span class="keyword">int</span> segLen, <span class="keyword">int</span> eleLen)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *seg = (Segment*)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(Segment));</span><br><span class="line">    seg-&gt;segLen = segLen;</span><br><span class="line">    seg-&gt;eleLen = eleLen;</span><br><span class="line">    seg-&gt;newIdx = <span class="number">0</span>;</span><br><span class="line">    seg-&gt;vis = (<span class="keyword">byte</span>*)<span class="built_in">malloc</span>(segLen / <span class="number">8</span> + <span class="number">1</span>);</span><br><span class="line">    seg-&gt;data = (<span class="keyword">byte</span>*)<span class="built_in">malloc</span>(segLen * eleLen);</span><br><span class="line">    seg-&gt;next = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="built_in">memset</span>(seg-&gt;vis, <span class="number">0</span>, segLen / <span class="number">8</span> + <span class="number">1</span>);</span><br><span class="line">    <span class="built_in">memset</span>(seg-&gt;data, <span class="number">0</span>, segLen * eleLen);</span><br><span class="line">    <span class="keyword">return</span> seg;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeSegment</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur, *next;</span><br><span class="line">    <span class="keyword">for</span>(cur = seg; cur != <span class="literal">NULL</span>; cur = next)</span><br><span class="line">    &#123;</span><br><span class="line">        next = cur-&gt;next;</span><br><span class="line">        <span class="keyword">if</span>(cur-&gt;vis)</span><br><span class="line">            <span class="built_in">free</span>(cur-&gt;vis);</span><br><span class="line">        <span class="keyword">if</span>(cur-&gt;data)</span><br><span class="line">            <span class="built_in">free</span>(cur-&gt;data);</span><br><span class="line">        <span class="built_in">free</span>(cur);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SetSegVisited</span><span class="params">(Segment *seg, <span class="keyword">int</span> pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(pos &gt;= seg-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"SetSegVisited: Accessed out of index: %d/%d\n"</span>, pos, seg-&gt;segLen);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    seg-&gt;vis[pos &gt;&gt; <span class="number">3</span>] |= <span class="number">1</span> &lt;&lt; (<span class="number">7</span> - (pos &amp; <span class="number">7</span>));</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">SetSegUnvisited</span><span class="params">(Segment *seg, <span class="keyword">int</span> pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(pos &gt;= seg-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"SetSegUnvisited: Accessed out of index: %d/%d\n"</span>, pos, seg-&gt;segLen);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    seg-&gt;vis[pos &gt;&gt; <span class="number">3</span>] &amp;= ~(<span class="number">1</span> &lt;&lt; (<span class="number">7</span> - (pos &amp; <span class="number">7</span>)));</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">IsSegVisited</span><span class="params">(Segment *seg, <span class="keyword">int</span> pos)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(pos &gt;= seg-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"IsSegVisited: Accessed out of index: %d/%d\n"</span>, pos, seg-&gt;segLen);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (seg-&gt;vis[pos &gt;&gt; <span class="number">3</span>] &amp; (<span class="number">1</span> &lt;&lt; (<span class="number">7</span> - (pos &amp; <span class="number">7</span>)))) != <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">IsSegUsedUp</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> seg-&gt;newIdx == seg-&gt;segLen;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Segment* <span class="title">GetNextSeg</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur, *pre;</span><br><span class="line">    <span class="keyword">for</span>(cur = seg; cur != <span class="literal">NULL</span>; cur = cur-&gt;next)</span><br><span class="line">    &#123;</span><br><span class="line">        pre = cur;</span><br><span class="line">        <span class="keyword">if</span>(!IsSegUsedUp(cur))</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(cur == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        pre-&gt;next = NewSegment(pre-&gt;segLen, pre-&gt;eleLen);</span><br><span class="line">        <span class="keyword">return</span> pre-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> cur;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">byte</span>* <span class="title">NewItem</span><span class="params">(Segment *seg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur = GetNextSeg(seg);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">byte</span> *p = cur-&gt;data + cur-&gt;eleLen * cur-&gt;newIdx;</span><br><span class="line">    SetSegVisited(cur, cur-&gt;newIdx);</span><br><span class="line">    <span class="comment">// update newIdx</span></span><br><span class="line">    <span class="keyword">while</span>(cur-&gt;newIdx &lt; cur-&gt;segLen)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!IsSegVisited(cur, cur-&gt;newIdx))</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        cur-&gt;newIdx++;</span><br><span class="line">    &#125;</span><br><span class="line">    ShowSegUse(seg);</span><br><span class="line">    <span class="keyword">return</span> p;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">Segment* <span class="title">LocateSeg</span><span class="params">(Segment *seg, <span class="keyword">byte</span> *addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur;</span><br><span class="line">    <span class="keyword">for</span>(cur = seg; cur != <span class="literal">NULL</span>; cur = cur-&gt;next)</span><br><span class="line">        <span class="keyword">if</span>(addr - cur-&gt;data &lt; cur-&gt;segLen * cur-&gt;eleLen)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">return</span> cur;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">FreeItem</span><span class="params">(Segment *seg, <span class="keyword">byte</span> *addr)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Segment *cur = LocateSeg(seg, addr);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> pos = (addr - cur-&gt;data) / cur-&gt;eleLen;</span><br><span class="line"></span><br><span class="line">    SetSegUnvisited(cur, pos);</span><br><span class="line">    <span class="comment">// update newIdx</span></span><br><span class="line">    <span class="keyword">if</span>(pos &lt; cur-&gt;newIdx)</span><br><span class="line">        cur-&gt;newIdx = pos;</span><br><span class="line">    ShowSegUse(seg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>我觉得这么做在某些情况下还是有较高的可用性的，比如你要（前提是用C）维护一个巨大的Hash表，二叉树，链表，有向图等这些结构的时候，在节点的分配阶段，你不需要注意太多，但是当销毁这些巨大的结构时，特别容易出现所谓的double free错误。有可能在之前动态更新结构的时候，某个节点已经被释放或者重置为<code>NULL</code>了，所以，每次释放，你可能都要无尽的重复着内存合法性的判断。当然，如果用的不是C语言，比如C++的话，我觉得完全没有必要，一方面，析构函数本身就可以处理内存释放的工作，其次就是，数据结构没必要从头自己实现了。</p>
 
     </div>
 
@@ -381,8 +374,9 @@
       <!--/noindex-->
 
       <div class="site-overview-wrap sidebar-panel">
-        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="WJ" src="/uploads/avatar.JPG">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="WJ"
+      src="/uploads/avatar.JPG">
   <p class="site-author-name" itemprop="name">WJ</p>
   <div class="site-description" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</div>
 </div>
@@ -411,16 +405,16 @@
 </div>
   <div class="links-of-author motion-element">
       <span class="links-of-author-item">
-        <a href="https://github.com/funcwj" title="GitHub → https://github.com/funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+        <a href="https://github.com/funcwj" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
       </span>
       <span class="links-of-author-item">
         <a href="mailto:funcwj@foxmail.com" title="E-Mail → mailto:funcwj@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
       </span>
       <span class="links-of-author-item">
-        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https://www.zhihu.com/people/jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
+        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
       </span>
       <span class="links-of-author-item">
-        <a href="https://www.funcwj.cn" title="Jianwu → https://www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
+        <a href="https://www.funcwj.cn/" title="Jianwu → https:&#x2F;&#x2F;www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
       </span>
   </div>
 
@@ -432,100 +426,100 @@
     </div>
     <ul class="links-of-blogroll-list">
         <li class="links-of-blogroll-item">
-          <a href="http://wangbaiyuan.cn" title="http://wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
+          <a href="http://wangbaiyuan.cn/" title="http:&#x2F;&#x2F;wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://jcf94.com" title="http://jcf94.com" rel="noopener" target="_blank">jcf94</a>
+          <a href="http://jcf94.com/" title="http:&#x2F;&#x2F;jcf94.com" rel="noopener" target="_blank">jcf94</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://hujian.website" title="https://hujian.website" rel="noopener" target="_blank">hijkzzz</a>
+          <a href="https://hujian.website/" title="https:&#x2F;&#x2F;hujian.website" rel="noopener" target="_blank">hijkzzz</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.cnblogs.com/xingshansi/" title="https://www.cnblogs.com/xingshansi/" rel="noopener" target="_blank">桂的blog</a>
+          <a href="https://www.cnblogs.com/xingshansi/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xingshansi&#x2F;" rel="noopener" target="_blank">桂的blog</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" rel="noopener" target="_blank">DASP</a>
+          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http:&#x2F;&#x2F;homes.esat.kuleuven.be&#x2F;~dspuser&#x2F;dasp&#x2F;index.html" rel="noopener" target="_blank">DASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https://ccrma.stanford.edu/~jos/sasp/sasp.html" rel="noopener" target="_blank">SASP</a>
+          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https:&#x2F;&#x2F;ccrma.stanford.edu&#x2F;~jos&#x2F;sasp&#x2F;sasp.html" rel="noopener" target="_blank">SASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
+          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https:&#x2F;&#x2F;link.springer.com&#x2F;book&#x2F;10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.audiolabs-erlangen.de/home" title="https://www.audiolabs-erlangen.de/home" rel="noopener" target="_blank">AudioLibs</a>
+          <a href="https://www.audiolabs-erlangen.de/home" title="https:&#x2F;&#x2F;www.audiolabs-erlangen.de&#x2F;home" rel="noopener" target="_blank">AudioLibs</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://arxiv.org/list/eess.AS/recent" title="https://arxiv.org/list/eess.AS/recent" rel="noopener" target="_blank">ASLP Arxiv</a>
+          <a href="https://arxiv.org/list/eess.AS/recent" title="https:&#x2F;&#x2F;arxiv.org&#x2F;list&#x2F;eess.AS&#x2F;recent" rel="noopener" target="_blank">ASLP Arxiv</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
+          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https:&#x2F;&#x2F;signalprocessingsociety.org&#x2F;publications-resources&#x2F;ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" rel="noopener" target="_blank">ISCA</a>
+          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https:&#x2F;&#x2F;www.isca-speech.org&#x2F;iscaweb&#x2F;index.php&#x2F;archive&#x2F;online-archive" rel="noopener" target="_blank">ISCA</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https://ai.google/research/pubs/?area=SpeechProcessing" rel="noopener" target="_blank">Google</a>
+          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https:&#x2F;&#x2F;ai.google&#x2F;research&#x2F;pubs&#x2F;?area&#x3D;SpeechProcessing" rel="noopener" target="_blank">Google</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www-i6.informatik.rwth-aachen.de" title="http://www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
+          <a href="http://www-i6.informatik.rwth-aachen.de/" title="http:&#x2F;&#x2F;www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" rel="noopener" target="_blank">MERL</a>
+          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http:&#x2F;&#x2F;www.merl.com&#x2F;publications&#x2F;?ystart&#x3D;1991&amp;yend&#x3D;2019&amp;sa&#x3D;on" rel="noopener" target="_blank">MERL</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" rel="noopener" target="_blank">Paderborn</a>
+          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https:&#x2F;&#x2F;ei.uni-paderborn.de&#x2F;en&#x2F;nt&#x2F;research-mission&#x2F;publications&#x2F;" rel="noopener" target="_blank">Paderborn</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
+          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http:&#x2F;&#x2F;bio-asplab.citi.sinica.edu.tw&#x2F;p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http://www.kecl.ntt.co.jp/english/index.html" rel="noopener" target="_blank">NTT-CSL</a>
+          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http:&#x2F;&#x2F;www.kecl.ntt.co.jp&#x2F;english&#x2F;index.html" rel="noopener" target="_blank">NTT-CSL</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.irisa.fr/metiss/ozerov/" title="http://www.irisa.fr/metiss/ozerov/" rel="noopener" target="_blank">Alexey Ozerov</a>
+          <a href="http://www.irisa.fr/metiss/ozerov/" title="http:&#x2F;&#x2F;www.irisa.fr&#x2F;metiss&#x2F;ozerov&#x2F;" rel="noopener" target="_blank">Alexey Ozerov</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://israelcohen.com" title="https://israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
+          <a href="https://israelcohen.com/" title="https:&#x2F;&#x2F;israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.eng.biu.ac.il/gannot/" title="http://www.eng.biu.ac.il/gannot/" rel="noopener" target="_blank">Sharon Gannot</a>
+          <a href="http://www.eng.biu.ac.il/gannot/" title="http:&#x2F;&#x2F;www.eng.biu.ac.il&#x2F;gannot&#x2F;" rel="noopener" target="_blank">Sharon Gannot</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.danielpovey.com" title="http://www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
+          <a href="http://www.danielpovey.com/" title="http:&#x2F;&#x2F;www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
+          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http:&#x2F;&#x2F;web.cse.ohio-state.edu&#x2F;~wang.77&#x2F;pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https://sites.google.com/view/shinjiwatanabe/publications" rel="noopener" target="_blank">Shinji Watanabe</a>
+          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;shinjiwatanabe&#x2F;publications" rel="noopener" target="_blank">Shinji Watanabe</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/site/dongyu888/" title="https://sites.google.com/site/dongyu888/" rel="noopener" target="_blank">Dong Yu</a>
+          <a href="https://sites.google.com/site/dongyu888/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;dongyu888&#x2F;" rel="noopener" target="_blank">Dong Yu</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
+          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https:&#x2F;&#x2F;www.citi.sinica.edu.tw&#x2F;pages&#x2F;yu.tsao&#x2F;publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/site/tsainath/" title="https://sites.google.com/site/tsainath/" rel="noopener" target="_blank">Tara N.</a>
+          <a href="https://sites.google.com/site/tsainath/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;tsainath&#x2F;" rel="noopener" target="_blank">Tara N.</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.jonathanleroux.org" title="http://www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
+          <a href="http://www.jonathanleroux.org/" title="http:&#x2F;&#x2F;www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https://speechlab.sjtu.edu.cn/members/yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
+          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https:&#x2F;&#x2F;speechlab.sjtu.edu.cn&#x2F;members&#x2F;yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https://www.microsoft.com/en-us/research/people/tayoshio/" rel="noopener" target="_blank">Takuya Yoshioka</a>
+          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https:&#x2F;&#x2F;www.microsoft.com&#x2F;en-us&#x2F;research&#x2F;people&#x2F;tayoshio&#x2F;" rel="noopener" target="_blank">Takuya Yoshioka</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
+          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https:&#x2F;&#x2F;scholar.google.com&#x2F;citations?user&#x3D;QG8aWfIAAAAJ&amp;hl&#x3D;zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/view/xuyong/home" title="https://sites.google.com/view/xuyong/home" rel="noopener" target="_blank">Yong Xu</a>
+          <a href="https://sites.google.com/view/xuyong/home" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;xuyong&#x2F;home" rel="noopener" target="_blank">Yong Xu</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http://staff.ustc.edu.cn/~jundu/Publications.html" rel="noopener" target="_blank">Jun Du</a>
+          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http:&#x2F;&#x2F;staff.ustc.edu.cn&#x2F;~jundu&#x2F;Publications.html" rel="noopener" target="_blank">Jun Du</a>
         </li>
     </ul>
   </div>
@@ -547,7 +541,7 @@
     <footer class="footer">
       <div class="footer-inner">
         
-  <div class="beian"><a href="http://www.beian.miit.gov.cn" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
   </div>
 
 <div class="copyright">
@@ -562,17 +556,17 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">360k</span>
+    <span title="站点总字数">321k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">5:28</span>
+    <span title="站点阅读时长">4:52</span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>
   <span class="post-meta-divider">|</span>
-  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
   </div>
 
         
@@ -612,9 +606,17 @@
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
-<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
 <script src="/js/schemes/pisces.js"></script>
+
+
 <script src="/js/next-boot.js"></script>
+
 
 
 
@@ -623,7 +625,9 @@
 
 
 
-  <script src="/js/local-search.js"></script>
+  
+<script src="/js/local-search.js"></script>
+
 
 
 

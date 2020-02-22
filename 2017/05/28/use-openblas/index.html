@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 3.8.0">
+<meta name="generator" content="Hexo 4.2.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png">
@@ -14,28 +14,31 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="当时是需要对一个终端耗时任务做矩阵加速，我选了OpenBlas开源方案，事实证明在ARM平台上能用的开源的方案中，OpenBlas做的算相当可以的了。以后有时间还想自己实现一下矩阵乘法的加速。做优化这个过程还是很吸引人的。">
-<meta name="keywords" content="C&#x2F;C++,Android,JNI,OpenBlas">
 <meta property="og:type" content="article">
 <meta property="og:title" content="使用OpenBlas优化">
 <meta property="og:url" content="https://www.funcwj.cn/2017/05/28/use-openblas/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="当时是需要对一个终端耗时任务做矩阵加速，我选了OpenBlas开源方案，事实证明在ARM平台上能用的开源的方案中，OpenBlas做的算相当可以的了。以后有时间还想自己实现一下矩阵乘法的加速。做优化这个过程还是很吸引人的。">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/android-openblas.png">
 <meta property="og:image" content="http://www.funcwj.cn/images/openblas-error.png">
-<meta property="og:updated_time" content="2020-02-18T09:51:38.577Z">
+<meta property="article:published_time" content="2017-05-27T18:13:57.000Z">
+<meta property="article:modified_time" content="2020-02-19T17:10:53.155Z">
+<meta property="article:author" content="WJ">
+<meta property="article:tag" content="C&#x2F;C++">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="JNI">
+<meta property="article:tag" content="OpenBlas">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="使用OpenBlas优化">
-<meta name="twitter:description" content="当时是需要对一个终端耗时任务做矩阵加速，我选了OpenBlas开源方案，事实证明在ARM平台上能用的开源的方案中，OpenBlas做的算相当可以的了。以后有时间还想自己实现一下矩阵乘法的加速。做优化这个过程还是很吸引人的。">
 <meta name="twitter:image" content="http://www.funcwj.cn/images/android-openblas.png">
 
 <link rel="canonical" href="https://www.funcwj.cn/2017/05/28/use-openblas/">
@@ -164,7 +167,9 @@
     <i class="fa fa-search"></i>
   </span>
   <div class="search-input-container">
-    <input autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="搜索..." spellcheck="false" type="search" class="search-input">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
   </div>
   <span class="popup-btn-close">
     <i class="fa fa-times-circle"></i>
@@ -181,7 +186,7 @@
 
     
 
-  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewbox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a>
+  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
 
 
     <main class="main">
@@ -196,16 +201,16 @@
       
   
   
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2017/05/28/use-openblas/">
 
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.JPG">
       <meta itemprop="name" content="WJ">
       <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
     </span>
 
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
       <meta itemprop="name" content="WJ's site">
     </span>
       <header class="post-header">
@@ -227,34 +232,27 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/Engineering/" itemprop="url" rel="index">
                     <span itemprop="name">Engineering</span>
                   </a>
                 </span>
             </span>
 
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span><br>
+          <br>
             <span class="post-meta-item" title="本文字数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>0</span>
+              <span>2.5k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -266,18 +264,26 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>当时是需要对一个终端耗时任务做矩阵加速，我选了OpenBlas开源方案，事实证明在ARM平台上能用的开源的方案中，OpenBlas做的算相当可以的了。以后有时间还想自己实现一下矩阵乘法的加速。做优化这个过程还是很吸引人的。<br><a id="more"></a></p>
+        <p>当时是需要对一个终端耗时任务做矩阵加速，我选了OpenBlas开源方案，事实证明在ARM平台上能用的开源的方案中，OpenBlas做的算相当可以的了。以后有时间还想自己实现一下矩阵乘法的加速。做优化这个过程还是很吸引人的。</p>
+<a id="more"></a>
+
 <h3 id="编译准备"><a href="#编译准备" class="headerlink" title="编译准备"></a>编译准备</h3><p>原理还是一样，首先在本地配置安卓的交叉编译环境，编译出OpenBlas的静态库，用于JNI链接。github上有详细的教程，包括我后来的一个编译错误也是在上面找到了解决方案。详见 <a href="https://github.com/xianyi/OpenBLAS/wiki/How-to-build-OpenBLAS-for-Android" target="_blank" rel="noopener">How to build OpenBLAS for Android</a></p>
 <p>注意教程上建议在做交叉编译之前先构建一个标准工具链，其实就是交叉编译的环境，第一次我图省事只配置了<code>arm-linux-androideabi-gcc</code>的环境变量，<code>make</code>的时候就会出现找不到头文件的错误。</p>
-<p>NDK已经提供了一个脚本做这件事情，在路径<code>/Users/wujian/Library/Android/sdk/ndk-bundle/build/tools</code>下有一个<code>make_standalone_toolchain.py</code>脚本，通过执行命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make_standalone_toolchain.py --arch arm --api 21 --install-dir /dst/path/</span><br></pre></td></tr></table></figure></p>
+<p>NDK已经提供了一个脚本做这件事情，在路径<code>/Users/wujian/Library/Android/sdk/ndk-bundle/build/tools</code>下有一个<code>make_standalone_toolchain.py</code>脚本，通过执行命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make_standalone_toolchain.py --arch arm --api 21 --install-dir &#x2F;dst&#x2F;path&#x2F;</span><br></pre></td></tr></table></figure>
 <p>之后我们对这个文件夹配置环境变量即可。</p>
-<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>不需要Fortran，针对ARMv7<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make TARGET=ARMV7 HOSTCC=gcc CC=arm-linux-androideabi-gcc NOFORTRAN=1 &gt; make.log</span><br></pre></td></tr></table></figure></p>
-<p>编译时间不长，几分钟吧，编译完会提示安装，执行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make PREFIX=/dst/path install</span><br></pre></td></tr></table></figure></p>
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>不需要Fortran，针对ARMv7</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make TARGET&#x3D;ARMV7 HOSTCC&#x3D;gcc CC&#x3D;arm-linux-androideabi-gcc NOFORTRAN&#x3D;1 &gt; make.log</span><br></pre></td></tr></table></figure>
+<p>编译时间不长，几分钟吧，编译完会提示安装，执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">make PREFIX&#x3D;&#x2F;dst&#x2F;path install</span><br></pre></td></tr></table></figure>
 <p>最终安装目录下存在头文件和静态库，这个就是我们最终需要的。<br><img src="http://www.funcwj.cn/images/android-openblas.png" width="400"></p>
-<h3 id="AS中使用JNI链接"><a href="#AS中使用JNI链接" class="headerlink" title="AS中使用JNI链接"></a>AS中使用JNI链接</h3><p>这里有个很恶心的问题，目前我没有找到gradle中如何配置链接静态库的方法，只能借助Android.mk文件，但是由于AS默认是执行gradle的编译过程，所以需要在build.gradle中禁用JNI(否则他还是那么一套规程)，之后手动配置build的过程。<br>禁用AS默认的JNI目录：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sourceSets.main &#123;</span><br><span class="line">    jni.srcDirs = []</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>配置编译规则<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">task ndkBuild(type: org.gradle.api.tasks.Exec, description: &quot;compile JNI by NDK&quot;) &#123;</span><br><span class="line">    commandLine &quot;/Users/wujian/Library/Android/sdk/ndk-bundle/ndk-build&quot;,</span><br><span class="line">            &apos;NDK_PROJECT_PATH=build/intermediates/ndk&apos;,</span><br><span class="line">            &apos;NDK_LIBS_OUT=src/main/jniLibs&apos;,</span><br><span class="line">            &apos;APP_BUILD_SCRIPT=src/main/jni/Android.mk&apos;,</span><br><span class="line">            &apos;NDK_APPLICATION_MK=src/main/jni/Application.mk&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">tasks.withType(JavaCompile) &#123;</span><br><span class="line">    compileTask-&gt;compileTask.dependsOn ndkBuild</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>同时在JNI目录下加入Android.mk和Application.mk文件，如下，具体含义之后再解释，这里先说明配置过程。Android.mk中详细说明了OpenBlas静态库的连接过程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_PATH := $(call my-dir)</span><br><span class="line"></span><br><span class="line">include $(CLEAR_VARS)</span><br><span class="line">LOCAL_MODULE := blas</span><br><span class="line">LOCAL_SRC_FILES := libopenblas_armv7p-r0.2.20.dev.a</span><br><span class="line">include $(PREBUILT_STATIC_LIBRARY)</span><br><span class="line"></span><br><span class="line">include $(CLEAR_VARS)</span><br><span class="line"></span><br><span class="line">LOCAL_MODULE    := math</span><br><span class="line">LOCAL_SRC_FILES := impl.cpp</span><br><span class="line"></span><br><span class="line">ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)</span><br><span class="line">    LOCAL_CFLAGS += -mhard-float -D_NDK_MATH_NO_SOFTFP=1</span><br><span class="line">    LOCAL_LDFLAGS += -Wl,--no-warn-mismatch -lm_hard</span><br><span class="line">	LOCAL_STATIC_LIBRARIES := blas</span><br><span class="line">endif</span><br><span class="line"></span><br><span class="line">LOCAL_CFLAGS += -DUSE_JNI</span><br><span class="line">LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE</span><br><span class="line">LOCAL_LDLIBS += -llog</span><br><span class="line"></span><br><span class="line">include $(BUILD_SHARED_LIBRARY)</span><br></pre></td></tr></table></figure></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">APP_ABI := armeabi-v7a</span><br><span class="line">APP_PLATFORM := android-19</span><br></pre></td></tr></table></figure>
+<h3 id="AS中使用JNI链接"><a href="#AS中使用JNI链接" class="headerlink" title="AS中使用JNI链接"></a>AS中使用JNI链接</h3><p>这里有个很恶心的问题，目前我没有找到gradle中如何配置链接静态库的方法，只能借助Android.mk文件，但是由于AS默认是执行gradle的编译过程，所以需要在build.gradle中禁用JNI(否则他还是那么一套规程)，之后手动配置build的过程。<br>禁用AS默认的JNI目录：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sourceSets.main &#123;</span><br><span class="line">    jni.srcDirs &#x3D; []</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>配置编译规则</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">task ndkBuild(type: org.gradle.api.tasks.Exec, description: &quot;compile JNI by NDK&quot;) &#123;</span><br><span class="line">    commandLine &quot;&#x2F;Users&#x2F;wujian&#x2F;Library&#x2F;Android&#x2F;sdk&#x2F;ndk-bundle&#x2F;ndk-build&quot;,</span><br><span class="line">            &#39;NDK_PROJECT_PATH&#x3D;build&#x2F;intermediates&#x2F;ndk&#39;,</span><br><span class="line">            &#39;NDK_LIBS_OUT&#x3D;src&#x2F;main&#x2F;jniLibs&#39;,</span><br><span class="line">            &#39;APP_BUILD_SCRIPT&#x3D;src&#x2F;main&#x2F;jni&#x2F;Android.mk&#39;,</span><br><span class="line">            &#39;NDK_APPLICATION_MK&#x3D;src&#x2F;main&#x2F;jni&#x2F;Application.mk&#39;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">tasks.withType(JavaCompile) &#123;</span><br><span class="line">    compileTask-&gt;compileTask.dependsOn ndkBuild</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>同时在JNI目录下加入Android.mk和Application.mk文件，如下，具体含义之后再解释，这里先说明配置过程。Android.mk中详细说明了OpenBlas静态库的连接过程。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">LOCAL_PATH :&#x3D; $(call my-dir)</span><br><span class="line"></span><br><span class="line">include $(CLEAR_VARS)</span><br><span class="line">LOCAL_MODULE :&#x3D; blas</span><br><span class="line">LOCAL_SRC_FILES :&#x3D; libopenblas_armv7p-r0.2.20.dev.a</span><br><span class="line">include $(PREBUILT_STATIC_LIBRARY)</span><br><span class="line"></span><br><span class="line">include $(CLEAR_VARS)</span><br><span class="line"></span><br><span class="line">LOCAL_MODULE    :&#x3D; math</span><br><span class="line">LOCAL_SRC_FILES :&#x3D; impl.cpp</span><br><span class="line"></span><br><span class="line">ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)</span><br><span class="line">    LOCAL_CFLAGS +&#x3D; -mhard-float -D_NDK_MATH_NO_SOFTFP&#x3D;1</span><br><span class="line">    LOCAL_LDFLAGS +&#x3D; -Wl,--no-warn-mismatch -lm_hard</span><br><span class="line">	LOCAL_STATIC_LIBRARIES :&#x3D; blas</span><br><span class="line">endif</span><br><span class="line"></span><br><span class="line">LOCAL_CFLAGS +&#x3D; -DUSE_JNI</span><br><span class="line">LOCAL_CFLAGS +&#x3D; -DPFFFT_SIMD_DISABLE</span><br><span class="line">LOCAL_LDLIBS +&#x3D; -llog</span><br><span class="line"></span><br><span class="line">include $(BUILD_SHARED_LIBRARY)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">APP_ABI :&#x3D; armeabi-v7a</span><br><span class="line">APP_PLATFORM :&#x3D; android-19</span><br></pre></td></tr></table></figure>
 <p>再把OpenBlas的头文件加入JNI目录下，include使用即可，接下来就可以make了。</p>
 <h3 id="后续问题"><a href="#后续问题" class="headerlink" title="后续问题"></a>后续问题</h3><p>我两次做静态链接时都出现了如下问题，第一次是使用NENO库：<br><img src="http://www.funcwj.cn/images/openblas-error.png" width="400"></p>
 <p>后来在网上查了许久，是编译选项和ABI的问题，这在<a href="https://github.com/xianyi/OpenBLAS/wiki/How-to-build-OpenBLAS-for-Android" target="_blank" rel="noopener">How to build OpenBLAS for Android</a>最后一部分也说明了。我采取的是第二种方案，因为这里是使用Android.mk来配置编译规则的。</p>
@@ -391,8 +397,9 @@
       <!--/noindex-->
 
       <div class="site-overview-wrap sidebar-panel">
-        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="WJ" src="/uploads/avatar.JPG">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="WJ"
+      src="/uploads/avatar.JPG">
   <p class="site-author-name" itemprop="name">WJ</p>
   <div class="site-description" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</div>
 </div>
@@ -421,16 +428,16 @@
 </div>
   <div class="links-of-author motion-element">
       <span class="links-of-author-item">
-        <a href="https://github.com/funcwj" title="GitHub → https://github.com/funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+        <a href="https://github.com/funcwj" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
       </span>
       <span class="links-of-author-item">
         <a href="mailto:funcwj@foxmail.com" title="E-Mail → mailto:funcwj@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
       </span>
       <span class="links-of-author-item">
-        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https://www.zhihu.com/people/jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
+        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
       </span>
       <span class="links-of-author-item">
-        <a href="https://www.funcwj.cn" title="Jianwu → https://www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
+        <a href="https://www.funcwj.cn/" title="Jianwu → https:&#x2F;&#x2F;www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
       </span>
   </div>
 
@@ -442,100 +449,100 @@
     </div>
     <ul class="links-of-blogroll-list">
         <li class="links-of-blogroll-item">
-          <a href="http://wangbaiyuan.cn" title="http://wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
+          <a href="http://wangbaiyuan.cn/" title="http:&#x2F;&#x2F;wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://jcf94.com" title="http://jcf94.com" rel="noopener" target="_blank">jcf94</a>
+          <a href="http://jcf94.com/" title="http:&#x2F;&#x2F;jcf94.com" rel="noopener" target="_blank">jcf94</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://hujian.website" title="https://hujian.website" rel="noopener" target="_blank">hijkzzz</a>
+          <a href="https://hujian.website/" title="https:&#x2F;&#x2F;hujian.website" rel="noopener" target="_blank">hijkzzz</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.cnblogs.com/xingshansi/" title="https://www.cnblogs.com/xingshansi/" rel="noopener" target="_blank">桂的blog</a>
+          <a href="https://www.cnblogs.com/xingshansi/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xingshansi&#x2F;" rel="noopener" target="_blank">桂的blog</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" rel="noopener" target="_blank">DASP</a>
+          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http:&#x2F;&#x2F;homes.esat.kuleuven.be&#x2F;~dspuser&#x2F;dasp&#x2F;index.html" rel="noopener" target="_blank">DASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https://ccrma.stanford.edu/~jos/sasp/sasp.html" rel="noopener" target="_blank">SASP</a>
+          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https:&#x2F;&#x2F;ccrma.stanford.edu&#x2F;~jos&#x2F;sasp&#x2F;sasp.html" rel="noopener" target="_blank">SASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
+          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https:&#x2F;&#x2F;link.springer.com&#x2F;book&#x2F;10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.audiolabs-erlangen.de/home" title="https://www.audiolabs-erlangen.de/home" rel="noopener" target="_blank">AudioLibs</a>
+          <a href="https://www.audiolabs-erlangen.de/home" title="https:&#x2F;&#x2F;www.audiolabs-erlangen.de&#x2F;home" rel="noopener" target="_blank">AudioLibs</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://arxiv.org/list/eess.AS/recent" title="https://arxiv.org/list/eess.AS/recent" rel="noopener" target="_blank">ASLP Arxiv</a>
+          <a href="https://arxiv.org/list/eess.AS/recent" title="https:&#x2F;&#x2F;arxiv.org&#x2F;list&#x2F;eess.AS&#x2F;recent" rel="noopener" target="_blank">ASLP Arxiv</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
+          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https:&#x2F;&#x2F;signalprocessingsociety.org&#x2F;publications-resources&#x2F;ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" rel="noopener" target="_blank">ISCA</a>
+          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https:&#x2F;&#x2F;www.isca-speech.org&#x2F;iscaweb&#x2F;index.php&#x2F;archive&#x2F;online-archive" rel="noopener" target="_blank">ISCA</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https://ai.google/research/pubs/?area=SpeechProcessing" rel="noopener" target="_blank">Google</a>
+          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https:&#x2F;&#x2F;ai.google&#x2F;research&#x2F;pubs&#x2F;?area&#x3D;SpeechProcessing" rel="noopener" target="_blank">Google</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www-i6.informatik.rwth-aachen.de" title="http://www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
+          <a href="http://www-i6.informatik.rwth-aachen.de/" title="http:&#x2F;&#x2F;www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" rel="noopener" target="_blank">MERL</a>
+          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http:&#x2F;&#x2F;www.merl.com&#x2F;publications&#x2F;?ystart&#x3D;1991&amp;yend&#x3D;2019&amp;sa&#x3D;on" rel="noopener" target="_blank">MERL</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" rel="noopener" target="_blank">Paderborn</a>
+          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https:&#x2F;&#x2F;ei.uni-paderborn.de&#x2F;en&#x2F;nt&#x2F;research-mission&#x2F;publications&#x2F;" rel="noopener" target="_blank">Paderborn</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
+          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http:&#x2F;&#x2F;bio-asplab.citi.sinica.edu.tw&#x2F;p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http://www.kecl.ntt.co.jp/english/index.html" rel="noopener" target="_blank">NTT-CSL</a>
+          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http:&#x2F;&#x2F;www.kecl.ntt.co.jp&#x2F;english&#x2F;index.html" rel="noopener" target="_blank">NTT-CSL</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.irisa.fr/metiss/ozerov/" title="http://www.irisa.fr/metiss/ozerov/" rel="noopener" target="_blank">Alexey Ozerov</a>
+          <a href="http://www.irisa.fr/metiss/ozerov/" title="http:&#x2F;&#x2F;www.irisa.fr&#x2F;metiss&#x2F;ozerov&#x2F;" rel="noopener" target="_blank">Alexey Ozerov</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://israelcohen.com" title="https://israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
+          <a href="https://israelcohen.com/" title="https:&#x2F;&#x2F;israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.eng.biu.ac.il/gannot/" title="http://www.eng.biu.ac.il/gannot/" rel="noopener" target="_blank">Sharon Gannot</a>
+          <a href="http://www.eng.biu.ac.il/gannot/" title="http:&#x2F;&#x2F;www.eng.biu.ac.il&#x2F;gannot&#x2F;" rel="noopener" target="_blank">Sharon Gannot</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.danielpovey.com" title="http://www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
+          <a href="http://www.danielpovey.com/" title="http:&#x2F;&#x2F;www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
+          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http:&#x2F;&#x2F;web.cse.ohio-state.edu&#x2F;~wang.77&#x2F;pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https://sites.google.com/view/shinjiwatanabe/publications" rel="noopener" target="_blank">Shinji Watanabe</a>
+          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;shinjiwatanabe&#x2F;publications" rel="noopener" target="_blank">Shinji Watanabe</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/site/dongyu888/" title="https://sites.google.com/site/dongyu888/" rel="noopener" target="_blank">Dong Yu</a>
+          <a href="https://sites.google.com/site/dongyu888/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;dongyu888&#x2F;" rel="noopener" target="_blank">Dong Yu</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
+          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https:&#x2F;&#x2F;www.citi.sinica.edu.tw&#x2F;pages&#x2F;yu.tsao&#x2F;publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/site/tsainath/" title="https://sites.google.com/site/tsainath/" rel="noopener" target="_blank">Tara N.</a>
+          <a href="https://sites.google.com/site/tsainath/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;tsainath&#x2F;" rel="noopener" target="_blank">Tara N.</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.jonathanleroux.org" title="http://www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
+          <a href="http://www.jonathanleroux.org/" title="http:&#x2F;&#x2F;www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https://speechlab.sjtu.edu.cn/members/yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
+          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https:&#x2F;&#x2F;speechlab.sjtu.edu.cn&#x2F;members&#x2F;yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https://www.microsoft.com/en-us/research/people/tayoshio/" rel="noopener" target="_blank">Takuya Yoshioka</a>
+          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https:&#x2F;&#x2F;www.microsoft.com&#x2F;en-us&#x2F;research&#x2F;people&#x2F;tayoshio&#x2F;" rel="noopener" target="_blank">Takuya Yoshioka</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
+          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https:&#x2F;&#x2F;scholar.google.com&#x2F;citations?user&#x3D;QG8aWfIAAAAJ&amp;hl&#x3D;zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/view/xuyong/home" title="https://sites.google.com/view/xuyong/home" rel="noopener" target="_blank">Yong Xu</a>
+          <a href="https://sites.google.com/view/xuyong/home" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;xuyong&#x2F;home" rel="noopener" target="_blank">Yong Xu</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http://staff.ustc.edu.cn/~jundu/Publications.html" rel="noopener" target="_blank">Jun Du</a>
+          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http:&#x2F;&#x2F;staff.ustc.edu.cn&#x2F;~jundu&#x2F;Publications.html" rel="noopener" target="_blank">Jun Du</a>
         </li>
     </ul>
   </div>
@@ -557,7 +564,7 @@
     <footer class="footer">
       <div class="footer-inner">
         
-  <div class="beian"><a href="http://www.beian.miit.gov.cn" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
   </div>
 
 <div class="copyright">
@@ -572,17 +579,17 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">360k</span>
+    <span title="站点总字数">321k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">5:28</span>
+    <span title="站点阅读时长">4:52</span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>
   <span class="post-meta-divider">|</span>
-  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
   </div>
 
         
@@ -622,9 +629,17 @@
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
-<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
 <script src="/js/schemes/pisces.js"></script>
+
+
 <script src="/js/next-boot.js"></script>
+
 
 
 
@@ -633,7 +648,9 @@
 
 
 
-  <script src="/js/local-search.js"></script>
+  
+<script src="/js/local-search.js"></script>
+
 
 
 

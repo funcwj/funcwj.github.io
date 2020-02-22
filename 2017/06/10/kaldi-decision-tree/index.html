@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 3.8.0">
+<meta name="generator" content="Hexo 4.2.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png">
@@ -14,27 +14,28 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="三音素状态绑定这部分通过以下四个步骤完成，分别对应acc-tree-stats，cluster-phones，compile-question，build-tree：  统计量累计 音素聚类 问题集生成 决策树构建">
-<meta name="keywords" content="Tree,Kaldi">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Kaldi中的决策树">
 <meta property="og:url" content="https://www.funcwj.cn/2017/06/10/kaldi-decision-tree/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="三音素状态绑定这部分通过以下四个步骤完成，分别对应acc-tree-stats，cluster-phones，compile-question，build-tree：  统计量累计 音素聚类 问题集生成 决策树构建">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/question_demo.png">
-<meta property="og:updated_time" content="2020-02-18T09:57:18.285Z">
+<meta property="article:published_time" content="2017-06-10T14:08:45.000Z">
+<meta property="article:modified_time" content="2020-02-19T17:51:23.562Z">
+<meta property="article:author" content="WJ">
+<meta property="article:tag" content="Tree">
+<meta property="article:tag" content="Kaldi">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Kaldi中的决策树">
-<meta name="twitter:description" content="三音素状态绑定这部分通过以下四个步骤完成，分别对应acc-tree-stats，cluster-phones，compile-question，build-tree：  统计量累计 音素聚类 问题集生成 决策树构建">
 <meta name="twitter:image" content="http://www.funcwj.cn/images/question_demo.png">
 
 <link rel="canonical" href="https://www.funcwj.cn/2017/06/10/kaldi-decision-tree/">
@@ -163,7 +164,9 @@
     <i class="fa fa-search"></i>
   </span>
   <div class="search-input-container">
-    <input autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="搜索..." spellcheck="false" type="search" class="search-input">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
   </div>
   <span class="popup-btn-close">
     <i class="fa fa-times-circle"></i>
@@ -180,7 +183,7 @@
 
     
 
-  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewbox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"/><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"/><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"/></svg></a>
+  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
 
 
     <main class="main">
@@ -195,16 +198,16 @@
       
   
   
-  <article itemscope="" itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2017/06/10/kaldi-decision-tree/">
 
-    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.JPG">
       <meta itemprop="name" content="WJ">
       <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
     </span>
 
-    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
       <meta itemprop="name" content="WJ's site">
     </span>
       <header class="post-header">
@@ -226,34 +229,27 @@
                 <i class="fa fa-folder-o"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
                   <a href="/categories/ASR/" itemprop="url" rel="index">
                     <span itemprop="name">ASR</span>
                   </a>
                 </span>
             </span>
 
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span><br>
+          <br>
             <span class="post-meta-item" title="本文字数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>0</span>
+              <span>10k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>9 分钟</span>
             </span>
 
         </div>
@@ -274,9 +270,7 @@
 </ol>
 <a id="more"></a>
 <h2 id="统计量累计"><a href="#统计量累计" class="headerlink" title="统计量累计"></a>统计量累计</h2><p>累计统计量在<code>acc-tree-stats.cc</code>中的<code>AccumulateTreeStats</code>函数中完成，接受一个transition model，特征序列和对应的对齐信息，输出统计量表示。</p>
-<p>统计量的结构表示：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果EventKeyType表示position信息，那么EventValueType表示该位置上的phone_id</span></span><br><span class="line"><span class="comment">// 如果EventKeyType为kPdfClass，那么EventValueType为对应的pdf_class</span></span><br><span class="line"><span class="comment">// pair&lt;EventKeyType, EventValueType&gt;组合为一个vector表示成一个EventType</span></span><br><span class="line"><span class="comment">// 一般单因素，1+1，三因素，3+1</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::pair&lt;EventKeyType, EventValueType&gt; &gt; EventType;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">map</span>&lt;EventType, GaussClusterable*&gt; tree_stats;</span><br></pre></td></tr></table></figure></p>
-<p>统计量的具体信息在<code>GaussClusterable</code>里面，里面维护的是特征计数，特征向量和其平方和：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// n</span></span><br><span class="line"><span class="keyword">double</span> count_;</span><br><span class="line"><span class="comment">// stats_(0) =&gt; X1 + X2 + ... + Xn</span></span><br><span class="line"><span class="comment">// stats_(1) =&gt; X1^2 + X2^2 + ... + Xn^2</span></span><br><span class="line">Matrix&lt;<span class="keyword">double</span>&gt; stats_;</span><br></pre></td></tr></table></figure></p>
-<p>在后续聚类操作的时候，用到了一个<code>Objf</code>函数计算似然值，函数逻辑是：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">BaseFloat GaussClusterable::Objf() <span class="keyword">const</span> &#123;</span><br><span class="line">    <span class="keyword">size_t</span> dim = stats_.NumCols();</span><br><span class="line">    Vector&lt;<span class="keyword">double</span>&gt; vars(dim);</span><br><span class="line">    <span class="keyword">double</span> objf_per_frame = <span class="number">0.0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> d = <span class="number">0</span>; d &lt; dim; d++) &#123;</span><br><span class="line">        <span class="comment">// default var_floor_ = 0.01</span></span><br><span class="line">        double mean(stats_(0, d) / count_), var = stats_(1, d) / count_ - mean * mean, </span><br><span class="line">        floored_var = <span class="built_in">std</span>::max(var, var_floor_);</span><br><span class="line">        vars(d) = floored_var;</span><br><span class="line">        objf_per_frame += <span class="number">-0.5</span> * var / floored_var;</span><br><span class="line">    &#125;</span><br><span class="line">    objf_per_frame += <span class="number">-0.5</span> * (vars.SumLog() + M_LOG_2PI * dim);</span><br><span class="line">    <span class="keyword">return</span> objf_per_frame * count_;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>统计量的结构表示：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果EventKeyType表示position信息，那么EventValueType表示该位置上的phone_id</span></span><br><span class="line"><span class="comment">// 如果EventKeyType为kPdfClass，那么EventValueType为对应的pdf_class</span></span><br><span class="line"><span class="comment">// pair&lt;EventKeyType, EventValueType&gt;组合为一个vector表示成一个EventType</span></span><br><span class="line"><span class="comment">// 一般单因素，1+1，三因素，3+1</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;<span class="built_in">std</span>::pair&lt;EventKeyType, EventValueType&gt; &gt; EventType;</span><br><span class="line"><span class="built_in">std</span>::<span class="built_in">map</span>&lt;EventType, GaussClusterable*&gt; tree_stats;</span><br></pre></td></tr></table></figure><br>统计量的具体信息在<code>GaussClusterable</code>里面，里面维护的是特征计数，特征向量和其平方和：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// n</span></span><br><span class="line"><span class="keyword">double</span> count_;</span><br><span class="line"><span class="comment">// stats_(0) =&gt; X1 + X2 + ... + Xn</span></span><br><span class="line"><span class="comment">// stats_(1) =&gt; X1^2 + X2^2 + ... + Xn^2</span></span><br><span class="line">Matrix&lt;<span class="keyword">double</span>&gt; stats_;</span><br></pre></td></tr></table></figure><br>在后续聚类操作的时候，用到了一个<code>Objf</code>函数计算似然值，函数逻辑是：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BaseFloat <span class="title">GaussClusterable::Objf</span><span class="params">()</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">size_t</span> dim = stats_.NumCols();</span><br><span class="line">    <span class="function">Vector&lt;<span class="keyword">double</span>&gt; <span class="title">vars</span><span class="params">(dim)</span></span>;</span><br><span class="line">    <span class="keyword">double</span> objf_per_frame = <span class="number">0.0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">size_t</span> d = <span class="number">0</span>; d &lt; dim; d++) &#123;</span><br><span class="line">        <span class="comment">// default var_floor_ = 0.01</span></span><br><span class="line">        double mean(stats_(0, d) / count_), var = stats_(1, d) / count_ - mean * mean, </span><br><span class="line">        floored_var = <span class="built_in">std</span>::<span class="built_in">max</span>(var, var_floor_);</span><br><span class="line">        vars(d) = floored_var;</span><br><span class="line">        objf_per_frame += <span class="number">-0.5</span> * var / floored_var;</span><br><span class="line">    &#125;</span><br><span class="line">    objf_per_frame += <span class="number">-0.5</span> * (vars.SumLog() + M_LOG_2PI * dim);</span><br><span class="line">    <span class="keyword">return</span> objf_per_frame * count_;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
 <p>和推出来的似然函数保持一致：</p>
 <script type="math/tex; mode=display">
 L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s^t\right] \\
@@ -290,25 +284,19 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
 <ul>
 <li>把对齐信息按照音素划分，一行tid对应一个音素，存在<code>std::vector&lt;std::vector&lt;int32&gt; &gt;</code>里面。<br>注意一下，原始的对齐信息默认应该是进行过重新排序的，就是将自环放在出环之后。</li>
 </ul>
-<p>比如对于Transition Model如下（部分）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">Transition-state 1: phone = SIL hmm-state = 0 pdf = 0</span><br><span class="line"> Transition-id = 1 p = 0.952097 [self-loop]</span><br><span class="line"> Transition-id = 2 p = 0.01 [0 -&gt; 1]</span><br><span class="line"> Transition-id = 3 p = 0.01 [0 -&gt; 2]</span><br><span class="line"> Transition-id = 4 p = 0.0279074 [0 -&gt; 3]</span><br><span class="line">Transition-state 2: phone = SIL hmm-state = 1 pdf = 1</span><br><span class="line"> Transition-id = 5 p = 0.921613 [self-loop]</span><br><span class="line"> Transition-id = 6 p = 0.0531309 [1 -&gt; 2]</span><br><span class="line"> Transition-id = 7 p = 0.01 [1 -&gt; 3]</span><br><span class="line"> Transition-id = 8 p = 0.0152566 [1 -&gt; 4]</span><br><span class="line">Transition-state 3: phone = SIL hmm-state = 2 pdf = 2</span><br><span class="line"> Transition-id = 9 p = 0.0146723 [2 -&gt; 1]</span><br><span class="line"> Transition-id = 10 p = 0.96533 [self-loop]</span><br><span class="line"> Transition-id = 11 p = 0.01 [2 -&gt; 3]</span><br><span class="line"> Transition-id = 12 p = 0.01 [2 -&gt; 4]</span><br><span class="line">Transition-state 4: phone = SIL hmm-state = 3 pdf = 3</span><br><span class="line"> Transition-id = 13 p = 0.01 [3 -&gt; 1]</span><br><span class="line"> Transition-id = 14 p = 0.01 [3 -&gt; 2]</span><br><span class="line"> Transition-id = 15 p = 0.928052 [self-loop]</span><br><span class="line"> Transition-id = 16 p = 0.0519551 [3 -&gt; 4]</span><br><span class="line">Transition-state 5: phone = SIL hmm-state = 4 pdf = 4</span><br><span class="line"> Transition-id = 17 p = 0.957834 [self-loop]</span><br><span class="line"> Transition-id = 18 p = 0.0421665 [4 -&gt; 5]</span><br><span class="line">...</span><br><span class="line">Transition-state 9: phone = ONE hmm-state = 0 pdf = 8</span><br><span class="line"> Transition-id = 25 p = 0.865902 [self-loop]</span><br><span class="line"> Transition-id = 26 p = 0.134098 [0 -&gt; 1]</span><br><span class="line">Transition-state 10: phone = ONE hmm-state = 1 pdf = 9</span><br><span class="line"> Transition-id = 27 p = 0.921862 [self-loop]</span><br><span class="line"> Transition-id = 28 p = 0.078138 [1 -&gt; 2]</span><br><span class="line">Transition-state 11: phone = ONE hmm-state = 2 pdf = 10</span><br><span class="line"> Transition-id = 29 p = 0.936872 [self-loop]</span><br><span class="line"> Transition-id = 30 p = 0.0631278 [2 -&gt; 3]</span><br><span class="line">...</span><br><span class="line">Transition-state 24: phone = SIX hmm-state = 0 pdf = 23</span><br><span class="line"> Transition-id = 55 p = 0.90631 [self-loop]</span><br><span class="line"> Transition-id = 56 p = 0.0936895 [0 -&gt; 1]</span><br><span class="line">Transition-state 25: phone = SIX hmm-state = 1 pdf = 24</span><br><span class="line"> Transition-id = 57 p = 0.783409 [self-loop]</span><br><span class="line"> Transition-id = 58 p = 0.216591 [1 -&gt; 2]</span><br><span class="line">Transition-state 26: phone = SIX hmm-state = 2 pdf = 25</span><br><span class="line"> Transition-id = 59 p = 0.931359 [self-loop]</span><br><span class="line"> Transition-id = 60 p = 0.0686414 [2 -&gt; 3]</span><br><span class="line">Transition-state 27: phone = SEVEN hmm-state = 0 pdf = 26</span><br><span class="line"> Transition-id = 61 p = 0.916657 [self-loop]</span><br><span class="line"> Transition-id = 62 p = 0.0833432 [0 -&gt; 1]</span><br><span class="line">Transition-state 28: phone = SEVEN hmm-state = 1 pdf = 27</span><br><span class="line"> Transition-id = 63 p = 0.886809 [self-loop]</span><br><span class="line"> Transition-id = 64 p = 0.113191 [1 -&gt; 2]</span><br><span class="line">Transition-state 29: phone = SEVEN hmm-state = 2 pdf = 28</span><br><span class="line"> Transition-id = 65 p = 0.898122 [self-loop]</span><br><span class="line"> Transition-id = 66 p = 0.101878 [2 -&gt; 3]</span><br><span class="line">...</span><br><span class="line">Transition-state 33: phone = NINE hmm-state = 0 pdf = 32</span><br><span class="line"> Transition-id = 73 p = 0.842715 [self-loop]</span><br><span class="line"> Transition-id = 74 p = 0.157285 [0 -&gt; 1]</span><br><span class="line">Transition-state 34: phone = NINE hmm-state = 1 pdf = 33</span><br><span class="line"> Transition-id = 75 p = 0.78074 [self-loop]</span><br><span class="line"> Transition-id = 76 p = 0.21926 [1 -&gt; 2]</span><br><span class="line">Transition-state 35: phone = NINE hmm-state = 2 pdf = 34</span><br><span class="line"> Transition-id = 77 p = 0.902379 [self-loop]</span><br><span class="line"> Transition-id = 78 p = 0.0976208 [2 -&gt; 3]</span><br></pre></td></tr></table></figure></p>
-<p>那么tid序列可以为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">74 73 73 73 73 76 75 75 75 75 75 75 78 77 77 77 77 77 77 77 77 77 77 77 77 77 77 62 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 64 63 63 63 63 63 63 63 63 63 63 63 63 63 63 66 65 65 26 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 4 1 1 1 1 1 16 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 18 56 58 57 57 60 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 26 25 25 25 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 29 29</span><br></pre></td></tr></table></figure></p>
-<p>按照音素划分之后，得到：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">11 =&gt; [74 73 73 73 73 76 75 75 75 75 75 75 78 77 77 77 77 77 77 77 77 77 77 77 77 77 77 ]</span><br><span class="line">9 =&gt; [62 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 64 63 63 63 63 63 63 63 63 63 63 63 63 63 63 66 65 65 ]</span><br><span class="line">3 =&gt; [26 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 ]</span><br><span class="line">1 =&gt; [4 1 1 1 1 1 16 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 18 ]</span><br><span class="line">8 =&gt; [56 58 57 57 60 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 ]</span><br><span class="line">3 =&gt; [26 25 25 25 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 29 29 ]</span><br></pre></td></tr></table></figure></p>
+<p>比如对于Transition Model如下（部分）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">Transition-state 1: phone &#x3D; SIL hmm-state &#x3D; 0 pdf &#x3D; 0</span><br><span class="line"> Transition-id &#x3D; 1 p &#x3D; 0.952097 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 2 p &#x3D; 0.01 [0 -&gt; 1]</span><br><span class="line"> Transition-id &#x3D; 3 p &#x3D; 0.01 [0 -&gt; 2]</span><br><span class="line"> Transition-id &#x3D; 4 p &#x3D; 0.0279074 [0 -&gt; 3]</span><br><span class="line">Transition-state 2: phone &#x3D; SIL hmm-state &#x3D; 1 pdf &#x3D; 1</span><br><span class="line"> Transition-id &#x3D; 5 p &#x3D; 0.921613 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 6 p &#x3D; 0.0531309 [1 -&gt; 2]</span><br><span class="line"> Transition-id &#x3D; 7 p &#x3D; 0.01 [1 -&gt; 3]</span><br><span class="line"> Transition-id &#x3D; 8 p &#x3D; 0.0152566 [1 -&gt; 4]</span><br><span class="line">Transition-state 3: phone &#x3D; SIL hmm-state &#x3D; 2 pdf &#x3D; 2</span><br><span class="line"> Transition-id &#x3D; 9 p &#x3D; 0.0146723 [2 -&gt; 1]</span><br><span class="line"> Transition-id &#x3D; 10 p &#x3D; 0.96533 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 11 p &#x3D; 0.01 [2 -&gt; 3]</span><br><span class="line"> Transition-id &#x3D; 12 p &#x3D; 0.01 [2 -&gt; 4]</span><br><span class="line">Transition-state 4: phone &#x3D; SIL hmm-state &#x3D; 3 pdf &#x3D; 3</span><br><span class="line"> Transition-id &#x3D; 13 p &#x3D; 0.01 [3 -&gt; 1]</span><br><span class="line"> Transition-id &#x3D; 14 p &#x3D; 0.01 [3 -&gt; 2]</span><br><span class="line"> Transition-id &#x3D; 15 p &#x3D; 0.928052 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 16 p &#x3D; 0.0519551 [3 -&gt; 4]</span><br><span class="line">Transition-state 5: phone &#x3D; SIL hmm-state &#x3D; 4 pdf &#x3D; 4</span><br><span class="line"> Transition-id &#x3D; 17 p &#x3D; 0.957834 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 18 p &#x3D; 0.0421665 [4 -&gt; 5]</span><br><span class="line">...</span><br><span class="line">Transition-state 9: phone &#x3D; ONE hmm-state &#x3D; 0 pdf &#x3D; 8</span><br><span class="line"> Transition-id &#x3D; 25 p &#x3D; 0.865902 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 26 p &#x3D; 0.134098 [0 -&gt; 1]</span><br><span class="line">Transition-state 10: phone &#x3D; ONE hmm-state &#x3D; 1 pdf &#x3D; 9</span><br><span class="line"> Transition-id &#x3D; 27 p &#x3D; 0.921862 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 28 p &#x3D; 0.078138 [1 -&gt; 2]</span><br><span class="line">Transition-state 11: phone &#x3D; ONE hmm-state &#x3D; 2 pdf &#x3D; 10</span><br><span class="line"> Transition-id &#x3D; 29 p &#x3D; 0.936872 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 30 p &#x3D; 0.0631278 [2 -&gt; 3]</span><br><span class="line">...</span><br><span class="line">Transition-state 24: phone &#x3D; SIX hmm-state &#x3D; 0 pdf &#x3D; 23</span><br><span class="line"> Transition-id &#x3D; 55 p &#x3D; 0.90631 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 56 p &#x3D; 0.0936895 [0 -&gt; 1]</span><br><span class="line">Transition-state 25: phone &#x3D; SIX hmm-state &#x3D; 1 pdf &#x3D; 24</span><br><span class="line"> Transition-id &#x3D; 57 p &#x3D; 0.783409 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 58 p &#x3D; 0.216591 [1 -&gt; 2]</span><br><span class="line">Transition-state 26: phone &#x3D; SIX hmm-state &#x3D; 2 pdf &#x3D; 25</span><br><span class="line"> Transition-id &#x3D; 59 p &#x3D; 0.931359 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 60 p &#x3D; 0.0686414 [2 -&gt; 3]</span><br><span class="line">Transition-state 27: phone &#x3D; SEVEN hmm-state &#x3D; 0 pdf &#x3D; 26</span><br><span class="line"> Transition-id &#x3D; 61 p &#x3D; 0.916657 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 62 p &#x3D; 0.0833432 [0 -&gt; 1]</span><br><span class="line">Transition-state 28: phone &#x3D; SEVEN hmm-state &#x3D; 1 pdf &#x3D; 27</span><br><span class="line"> Transition-id &#x3D; 63 p &#x3D; 0.886809 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 64 p &#x3D; 0.113191 [1 -&gt; 2]</span><br><span class="line">Transition-state 29: phone &#x3D; SEVEN hmm-state &#x3D; 2 pdf &#x3D; 28</span><br><span class="line"> Transition-id &#x3D; 65 p &#x3D; 0.898122 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 66 p &#x3D; 0.101878 [2 -&gt; 3]</span><br><span class="line">...</span><br><span class="line">Transition-state 33: phone &#x3D; NINE hmm-state &#x3D; 0 pdf &#x3D; 32</span><br><span class="line"> Transition-id &#x3D; 73 p &#x3D; 0.842715 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 74 p &#x3D; 0.157285 [0 -&gt; 1]</span><br><span class="line">Transition-state 34: phone &#x3D; NINE hmm-state &#x3D; 1 pdf &#x3D; 33</span><br><span class="line"> Transition-id &#x3D; 75 p &#x3D; 0.78074 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 76 p &#x3D; 0.21926 [1 -&gt; 2]</span><br><span class="line">Transition-state 35: phone &#x3D; NINE hmm-state &#x3D; 2 pdf &#x3D; 34</span><br><span class="line"> Transition-id &#x3D; 77 p &#x3D; 0.902379 [self-loop]</span><br><span class="line"> Transition-id &#x3D; 78 p &#x3D; 0.0976208 [2 -&gt; 3]</span><br></pre></td></tr></table></figure><br>那么tid序列可以为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">74 73 73 73 73 76 75 75 75 75 75 75 78 77 77 77 77 77 77 77 77 77 77 77 77 77 77 62 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 64 63 63 63 63 63 63 63 63 63 63 63 63 63 63 66 65 65 26 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 4 1 1 1 1 1 16 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 18 56 58 57 57 60 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 26 25 25 25 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 29 29</span><br></pre></td></tr></table></figure></p>
+<p>按照音素划分之后，得到：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">11 &#x3D;&gt; [74 73 73 73 73 76 75 75 75 75 75 75 78 77 77 77 77 77 77 77 77 77 77 77 77 77 77 ]</span><br><span class="line">9 &#x3D;&gt; [62 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 61 64 63 63 63 63 63 63 63 63 63 63 63 63 63 63 66 65 65 ]</span><br><span class="line">3 &#x3D;&gt; [26 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 ]</span><br><span class="line">1 &#x3D;&gt; [4 1 1 1 1 1 16 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 18 ]</span><br><span class="line">8 &#x3D;&gt; [56 58 57 57 60 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 59 ]</span><br><span class="line">3 &#x3D;&gt; [26 25 25 25 28 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 27 30 29 29 ]</span><br></pre></td></tr></table></figure></p>
 <ul>
-<li>对于每一条对齐信息，获取三音素和<code>pdf_class</code>的<code>EventType</code>事件类型，并累加其对应的<code>GaussClusterable</code>统计量。比如说对于以上对齐信息，可以得到音素序列<code>11-9-3-1-8-3</code>三音素的划分和<code>EventType</code>表示如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0-11-9  =&gt; (0:0  1:11 2:9)</span><br><span class="line">11-9-3  =&gt; (0:11 1:9  2:3)</span><br><span class="line">9-3-1   =&gt; (0:9  1:3  2:1)</span><br><span class="line">3-1-8   =&gt; (0:3  1:1  2:8)</span><br><span class="line">1-8-3   =&gt; (0:1  1:8  2:3)</span><br><span class="line">8-3-0   =&gt; (0:8  1:3  2:0)</span><br></pre></td></tr></table></figure>
-</li>
+<li>对于每一条对齐信息，获取三音素和<code>pdf_class</code>的<code>EventType</code>事件类型，并累加其对应的<code>GaussClusterable</code>统计量。比如说对于以上对齐信息，可以得到音素序列<code>11-9-3-1-8-3</code>三音素的划分和<code>EventType</code>表示如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0-11-9  &#x3D;&gt; (0:0  1:11 2:9)</span><br><span class="line">11-9-3  &#x3D;&gt; (0:11 1:9  2:3)</span><br><span class="line">9-3-1   &#x3D;&gt; (0:9  1:3  2:1)</span><br><span class="line">3-1-8   &#x3D;&gt; (0:3  1:1  2:8)</span><br><span class="line">1-8-3   &#x3D;&gt; (0:1  1:8  2:3)</span><br><span class="line">8-3-0   &#x3D;&gt; (0:8  1:3  2:0)</span><br></pre></td></tr></table></figure>
+对于每一种三音素划分，添加<code>pdf_class</code>即状态信息，并累计统计量，比如对于三音素<code>0-11-9</code>对应的统计量累计过程如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tree_stats(0:0 1:11 2:9 kPdfClass:0) +&#x3D; AddStats([74 73 73 73 73])</span><br><span class="line">tree_stats(0:0 1:11 2:9 kPdfClass:1) +&#x3D; AddStats([76 75 75 75 75 75 75])</span><br><span class="line">tree_stats(0:0 1:11 2:9 kPdfClass:2) +&#x3D; AddStats([78 77 77 77 77 77 77 77 77 77 77 77 77 77 77])</span><br></pre></td></tr></table></figure>
+其他三音素类推。</li>
 </ul>
-<p>对于每一种三音素划分，添加<code>pdf_class</code>即状态信息，并累计统计量，比如对于三音素<code>0-11-9</code>对应的统计量累计过程如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tree_stats(0:0 1:11 2:9 kPdfClass:0) += AddStats([74 73 73 73 73])</span><br><span class="line">tree_stats(0:0 1:11 2:9 kPdfClass:1) += AddStats([76 75 75 75 75 75 75])</span><br><span class="line">tree_stats(0:0 1:11 2:9 kPdfClass:2) += AddStats([78 77 77 77 77 77 77 77 77 77 77 77 77 77 77])</span><br></pre></td></tr></table></figure></p>
-<p>其他三音素类推。</p>
 <p>该过程执行完毕之后，将tree_stats信息写到磁盘中，实际就是<code>EventType</code>和<code>GaussClusterable</code>信息。</p>
 <h2 id="音素聚类"><a href="#音素聚类" class="headerlink" title="音素聚类"></a>音素聚类</h2><p>音素聚类在<code>cluster-phones.cc</code>中的<code>AutomaticallyObtainQuestions</code>中完成，接受统计信息和<code>set.int</code>，输出音素聚类情况，也就是所谓的问题集。</p>
 <h3 id="聚类过程"><a href="#聚类过程" class="headerlink" title="聚类过程"></a>聚类过程</h3><p>音素聚类主要进行如下几步操作</p>
 <ul>
-<li><p>状态过滤<br>默认只保留中间状态（<code>pdf_class = 1</code>）的统计量，这部分代码在<code>FilterStatsByKey</code>中，操作完毕之后，<code>stats</code>转为如下形式（<code>vector</code>存储）：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(0:0  1:11 2:9 kPdfClass:1) =&gt; C1</span><br><span class="line">(0:11 1:9  2:3 kPdfClass:1) =&gt; C2</span><br><span class="line">(0:9  1:3  2:1 kPdfClass:1) =&gt; C3</span><br><span class="line">...</span><br><span class="line">(0:8  1:3  2:0 kPdfClass:1) =&gt; C6</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>音素划分<br>按中间位置（<code>P == 1</code>）音素对统计量进行划分，累加，划分之后的统计量以phone_id为索引，这部分代码在<code>SplitStatsByKey</code>和<code>SumStatsVec</code>中实现，完成之后，统计量转换为如下形式：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">phone_id    GaussClusterable</span><br><span class="line">    1           C4</span><br><span class="line">    3        C3 + C6</span><br><span class="line">    8           C5</span><br><span class="line">    9           C2</span><br><span class="line">    11          C1</span><br></pre></td></tr></table></figure>
-</li>
+<li>状态过滤<br>默认只保留中间状态（<code>pdf_class = 1</code>）的统计量，这部分代码在<code>FilterStatsByKey</code>中，操作完毕之后，<code>stats</code>转为如下形式（<code>vector</code>存储）：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">(0:0  1:11 2:9 kPdfClass:1) &#x3D;&gt; C1</span><br><span class="line">(0:11 1:9  2:3 kPdfClass:1) &#x3D;&gt; C2</span><br><span class="line">(0:9  1:3  2:1 kPdfClass:1) &#x3D;&gt; C3</span><br><span class="line">...</span><br><span class="line">(0:8  1:3  2:0 kPdfClass:1) &#x3D;&gt; C6</span><br></pre></td></tr></table></figure></li>
+<li>音素划分<br>按中间位置（<code>P == 1</code>）音素对统计量进行划分，累加，划分之后的统计量以phone_id为索引，这部分代码在<code>SplitStatsByKey</code>和<code>SumStatsVec</code>中实现，完成之后，统计量转换为如下形式：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">phone_id    GaussClusterable</span><br><span class="line">    1           C4</span><br><span class="line">    3        C3 + C6</span><br><span class="line">    8           C5</span><br><span class="line">    9           C2</span><br><span class="line">    11          C1</span><br></pre></td></tr></table></figure></li>
 <li><p>按音素集合累加<br>由于在set.int中，可能是多个音素共享一个HMM的，但是他们的phone_id是不同的，所以，需要把这些共享HMM的音素对应的统计量做一个合并，存到<code>std::vector&lt;Clusterable*&gt;</code>之中。完成之后，vector的长度和set.int文件的行数相同。</p>
 </li>
 <li><p>决策树聚类<br>这部分在函数<code>TreeCluster</code>中完成，输入按音素集合累加之后的<code>std::vector&lt;Clusterable*&gt;</code>。聚类过程使用决策树+KMeans，KMeans算法主要目的是生成获取似然提升的划分方案。内在逻辑在“TreeClusterer的聚类逻辑”中介绍，最终目的是要获取如下信息，以生成问题集（即聚类结果）：</p>
@@ -326,11 +314,10 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
 <h3 id="TreeClusterer的聚类逻辑"><a href="#TreeClusterer的聚类逻辑" class="headerlink" title="TreeClusterer的聚类逻辑"></a>TreeClusterer的聚类逻辑</h3><p>聚类过程通过<code>TreeClusterer</code>完成，下面主要分析<code>TreeClusterer</code>的聚类逻辑。</p>
 <p>根据决策树理论，每一次节点分裂都是需要找到最大似然提升的方案，但是由于事先的这些音素统计量并没有标记信息，即无法根据标记信息制定划分方案，所以，一般采用无监督的方法进行二分类，取其最大的似然提升方案，kaldi中用到了KMeans聚类算法给出一次划分方案。</p>
 <ul>
-<li>决策树初始化<br>初始化给决策树建立根节点，并执行一次最优划分<code>FindBestSplit</code>。决策树由一系列<code>Node</code>构成，其中维护了其自身和叶子节点的统计信息。节点信息表示如下：<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Node</span> &#123;</span></span><br><span class="line">    <span class="keyword">bool</span> is_leaf;</span><br><span class="line">    int32 index;  <span class="comment">// index into leaf_nodes or nonleaf_nodes as applicable.</span></span><br><span class="line">    Node *parent;</span><br><span class="line">    Clusterable *node_total;  <span class="comment">// sum of all data with this node.</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Clusterable*&gt; points;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; point_indices; <span class="comment">// index of points</span></span><br><span class="line">        BaseFloat best_split;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Clusterable*&gt; clusters;  <span class="comment">// [branch_factor]... if we do split.</span></span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; assignments;  <span class="comment">// assignments of points to clusters.</span></span><br><span class="line">    &#125; leaf;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Node*&gt; children;  <span class="comment">// vector of size branch_factor.   if non-leaf.</span></span><br><span class="line">    <span class="comment">// pointers not owned here but in vectors leaf_nodes_, nonleaf_nodes_.</span></span><br><span class="line">  &#125;;</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
+<li><p>决策树初始化<br>初始化给决策树建立根节点，并执行一次最优划分<code>FindBestSplit</code>。决策树由一系列<code>Node</code>构成，其中维护了其自身和叶子节点的统计信息。节点信息表示如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Node</span> &#123;</span></span><br><span class="line">    <span class="keyword">bool</span> is_leaf;</span><br><span class="line">    int32 index;  <span class="comment">// index into leaf_nodes or nonleaf_nodes as applicable.</span></span><br><span class="line">    Node *parent;</span><br><span class="line">    Clusterable *node_total;  <span class="comment">// sum of all data with this node.</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Clusterable*&gt; points;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; point_indices; <span class="comment">// index of points</span></span><br><span class="line">        BaseFloat best_split;</span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Clusterable*&gt; clusters;  <span class="comment">// [branch_factor]... if we do split.</span></span><br><span class="line">        <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;int32&gt; assignments;  <span class="comment">// assignments of points to clusters.</span></span><br><span class="line">    &#125; leaf;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">vector</span>&lt;Node*&gt; children;  <span class="comment">// vector of size branch_factor.   if non-leaf.</span></span><br><span class="line">    <span class="comment">// pointers not owned here but in vectors leaf_nodes_, nonleaf_nodes_.</span></span><br><span class="line">  &#125;;</span><br></pre></td></tr></table></figure>
 <p><code>FindBestSplit</code>总是在节点的<code>points</code>数据上执行最优划分，划分结果存储在<code>clusters</code>和<code>assignments</code>中。<code>assignments</code>表示<code>point_id</code>属于哪一个<code>cluster</code>。划分成功的话，将获得的最大似然提升和节点信息放在一个优先队列中。</p>
-<ul>
+</li>
 <li><p>最优划分逻辑<br>一次KMeans分类操作定义在<code>ClusterKMeansOnce</code>中，迭代<code>cfg.num_iters</code>次返回结果（了解KMeans原理就知道为什么这么做了）。<br>一次最优节点分裂<code>FindBestSplit</code>执行一次<code>ClusterKMeans</code>，<code>ClusterKMeans</code>具体操作是执行<code>cfg.num_tries</code>次<code>ClusterKMeansOnce</code>，找到最大获得最大似然提升的方案。</p>
 </li>
 <li><p>聚类逻辑<br>聚类采取BFS逻辑，不断的取出获取最大似然提升的节点，扩展子节点并在其子节点进行最优划分（这部分操作定义在<code>DoSplit</code>之中，主要是将父节点的<code>leaf</code>信息转移到新建子节点之中，并对子节点执行<code>FindBestSplit</code>），直至队列为空或者叶子节点达到上界，注意，这里的上界一般设为<code>phone_sets</code>的行数，假设set.int中有48组音素，那么聚类结果一定不大于48。</p>
@@ -346,8 +333,7 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
 <li><p>生成聚类信息<br><code>num_leaves_out</code>就是叶子节点的个数，其次主要就是要获取<code>assignments</code>和<code>clust_assignments</code>两类信息。<br><code>assignments</code>是音素集合id到决策树中叶子节点id的映射关系，只需要遍历所有叶子节点，每一次将对应叶子节点的<code>point_indices</code>集合中元素下标处赋值为叶子节点id即可。<br><code>clust_assignments</code>用来维护节点之间的父子关系，长度为叶子节点和非叶子节点个数之和。由于节点<code>index</code>都是从0开始的，所以会有冲突。kaldi中把非叶子节点通过<code>clust_assignments.size() - 1 - nonleaf_index</code>映射到区间<code>[leaf_nodes_.size(), clust_assignments.size()]</code></p>
 </li>
 </ul>
-<h2 id="问题编译"><a href="#问题编译" class="headerlink" title="问题编译"></a>问题编译</h2><p>该部分接受topo文件和question.int输出编译好的问题集，实际就是<code>Questions</code>这个类结构。定义在<code>compile-question.cc</code>中。<code>Questions</code>维护了<code>EventKeyType</code>和其对应的<code>QuestionsForKey</code>集合，其中<code>QuestionsForKey</code>表示对于特定<code>EventKeyType</code>的查询问题集。事实上，输出的问题集包含以下信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">EventKeyType          QuestionsForKey</span><br><span class="line">    0             PhoneQuestions(question.int)</span><br><span class="line">    1             PhoneQuestions(question.int)</span><br><span class="line">    2             PhoneQuestions(question.int)</span><br><span class="line">kPdfClass            PdfClassQuestion</span><br></pre></td></tr></table></figure></p>
-<p>其中<code>pdfClassQuestion</code>根据每个HMM建模的状态数而不同：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MaxNumPdfclasses        PdfClassQuestion</span><br><span class="line">       3                  [[0] [0 1]]</span><br><span class="line">       5          [[0] [0 1] [0 1 2] [0 1 2 3]]</span><br></pre></td></tr></table></figure></p>
+<h2 id="问题编译"><a href="#问题编译" class="headerlink" title="问题编译"></a>问题编译</h2><p>该部分接受topo文件和question.int输出编译好的问题集，实际就是<code>Questions</code>这个类结构。定义在<code>compile-question.cc</code>中。<code>Questions</code>维护了<code>EventKeyType</code>和其对应的<code>QuestionsForKey</code>集合，其中<code>QuestionsForKey</code>表示对于特定<code>EventKeyType</code>的查询问题集。事实上，输出的问题集包含以下信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">EventKeyType          QuestionsForKey</span><br><span class="line">    0             PhoneQuestions(question.int)</span><br><span class="line">    1             PhoneQuestions(question.int)</span><br><span class="line">    2             PhoneQuestions(question.int)</span><br><span class="line">kPdfClass            PdfClassQuestion</span><br></pre></td></tr></table></figure><br>其中<code>pdfClassQuestion</code>根据每个HMM建模的状态数而不同：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MaxNumPdfclasses        PdfClassQuestion</span><br><span class="line">       3                  [[0] [0 1]]</span><br><span class="line">       5          [[0] [0 1] [0 1 2] [0 1 2 3]]</span><br></pre></td></tr></table></figure></p>
 <h2 id="决策树构建"><a href="#决策树构建" class="headerlink" title="决策树构建"></a>决策树构建</h2><p>未完待续……</p>
 
     </div>
@@ -457,8 +443,9 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
       <!--/noindex-->
 
       <div class="site-overview-wrap sidebar-panel">
-        <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="WJ" src="/uploads/avatar.JPG">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="WJ"
+      src="/uploads/avatar.JPG">
   <p class="site-author-name" itemprop="name">WJ</p>
   <div class="site-description" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</div>
 </div>
@@ -487,16 +474,16 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
 </div>
   <div class="links-of-author motion-element">
       <span class="links-of-author-item">
-        <a href="https://github.com/funcwj" title="GitHub → https://github.com/funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+        <a href="https://github.com/funcwj" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
       </span>
       <span class="links-of-author-item">
         <a href="mailto:funcwj@foxmail.com" title="E-Mail → mailto:funcwj@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
       </span>
       <span class="links-of-author-item">
-        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https://www.zhihu.com/people/jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
+        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
       </span>
       <span class="links-of-author-item">
-        <a href="https://www.funcwj.cn" title="Jianwu → https://www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
+        <a href="https://www.funcwj.cn/" title="Jianwu → https:&#x2F;&#x2F;www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
       </span>
   </div>
 
@@ -508,100 +495,100 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
     </div>
     <ul class="links-of-blogroll-list">
         <li class="links-of-blogroll-item">
-          <a href="http://wangbaiyuan.cn" title="http://wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
+          <a href="http://wangbaiyuan.cn/" title="http:&#x2F;&#x2F;wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://jcf94.com" title="http://jcf94.com" rel="noopener" target="_blank">jcf94</a>
+          <a href="http://jcf94.com/" title="http:&#x2F;&#x2F;jcf94.com" rel="noopener" target="_blank">jcf94</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://hujian.website" title="https://hujian.website" rel="noopener" target="_blank">hijkzzz</a>
+          <a href="https://hujian.website/" title="https:&#x2F;&#x2F;hujian.website" rel="noopener" target="_blank">hijkzzz</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.cnblogs.com/xingshansi/" title="https://www.cnblogs.com/xingshansi/" rel="noopener" target="_blank">桂的blog</a>
+          <a href="https://www.cnblogs.com/xingshansi/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xingshansi&#x2F;" rel="noopener" target="_blank">桂的blog</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" rel="noopener" target="_blank">DASP</a>
+          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http:&#x2F;&#x2F;homes.esat.kuleuven.be&#x2F;~dspuser&#x2F;dasp&#x2F;index.html" rel="noopener" target="_blank">DASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https://ccrma.stanford.edu/~jos/sasp/sasp.html" rel="noopener" target="_blank">SASP</a>
+          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https:&#x2F;&#x2F;ccrma.stanford.edu&#x2F;~jos&#x2F;sasp&#x2F;sasp.html" rel="noopener" target="_blank">SASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
+          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https:&#x2F;&#x2F;link.springer.com&#x2F;book&#x2F;10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.audiolabs-erlangen.de/home" title="https://www.audiolabs-erlangen.de/home" rel="noopener" target="_blank">AudioLibs</a>
+          <a href="https://www.audiolabs-erlangen.de/home" title="https:&#x2F;&#x2F;www.audiolabs-erlangen.de&#x2F;home" rel="noopener" target="_blank">AudioLibs</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://arxiv.org/list/eess.AS/recent" title="https://arxiv.org/list/eess.AS/recent" rel="noopener" target="_blank">ASLP Arxiv</a>
+          <a href="https://arxiv.org/list/eess.AS/recent" title="https:&#x2F;&#x2F;arxiv.org&#x2F;list&#x2F;eess.AS&#x2F;recent" rel="noopener" target="_blank">ASLP Arxiv</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
+          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https:&#x2F;&#x2F;signalprocessingsociety.org&#x2F;publications-resources&#x2F;ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" rel="noopener" target="_blank">ISCA</a>
+          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https:&#x2F;&#x2F;www.isca-speech.org&#x2F;iscaweb&#x2F;index.php&#x2F;archive&#x2F;online-archive" rel="noopener" target="_blank">ISCA</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https://ai.google/research/pubs/?area=SpeechProcessing" rel="noopener" target="_blank">Google</a>
+          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https:&#x2F;&#x2F;ai.google&#x2F;research&#x2F;pubs&#x2F;?area&#x3D;SpeechProcessing" rel="noopener" target="_blank">Google</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www-i6.informatik.rwth-aachen.de" title="http://www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
+          <a href="http://www-i6.informatik.rwth-aachen.de/" title="http:&#x2F;&#x2F;www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" rel="noopener" target="_blank">MERL</a>
+          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http:&#x2F;&#x2F;www.merl.com&#x2F;publications&#x2F;?ystart&#x3D;1991&amp;yend&#x3D;2019&amp;sa&#x3D;on" rel="noopener" target="_blank">MERL</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" rel="noopener" target="_blank">Paderborn</a>
+          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https:&#x2F;&#x2F;ei.uni-paderborn.de&#x2F;en&#x2F;nt&#x2F;research-mission&#x2F;publications&#x2F;" rel="noopener" target="_blank">Paderborn</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
+          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http:&#x2F;&#x2F;bio-asplab.citi.sinica.edu.tw&#x2F;p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http://www.kecl.ntt.co.jp/english/index.html" rel="noopener" target="_blank">NTT-CSL</a>
+          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http:&#x2F;&#x2F;www.kecl.ntt.co.jp&#x2F;english&#x2F;index.html" rel="noopener" target="_blank">NTT-CSL</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.irisa.fr/metiss/ozerov/" title="http://www.irisa.fr/metiss/ozerov/" rel="noopener" target="_blank">Alexey Ozerov</a>
+          <a href="http://www.irisa.fr/metiss/ozerov/" title="http:&#x2F;&#x2F;www.irisa.fr&#x2F;metiss&#x2F;ozerov&#x2F;" rel="noopener" target="_blank">Alexey Ozerov</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://israelcohen.com" title="https://israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
+          <a href="https://israelcohen.com/" title="https:&#x2F;&#x2F;israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.eng.biu.ac.il/gannot/" title="http://www.eng.biu.ac.il/gannot/" rel="noopener" target="_blank">Sharon Gannot</a>
+          <a href="http://www.eng.biu.ac.il/gannot/" title="http:&#x2F;&#x2F;www.eng.biu.ac.il&#x2F;gannot&#x2F;" rel="noopener" target="_blank">Sharon Gannot</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.danielpovey.com" title="http://www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
+          <a href="http://www.danielpovey.com/" title="http:&#x2F;&#x2F;www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
+          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http:&#x2F;&#x2F;web.cse.ohio-state.edu&#x2F;~wang.77&#x2F;pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https://sites.google.com/view/shinjiwatanabe/publications" rel="noopener" target="_blank">Shinji Watanabe</a>
+          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;shinjiwatanabe&#x2F;publications" rel="noopener" target="_blank">Shinji Watanabe</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/site/dongyu888/" title="https://sites.google.com/site/dongyu888/" rel="noopener" target="_blank">Dong Yu</a>
+          <a href="https://sites.google.com/site/dongyu888/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;dongyu888&#x2F;" rel="noopener" target="_blank">Dong Yu</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
+          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https:&#x2F;&#x2F;www.citi.sinica.edu.tw&#x2F;pages&#x2F;yu.tsao&#x2F;publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/site/tsainath/" title="https://sites.google.com/site/tsainath/" rel="noopener" target="_blank">Tara N.</a>
+          <a href="https://sites.google.com/site/tsainath/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;tsainath&#x2F;" rel="noopener" target="_blank">Tara N.</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://www.jonathanleroux.org" title="http://www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
+          <a href="http://www.jonathanleroux.org/" title="http:&#x2F;&#x2F;www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https://speechlab.sjtu.edu.cn/members/yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
+          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https:&#x2F;&#x2F;speechlab.sjtu.edu.cn&#x2F;members&#x2F;yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https://www.microsoft.com/en-us/research/people/tayoshio/" rel="noopener" target="_blank">Takuya Yoshioka</a>
+          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https:&#x2F;&#x2F;www.microsoft.com&#x2F;en-us&#x2F;research&#x2F;people&#x2F;tayoshio&#x2F;" rel="noopener" target="_blank">Takuya Yoshioka</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
+          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https:&#x2F;&#x2F;scholar.google.com&#x2F;citations?user&#x3D;QG8aWfIAAAAJ&amp;hl&#x3D;zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="https://sites.google.com/view/xuyong/home" title="https://sites.google.com/view/xuyong/home" rel="noopener" target="_blank">Yong Xu</a>
+          <a href="https://sites.google.com/view/xuyong/home" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;xuyong&#x2F;home" rel="noopener" target="_blank">Yong Xu</a>
         </li>
         <li class="links-of-blogroll-item">
-          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http://staff.ustc.edu.cn/~jundu/Publications.html" rel="noopener" target="_blank">Jun Du</a>
+          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http:&#x2F;&#x2F;staff.ustc.edu.cn&#x2F;~jundu&#x2F;Publications.html" rel="noopener" target="_blank">Jun Du</a>
         </li>
     </ul>
   </div>
@@ -623,7 +610,7 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
     <footer class="footer">
       <div class="footer-inner">
         
-  <div class="beian"><a href="http://www.beian.miit.gov.cn" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
   </div>
 
 <div class="copyright">
@@ -638,17 +625,17 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">360k</span>
+    <span title="站点总字数">321k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">5:28</span>
+    <span title="站点阅读时长">4:52</span>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>
   <span class="post-meta-divider">|</span>
-  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
   </div>
 
         
@@ -688,9 +675,17 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
-<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
 <script src="/js/schemes/pisces.js"></script>
+
+
 <script src="/js/next-boot.js"></script>
+
 
 
 
@@ -699,7 +694,9 @@ L(S) = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma_s
 
 
 
-  <script src="/js/local-search.js"></script>
+  
+<script src="/js/local-search.js"></script>
+
 
 
 
