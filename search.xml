@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>后续文章列表</title>
+    <url>/2020/02/24/coming-next/</url>
+    <content><![CDATA[<ul>
+<li>Convolutional Operations (语音任务中关于卷积操作的一些妙用和技巧)</li>
+<li>Update Hexo &amp; Next （站点更新记录）</li>
+<li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
+</ul>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Multi-Channel Hybrid AM</title>
     <url>/2019/11/10/multi-channel-hybrid-am/</url>
     <content><![CDATA[<p>本篇文章主要说一下多通道的Hybrid声学模型。Google在CLDNN之后，大约在2015年到2017年之间围绕远场语音识别，做了一系列 [1-6] 的工作，相关的技术也被用在了Google Home [7] 上。17年的时候我看了其中的一部分，觉得工作做的很漂亮，一骑绝尘，一枝独秀。原因主要有两方面，其一是多通道声学模型是一个比较新的概念，当时很少见其他高校和公司有相关的工作，基本还停留在神经网络的架构阶段，其二是Google的产出速度非常惊人，而且思路明确，环环相扣。17年之后，Google甩手开始做端到端（E2E）方面的工作，学术界和工业界也开始紧紧跟着不放，之前的工作关注度相比之下，明显低了很多。最近看到Amazon在icassp2019上有了两篇文章 [8-9]，再加上面试百度时他们聊了一些神经网络前端的事（后来确实花功夫宣传了），我就想聊一下这方面的工作和认识。</p>
