@@ -260,6 +260,64 @@ s_t^\theta = \sum_c \mathbf{y}_t * \mathbf{h}_{\theta, c} \tag{3}</script><p>其
       </tags>
   </entry>
   <entry>
+    <title>Rank1 Constrained in PMWF</title>
+    <url>/2019/01/10/rank1-const-pmwf/</url>
+    <content><![CDATA[<p>本篇文章说一下波束形成中，对目标信号的协方差矩阵进行秩1的约束（Rank1 Constrained）这一操作。背后的原理之前在导向向量估计的PCA方法中已经进行了介绍，即理想情况下，单一方向声源的协方差矩阵秩$\mathbf{R}_x$为1：目标信号可以写成$\mathbf{s}_{t,f} = \mathbf{d}_f s_{t,f}$的形式，其中$\mathbf{d}_f$为导向向量，则$\mathbf{R}_f^s = r_s \mathbf{d}_f \mathbf{d}_f^H$的秩为1。由于实际估计的$\mathbf{R}_x$并不满足这一条件，因此可以用一个秩1的矩阵近似，这一过程可以用特征值分解来进行，对应的主特征向量便起到了导向向量的作用，可以用其作为估计。所以我们实际在使用含有导向向量的MVDR表达式，并用PCA方法进行估计时，背后其实已经使用了该原理。</p>
+<a id="more"></a>
+<p>此外MVDR还有另外一种表达式，即：</p>
+<script type="math/tex; mode=display">
+\mathbf{w}^{\text{MVDR}}_f = \frac{(\mathbf{R}_f^n)^{-1} \mathbf{R}_f^s}{\text{tr}\left[ (\mathbf{R}_f^n)^{-1} \mathbf{R}_f^s\right]} \mathbf{u}_r \tag{1}</script><p>它可以视为PMWF [1]（有的地方也称为SDW-MWF）的一种特殊形式，即$\beta = 0$的情况：</p>
+<script type="math/tex; mode=display">
+\mathbf{w}^{\text{PMWF-}\beta}_f = \frac{(\mathbf{R}_f^n)^{-1} \mathbf{R}_f^s}{\beta + \text{tr}\left[ (\mathbf{R}_f^n)^{-1} \mathbf{R}_f^s\right]} \mathbf{u}_r \tag{2}</script><p>关于它之前没有深入的做过介绍，本文首先看一下这个表达式是如何导出的。</p>
+<h3 id="PMWF-推导"><a href="#PMWF-推导" class="headerlink" title="PMWF 推导"></a>PMWF 推导</h3><p>波束形成器的输出在每个TF-bin上的值$x_{t,f}$，在频域可以写成如下的形式</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+x_{t,f} & = \mathbf{w}_f^H \mathbf{y}_{t,f} = \mathbf{w}_f^H (\mathbf{s}_{t,f} + \mathbf{n}_{t,f}) \\
+& = \mathbf{w}_f^H \mathbf{s}_{t,f} + \mathbf{w}_f^H \mathbf{n}_{t,f}
+\end{aligned} \tag{3}</script><p>PMWF求解的优化问题定义如下，最小化残留噪声成分的能量，同时约束目标语音的失真程度：</p>
+<script type="math/tex; mode=display">
+\mathbf{w} = \arg \min_{\mathbf{w}} E_t\left[ \left|\mathbf{w}_f^H \mathbf{n}_{t,f} \right|^2 \right] \; \text{s.t} \; E_t\left[ \left|\mathbf{w}_f^H \mathbf{s}_{t,f} - s_{t,f} \right|^2 \right] \leqslant \sigma \tag{4}</script><p>通常$s_{t,f}$选择为某一通道的目标信号观测值，可以表示为$s_{t,f} = \mathbf{u}_r^T \mathbf{s}_{t,f}$，其中$\mathbf{u}_r$表示一个one-hot向量，上式中约束项可以改写为：</p>
+<script type="math/tex; mode=display">
+E_t\left[ \left|(\mathbf{w}_f - \mathbf{u}_r)^H \mathbf{s}_{t,f} \right|^2 \right] \leqslant \sigma \tag{5}</script><p>使用拉格朗日乘子法求解，引入拉格朗日系数$\gamma$后，得到PWMF的初始表达式</p>
+<script type="math/tex; mode=display">
+\mathbf{w}^{\text{PMWF-}\beta}_f = \left(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n \right)^{-1}\mathbf{R}_f^s\mathbf{u}_r \tag{6}</script><p>其中$\beta = \gamma^{-1}$。虽然文献中经常提到，$(2)$式由$(6)$式导出，但是具体过程的推导之前自己一直没有仔细研究过，最近抽空尝试了一下，但是没有成功，请教了一圈人之后才算把这个推导打通，过程如下。</p>
+<p>开始我尝试对$(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n)^{-1}$应用伍德伯里恒等式进行展开：</p>
+<script type="math/tex; mode=display">
+(A + B)^{-1} = A^{-1} - A^{-1}(I + BA^{-1})^{-1}BA^{-1} \tag{7}</script><p>对应的$A = \beta\mathbf{R}_f^n, B = \mathbf{R}_f^s$，得到：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n)^{-1} &= \frac{1}{\beta}\left[(\mathbf{R}_f^n)^{-1} - (\mathbf{R}_f^n)^{-1} (\mathbf{I} + \beta^{-1} \mathbf{R}_f^s (\mathbf{R}_f^n)^{-1} )^{-1}  \mathbf{R}_f^s (\mathbf{R}_f^n)^{-1} )\right] \\
+& = \frac{1}{\beta}\left[(\mathbf{R}_f^n)^{-1} - \frac{(\mathbf{R}_f^n)^{-1}\mathbf{R}_f^s (\mathbf{R}_f^n)^{-1}}{\beta + \mathbf{R}_f^s (\mathbf{R}_f^n)^{-1}} \right] \\
+& = \frac{1}{\beta} \left[ \mathbf{I} -  \frac{(\mathbf{R}_f^n)^{-1}\mathbf{R}_f^s}{\beta + \mathbf{R}_f^s (\mathbf{R}_f^n)^{-1}}\right] (\mathbf{R}_f^n)^{-1}
+\end{aligned} \tag{8}</script><p>之后便就发现无法继续下去，因为分母无法化简出$(2)$中的迹的形式。这里困了蛮久，最后发现自己遗漏了一个条件，正是这里面$B$矩阵秩为1这一性质，当$A$和$A + B$可逆的时候，存在如下的定理 [2]：</p>
+<script type="math/tex; mode=display">
+(A + B)^{-1} = A^{-1} - \frac{1}{1 + g}A^{-1}B A^{-1} \tag{9}</script><p>其中$g = \text{tr}(BA^{-1})$。用此定理可以直接对$(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n)^{-1}$展开就可得到</p>
+<script type="math/tex; mode=display">
+(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n)^{-1} = \frac{1}{\beta} \left( \mathbf{I} -  \frac{(\mathbf{R}_f^n)^{-1}\mathbf{R}_f^s}{\beta + \text{tr}\left[(\mathbf{R}_f^n)^{-1} \mathbf{R}_f^s \right]}\right) (\mathbf{R}_f^n)^{-1} \tag{10}</script><p>同时，式$(6)$可以做变形如下：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\mathbf{w}^{\text{PMWF-}\beta}_f &= \left(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n \right)^{-1}\mathbf{R}_f^s\mathbf{u}_r \\
+& = \left(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n \right)^{-1} \left(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n - \beta \cdot \mathbf{R}_f^n\right) \mathbf{u}_r \\
+& = \mathbf{I} - \beta\left(\mathbf{R}_f^s + \beta \cdot \mathbf{R}_f^n \right)^{-1}\mathbf{R}_f^n \mathbf{u}_r
+\end{aligned} \tag{11}</script><p>带入式$(10)$即可得到式$(2)$中的结果。</p>
+<h3 id="Rank1-Constrained-实现"><a href="#Rank1-Constrained-实现" class="headerlink" title="Rank1 Constrained 实现"></a>Rank1 Constrained 实现</h3><p>Rank1约束主要指将PMWF表达式中的$\mathbf{R}_f^s$用一个秩为1的矩阵替代，即：</p>
+<script type="math/tex; mode=display">
+\mathbf{R}_f^s \simeq \lambda \cdot \mathbf{v}_f \mathbf{v}_f^H \tag{12}</script><p>以去除其中的噪声成分，也更加符合信号模型的假设。实现上最直观的方法使用特征值分解，$\mathbf{v}_f$为主特征向量，$\lambda$表示一个缩放常数：</p>
+<script type="math/tex; mode=display">
+\lambda = \text{tr} \left(\mathbf{R}_f^s \right) / \text{tr} \left(\mathbf{v}_f \mathbf{v}_f^H \right) \tag{13}</script><p>其次可以通过广义特征分解的方式进行：</p>
+<script type="math/tex; mode=display">
+\mathbf{v}_f = \mathbf{R}_f^s \cdot \mathcal{P} \left(\mathbf{R}_f^s, \mathbf{R}_f^n \right) \tag{14}</script><p>在我本人的一些初步实验中，确实发现，使用特征值分解或者广义特征值分解的方法，对$\mathbf{R}_f^s$做Rank1约束对识别结果有提升效果，且后者的相对提升高一些，因此在后续使用这种形式的波束形成器时，可以考虑加上Rank1约束，做一组对比实验。</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. M. Souden, J. Benesty, S. Affes. On Optimal Frequency-domain Multichannel Linear Filtering for Noise Reduction[J]. IEEE Transactions on audio, speech, and language processing, 2009, 18(2):260–276.<br>[2]. <a href="http://fourier.eng.hmc.edu/e176/lectures/algebra/node6.html" target="_blank" rel="noopener">http://fourier.eng.hmc.edu/e176/lectures/algebra/node6.html</a><br>[3]. Ziteng Wang, Emmanuel Vincent, Romain Serizel, and Yonghong Yan, “Rank-1 Constrained Multichannel Wiener Filter for Speech Recognition in Noisy Environments,” Jul 2017.</p>
+]]></content>
+      <categories>
+        <category>Speech Enhancement</category>
+      </categories>
+      <tags>
+        <tag>Beamformer</tag>
+        <tag>PMWF</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>On Spatial Features</title>
     <url>/2018/11/20/on-spatial-feature/</url>
     <content><![CDATA[<p>考虑到后面的时间可能不会继续深入声学前端这块了，因此想着近期补充一些前面一直想写，没写的东西，趁着年底也算是做一些小结。这次先谈一谈前端中一个比较重要的概念，spatial。</p>
