@@ -706,7 +706,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>6k</span>
+              <span>5.9k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -726,7 +726,9 @@
 
       
           <p>上个月做了一下single-channel下supervised语音分离的两种比较经典的方法，DPCL和uPIT，略有感触。在这篇文章中，我结合我的实践和理解，对它们做一些简单介绍。</p>
-<p>首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在T-F域上。TF-mask被定义的前提通常是信号仅仅为加性混叠（分离任务，混叠信号为说话人，增强任务，混叠信号为语音和加性噪声），因此广泛应用于分离，增强，而非解混响等任务中。不做区分，定义混叠信号如下：<br>$$<br>\mathbf{x} = \mathbf{s}_1 + \mathbf{s}_2 + \cdots \mathbf{s}_N + \mathbf{n}<br>$$</p>
+<p>首先我再次用自己的语言介绍一遍mask，因为前几天突然有非语音相关的人突然问mask相关的概念。单通道的增强或者分离任务中的mask实际全称应该是TF-mask（TF表示time and frequency），定义在T-F域上。TF-mask被定义的前提通常是信号仅仅为加性混叠（分离任务，混叠信号为说话人，增强任务，混叠信号为语音和加性噪声），因此广泛应用于分离，增强，而非解混响等任务中。不做区分，定义混叠信号如下：</p>
+<script type="math/tex; mode=display">
+\mathbf{x} = \mathbf{s}_1 + \mathbf{s}_2 + \cdots \mathbf{s}_N + \mathbf{n}</script>
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/07/02/nn-speech-separation/#more" rel="contents">
