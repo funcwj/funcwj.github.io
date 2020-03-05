@@ -14,6 +14,29 @@
       </categories>
   </entry>
   <entry>
+    <title>frp代理访问学校服务器</title>
+    <url>/2020/02/15/frp-ssh/</url>
+    <content><![CDATA[<p>由于新冠疫情，学校开学延迟，因此短期内大家还是要维持远程办公的状态。我这边的需求，一是访问实验室内部的wiki， 二是计算资源，也就是服务器。但是由于学校的vpn的问题，连接经常处于极不稳定的状态，因此十分影响心态和效率。本篇文章简单记录了一下如何使用frp跳过学校vpn，远程连接学校服务器。</p>
+<a id="more"></a>
+<p><a href="https://github.com/fatedier/frp" target="_blank" rel="noopener">frp</a>（快速反向代理）是一个可以用于内网穿透的反向代理应用，很早之前就知道它，但是由于自己一直没有一个公网上的vps，所以没能能拿来做什么事情。一些常见的需求，比如想暴露自己在某个局域网内部（家庭，学校，公司等等）的某些服务（文件，web等等）到公网之外，都可以使用它进行内网穿透（前提是需要有一个公网的主机，进行请求转发）。</p>
+<p>ssh连接内网机器的配置README上写的很详细，但是要注意把服务器上对应的端口打开，不然后面ssh的时候会出现”connection refused”的错误。我服务端的系统是centos，可以配合firewall-cmd进行端口管理，写一个脚本<code>run_server.sh</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env bash</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># wujian@2020</span></span><br><span class="line"></span><br><span class="line">[ <span class="variable">$#</span> -ne 2 ] &amp;&amp; <span class="built_in">echo</span> <span class="string">"script format error: <span class="variable">$0</span>: &lt;server-port&gt; &lt;client-port&gt;"</span> &amp;&amp; <span class="built_in">exit</span> 1</span><br><span class="line"></span><br><span class="line">server_port=<span class="variable">$1</span></span><br><span class="line">client_port=<span class="variable">$2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># check and open service port</span></span><br><span class="line"><span class="keyword">for</span> p <span class="keyword">in</span> <span class="variable">$server_port</span> <span class="variable">$client_port</span>; <span class="keyword">do</span></span><br><span class="line">    port_query=$(firewall-cmd --zone=public --query-port=<span class="variable">$p</span>/tcp)</span><br><span class="line">    <span class="keyword">if</span> [[ <span class="variable">$port_query</span> -eq <span class="string">"no"</span> ]]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">"<span class="variable">$0</span>: open port <span class="variable">$p</span> ..."</span></span><br><span class="line">        firewall-cmd --zone=public --add-port=<span class="variable">$p</span>/tcp &amp;&amp; <span class="built_in">echo</span> <span class="string">"<span class="variable">$0</span>: open port <span class="variable">$p</span> done"</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">"<span class="variable">$0</span>: port <span class="variable">$p</span> already opened, skip..."</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> SSH_SERVER_PORT=<span class="variable">$server_port</span></span><br><span class="line">./frps -c ./frps.ini 2&gt;&amp;1 &gt; server.<span class="variable">$&#123;server_port&#125;</span>.<span class="built_in">log</span></span><br></pre></td></tr></table></figure>
+<p>脚本里面使用环境变量进行server port的设置，因此<code>frps.ini</code>里面对应的使用go模板的方式。firewall-cmd是linux上一个替代iptables的防火墙管理工具，使用文档可以参考这里<a href="https://wangchujiang.com/linux-command/c/firewall-cmd.html" target="_blank" rel="noopener">firewall-cmd</a>。<br>服务端启动起来之后，在学校的服务器上对应的启动客户端的程序，对应使用<code>run_server.sh</code>里面指定的<code>&lt;server-port&gt;</code>和<code>&lt;client-port&gt;</code>:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[common]</span><br><span class="line">server_addr &#x3D; &lt;server-addr&gt;</span><br><span class="line">server_port &#x3D; &lt;server-port&gt;</span><br><span class="line"></span><br><span class="line">[ssh]</span><br><span class="line">type &#x3D; tcp</span><br><span class="line">local_ip &#x3D; 127.0.0.1</span><br><span class="line">local_port &#x3D; 22</span><br><span class="line">remote_port &#x3D; &lt;client-port&gt;</span><br></pre></td></tr></table></figure>
+<p>如果两端的log里面没有error，则说明服务启动正常，接下来就可以进行ssh和scp操作了。在上述配置下，对应的连接命令为：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -p &lt;client-port&gt; &lt;user-name&gt;@&lt;server-addr&gt;</span><br></pre></td></tr></table></figure>
+<p><code>&lt;user-name&gt;</code>为学校服务器的用户名，本地到远程的数据传输命令为：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -P &lt;client-port&gt; -r /<span class="built_in">local</span>/data/path  &lt;user-name&gt;@&lt;server-addr&gt;:/remote/data/path</span><br></pre></td></tr></table></figure>
+<p>反之为：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -P &lt;client-port&gt; -r &lt;user-name&gt;@&lt;server-addr&gt;:/remote/data/path /<span class="built_in">local</span>/data/path</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>frp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Multi-Channel Hybrid AM</title>
     <url>/2019/11/10/multi-channel-hybrid-am/</url>
     <content><![CDATA[<p>本篇文章主要说一下多通道的Hybrid声学模型。Google在CLDNN之后，大约在2015年到2017年之间围绕远场语音识别，做了一系列 [1-6] 的工作，相关的技术也被用在了Google Home [7] 上。17年的时候我看了其中的一部分，觉得工作做的很漂亮，一骑绝尘，一枝独秀。原因主要有两方面，其一是多通道声学模型是一个比较新的概念，当时很少见其他高校和公司有相关的工作，基本还停留在神经网络的架构阶段，其二是Google的产出速度非常惊人，而且思路明确，环环相扣。17年之后，Google甩手开始做端到端（E2E）方面的工作，学术界和工业界也开始紧紧跟着不放，之前的工作关注度相比之下，明显低了很多。最近看到Amazon在icassp2019上有了两篇文章 [8-9]，再加上面试百度时他们聊了一些神经网络前端的事（后来确实花功夫宣传了），我就想聊一下这方面的工作和认识。</p>
