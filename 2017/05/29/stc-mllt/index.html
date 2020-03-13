@@ -30,7 +30,7 @@
 <meta property="og:description" content="GMM的传统建模中，为了避免建模单元参数过多，默认只存储协方差矩阵的对角形式。实际上这里做了一个隐性的假设，就是数据各个维度之间是不相关的，显然，这一点并不成立，但是如果对于每一个GMM建模单元都采取协方差矩阵表示方差的话，模型的整体参数量会急剧增大，所以，对于这一问题，一般有以下两种方式解决：  特征方案，通过去相关算法，使得数据分布更适合用对角矩阵建模，比如DCT和LDA算法 模型方案，根据生">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-05-29T02:30:21.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:10:53.190Z">
+<meta property="article:modified_time" content="2020-03-13T11:31:35.913Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="GMM">
 <meta name="twitter:card" content="summary">
@@ -134,7 +134,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">81</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">82</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -245,7 +245,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3.6k</span>
+              <span>3.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -271,7 +271,6 @@
 </ul>
 <p>Semi-Tied方法属于第二种，是基于state-specific rotation提出的一种通过在状态之间共享变换矩阵，解决该问题的方式。</p>
 <a id="more"></a>
-
 <h3 id="State-Specific-Rotation"><a href="#State-Specific-Rotation" class="headerlink" title="State-Specific Rotation"></a>State-Specific Rotation</h3><p>State-Specific Rotation用来对特征矩阵中的相关性建模，顺序如下</p>
 <ol>
 <li>对于每一个状态，有一个协方差矩阵，对它进行特征值分解</li>
@@ -279,32 +278,60 @@
 <li>对该状态的多个高斯分量的对角协方差矩阵进行训练</li>
 </ol>
 <p>注：特征值分解【spectral decomposition】（线性代数学过）<br>对于一个状态$s$，它的协方差矩阵 $\Sigma_{full}^s$ 通过下式计算：</p>
-<p>$$<br>\Sigma_{full}^s = \frac{\sum_t\gamma_t^s(o_t - \mu^s)(o_t - \mu^s)^T}{\sum_t\gamma_t^s} \<br>\gamma_t^s = p(q_t^s|M, O_T)<br>$$</p>
-<p>其中$\mu^s$表示对齐到该状态的数据均值，$\gamma_t^s$表示在$t$时刻，来自状态$s$的概率，$\Sigma_{full}^s$分解如下</p>
-<p>$$<br>\Sigma_{full}^s = U^s\Lambda^sU^{sT}<br>$$</p>
-<p>其中，$U^s$是特征向量组成的特征矩阵，$\Lambda^s$是对角矩阵</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\Sigma_{full}^s & = \frac{\sum_t\gamma_t^s(o_t - \mu^s)(o_t - \mu^s)^T}{\sum_t\gamma_t^s} \\
+\gamma_t^s & = p(q_t^s|M, O_T)
+\end{aligned}</script><p>其中$\mu^s$表示对齐到该状态的数据均值，$\gamma<em>t^s$表示在$t$时刻，来自状态$s$的概率，$\Sigma</em>{full}^s$分解如下</p>
+<script type="math/tex; mode=display">
+\Sigma_{full}^s = U^s\Lambda^sU^{sT}</script><p>其中，$U^s$是特征向量组成的特征矩阵，$\Lambda^s$是对角矩阵</p>
 <p>在训练阶段，对于每一帧观测特征$o_t$，将它关联到状态$s$，做如下变换得到状态相关的观测$o_t^s$：</p>
-<p>$$o_t^s = U^{sT}o_t$$</p>
-<p>在一个状态内，对于每一个分量$m$，均值$\mu^{sm}$和方差$\Sigma_{diag}^m$更新如下：</p>
-<p>$$<br>\mu^{sm} = \frac{\sum_t \gamma_t^m o_t^s}{\sum_t \gamma_t^m} \<br>\Sigma_{diag}^m = \frac{\sum_t \gamma_t^m(o_t^s - \mu^{sm})(o_t^s - \mu^{sm})^T}{\sum_t \gamma_t^m}<br>$$</p>
-<p>而每一个分量对应的协方差矩阵$\Sigma^m$定义为：</p>
-<p>$$<br>\Sigma^m = U^s\Sigma_{diag}^mU^{sT}<br>$$<br>识别阶段，每一个状态下特定分量的似然为<br>$$<br>L(o_t; \mu^m, \Sigma^m, U^s) = \mathcal N(o_t^s;\mu^{sm}, \Sigma_{diag}^m)<br>$$<br>有一点不明白，说这种方式不能用标准的ML算法更新，也和多分量模型无关，有一些解决的方法，暂时没有看懂……</p>
+<script type="math/tex; mode=display">o_t^s = U^{sT}o_t</script><p>在一个状态内，对于每一个分量$m$，均值$\mu^{sm}$和方差$\Sigma_{diag}^m$更新如下：</p>
+<script type="math/tex; mode=display">
+\mu^{sm} = \frac{\sum_t \gamma_t^m o_t^s}{\sum_t \gamma_t^m} \Sigma_{diag}^m = \frac{\sum_t \gamma_t^m(o_t^s - \mu^{sm})(o_t^s - \mu^{sm})^T}{\sum_t \gamma_t^m}</script><p>而每一个分量对应的协方差矩阵$\Sigma^m$定义为：</p>
+<script type="math/tex; mode=display">
+\Sigma^m = U^s\Sigma_{diag}^mU^{sT}</script><p>识别阶段，每一个状态下特定分量的似然为</p>
+<script type="math/tex; mode=display">
+L(o_t; \mu^m, \Sigma^m, U^s) = \mathcal N(o_t^s;\mu^{sm}, \Sigma_{diag}^m)</script><p>有一点不明白，说这种方式不能用标准的ML算法更新，也和多分量模型无关，有一些解决的方法，暂时没有看懂……</p>
 <h3 id="Semi-Tied-Covariance-Matrices"><a href="#Semi-Tied-Covariance-Matrices" class="headerlink" title="Semi-Tied Covariance Matrices"></a>Semi-Tied Covariance Matrices</h3><p>Semi-Tied理解为，对于识别器中的每一个分量，我们不使用不同的协方差矩阵，换句话说，它的协方差矩阵有两个量组成</p>
 <ol>
 <li>一个分量相关的对角协方差矩阵$\Sigma_{diag}^m$</li>
 <li>Semi-Tied的非对角矩阵$H^r$</li>
 </ol>
-<p>那么，识别器中每一个GMM中每一个分量的协方差矩阵可以表示为：<br>$$<br>\Sigma^m = H^r\Sigma_{diag}^mH^{rT}<br>$$</p>
-<p>由上式，令$A^r = (H^r)^{-1}$：<br>$$<br>\Sigma_{diag}^m = (H^r)^{-1}\Sigma^m(H^{rT})^{-1} \<br>= A^r\Sigma^mA^{rT}<br>$$</p>
-<p>其中$H^r$可以被多个分量共享，从这里看，STC这种模型也就是比传统的GMM模型多了一个分量间可共享的矩阵$H^r$，使用EM算法更新，需要更新每个分量中的一下几个量：<br>$$<br>(c^m, \mu^m, \Sigma_{diag}^m, H^r)<br>$$</p>
-<p>使用EM算法对以上参数进行估计，定义$Q$函数$Q(\hat{M}, M)$（$\hat{}$表示新模型）：<br>$$<br>Q(\hat{M}, M) = \sum_Z \log P(X,Z|\hat{M})P(Z|X, M) \<br>= \sum_{t, ; m \in M^r}\gamma_t^m \left{ \log \left(|\hat{\Sigma}^m|^{-1}\right) - (o_t - \hat{\mu}^m)^T(\hat{\Sigma}^{m})^{-1}(o_t - \hat{\mu}^m) \right}<br>$$</p>
-<p>上式中去除了一些优化无关的常量和系数，结合$\Sigma^m$的定义，上式展开为<br>$$<br>Q(\hat{M},M) = \sum_{t,; m \in M^r} \gamma_t^m\left{\log \left(\frac{|\hat<br>{A}^r|^2}{|\hat{\Sigma}<em>{diag}^m| } \right) - (o_t - \hat{\mu}^m)^T\left(\hat{A}^{tT}(\hat{\Sigma}</em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m) \right}<br>$$</p>
-<p>这里做一个化简，原理在“状态绑定之决策树似然公式”中证明过：<br>$$<br>\sum_{t,; m \in M^r} \gamma_t^m\left[(o_t - \hat{\mu}^m)^T\left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)\right] \<br>= \sum</em>{t,; m \in M^r} \gamma_t^m \cdot \text{tr}\left[\left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \<br>= \text{tr}\left[ \sum</em>{t,; m \in M^r} \gamma_t^m \left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \<br>= \text{tr}\left[ \sum</em>{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)\sum</em>{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right]<br>$$</p>
-<p>由<br>$$<br>\frac{\sum_{t}\gamma_t^m(o_t - \mu^m)(o_t - \mu^m)^T}{\sum_t \gamma_t^m} = \Sigma^m = \left(A^{rT}(\Sigma_{diag}^{m})^{-1}A^{r}\right)^{-1}<br>$$</p>
-<p>得：<br>$$<br>\text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)\sum</em>{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \<br>= \text{tr}\left[ \sum_{t,;m \in M^r} \gamma_t^m I \right] = n\sum_{t,;m \in M^r} \gamma_t^m<br>$$</p>
-<p>于是，$Q(M, \hat{M})$可写成：<br>$$<br>Q(\hat{M}, M) = \sum_{t,; m \in M^r} \gamma_t^m\left{\log \frac{|\hat{A}^r|^2}{|\hat{\Sigma}<em>{diag}^m| } \right} - n\sum</em>{t,;m \in M^r} \gamma_t^m<br>$$</p>
-<p>在M步，更新的均值，方差如下：<br>$$<br>\hat{\mu}^m = \frac{\sum_t \gamma_t^m o_t}{\sum_t \gamma_t^m} \<br>\hat{\Sigma}^m = \frac{\sum_t \gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T}{\sum_t \gamma_t^m} \<br>\hat{\Sigma}_{diag}^m = \text{diag}\left( \hat{A}^r\hat{\Sigma}^m\hat{A}^{rT} \right)<br>$$</p>
-
+<p>那么，识别器中每一个GMM中每一个分量的协方差矩阵可以表示为：</p>
+<script type="math/tex; mode=display">
+\Sigma^m = H^r\Sigma_{diag}^mH^{rT}</script><p>由上式，令$A^r = (H^r)^{-1}$：</p>
+<script type="math/tex; mode=display">
+\Sigma_{diag}^m = (H^r)^{-1}\Sigma^m(H^{rT})^{-1} = A^r\Sigma^mA^{rT}</script><p>其中$H^r$可以被多个分量共享，从这里看，STC这种模型也就是比传统的GMM模型多了一个分量间可共享的矩阵$H^r$，使用EM算法更新，需要更新每个分量中的一下几个量：</p>
+<script type="math/tex; mode=display">
+(c^m, \mu^m, \Sigma_{diag}^m, H^r)</script><p>使用EM算法对以上参数进行估计，定义$Q$函数$Q(\hat{M}, M)$（$\hat{}$表示新模型）：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+Q(\hat{M}, M) & = \sum_Z \log P(X,Z|\hat{M})P(Z|X, M) \\
+              & = \sum_{t, \; m \in M^r}\gamma_t^m \left\{ \log \left(|\hat{\Sigma}^m|^{-1}\right) - (o_t - \hat{\mu}^m)^T(\hat{\Sigma}^{m})^{-1}(o_t - \hat{\mu}^m) \right\}
+\end{aligned}</script><p>上式中去除了一些优化无关的常量和系数，结合$\Sigma^m$的定义，上式展开为</p>
+<script type="math/tex; mode=display">
+Q(\hat{M},M) = \sum_{t,\; m \in M^r} \gamma_t^m\left\{\log \left(\frac{|\hat
+{A}^r|^2}{|\hat{\Sigma}_{diag}^m| } \right) - (o_t - \hat{\mu}^m)^T\left(\hat{A}^{tT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m) \right\}</script><p>这里做一个化简，原理在“状态绑定之决策树似然公式”中证明过：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\sum_{t,\; m \in M^r} & \gamma_t^m\left[(o_t - \hat{\mu}^m)^T\left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)\right] \\
+& = \sum_{t,\; m \in M^r} \gamma_t^m \cdot \text{tr}\left[\left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \\
+& = \text{tr}\left[ \sum_{t,\; m \in M^r} \gamma_t^m \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \\
+& = \text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)\sum_{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right]
+\end{aligned}</script><p>由</p>
+<script type="math/tex; mode=display">
+\frac{\sum_{t}\gamma_t^m(o_t - \mu^m)(o_t - \mu^m)^T}{\sum_t \gamma_t^m} = \Sigma^m = \left(A^{rT}(\Sigma_{diag}^{m})^{-1}A^{r}\right)^{-1}</script><p>得：</p>
+<script type="math/tex; mode=display">
+\text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)\sum_{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] = \text{tr}\left[ \sum_{t,\;m \in M^r} \gamma_t^m I \right] = n\sum_{t,\;m \in M^r} \gamma_t^m</script><p>于是，$Q(M, \hat{M})$可写成：</p>
+<script type="math/tex; mode=display">
+Q(\hat{M}, M) = \sum_{t,\; m \in M^r} \gamma_t^m\left\{\log \frac{|\hat{A}^r|^2}{|\hat{\Sigma}_{diag}^m| } \right\} - n\sum_{t,\;m \in M^r} \gamma_t^m</script><p>在M步，更新的均值，方差如下：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\hat{\mu}^m & = \frac{\sum_t \gamma_t^m o_t}{\sum_t \gamma_t^m} \\
+\hat{\Sigma}^m & = \frac{\sum_t \gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T}{\sum_t \gamma_t^m} \\
+\hat{\Sigma}_{diag}^m & = \text{diag}\left( \hat{A}^r\hat{\Sigma}^m\hat{A}^{rT} \right)
+\end{aligned}</script>
     </div>
 
     
@@ -422,7 +449,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-count">82</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -593,12 +620,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">327k</span>
+    <span title="站点总字数">356k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:57</span>
+    <span title="站点阅读时长">5:24</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>

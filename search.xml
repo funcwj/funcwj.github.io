@@ -7,6 +7,7 @@
 <li>Convolutional Operations (语音任务中关于卷积操作的一些妙用和技巧)</li>
 <li>Update Hexo &amp; Next （站点更新记录）</li>
 <li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
+<li>SETK in 2019 (过去一年写了什么和一些想法)</li>
 </ul>
 ]]></content>
       <categories>
@@ -34,6 +35,255 @@
       </categories>
       <tags>
         <tag>frp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Speech Enhancement &amp; Separation简介</title>
+    <url>/2020/01/13/intro-on-se-and-ss/</url>
+    <content><![CDATA[<p>这几年明显感觉做分离增强这块的人越来越多了，一方面学术研究上逐渐成为了一个热点，不断的有新的模型和思路产生，一方面工业界想将技术落到具体的产品中，也必将面临实际声学环境中的各种噪声，说话人干扰问题。我曾经从新人的角度，考虑如下三个因素，推荐对语音感兴趣的人从前端开始着手：1）相比识别任务，没有特征提取，解码，对齐这些繁杂的操作，门槛相对低了很多；2）前端处理的结果，可以通过样例直观的感受到，相比识别WER和解码结果这种反馈度不高的结果，趣味性和吸引力要高很多；3）对数据的依赖较低，识别需要一定量的数据积累，抄本也需要依赖人工标注，而增强分离这些任务，做一些toy的东西，用开源的数据和噪声仿真就行了。当然这些是基于目前主流的深度学习方法所下的论断，在此之前，声学，信号等领域的大佬们已经用他们的才智对抗这些问题很多年了，形成了非常完备的理论系统，如果要深入那些方法的话，数学统计理论的要求自然不可与我们现在单纯训模型并论。</p>
+<a id="more"></a>
+<h3 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h3><p>最近趁着准备毕业的空挡，从论文中整理了一些增强分离领域中的基本方法和概念，其中有些内容我之前也有单独的文章和内容上的拓展。考虑到这几年的技术进步非常快，本篇文章中罗列的内容大部分已经非常成熟，甚至可以说有些过时，放在这里的目的是想把增强/分离中的一些基本的概念，处理的框架，主流的方法和背后的因果关系串联起来，可以让新人有个大致的印象。对一些最新的工作，本文没有做过多介绍，感兴趣的同学可以后续在近几年的<a href="https://www.isca-speech.org/" target="_blank" rel="noopener">interspeech</a>，icassp和<a href="https://arxiv.org/list/eess.AS/recent" target="_blank" rel="noopener">arxiv-ASLP</a>上自行检索相关文章。</p>
+<p>虽然这个站点上记录了一些我自己总结的东西，但是我个人还是建议读者直接从参考的原始文献中去做具体和细致的学习，形成自己的理解。本站上的内容大多是我对相关工作的认识，有我自身主观的成分，通常情况下，我也不会主动将站点上的内容推荐给别人阅读，即使是我实验室的低年级同学，有时间的话，我也是选择当面跟说清重点之后，再让他们去阅读相关文章。一般写作上比较规范的文章，会在文中对相关的工作和基本的原理进行详细的阐述，有不明白的地方，就顺着参考文献继续追踪。通常在语音这块，追踪个十几篇文章就可以对当前的研究领域有个大体的了解。之后的事情，就是实践，这个非常重要，因为个人觉得，文中的具体方法，操作，技巧，只有在自己亲自实验之后，才能放入自我认可的知识库中。很多自己不确定的因素，变量，甚至是对方法的质疑，都可以通过对比实验中的结论得到“确定”，哪怕它们中的一些是数据相关的。</p>
+<h3 id="单通道语音增强"><a href="#单通道语音增强" class="headerlink" title="单通道语音增强"></a>单通道语音增强</h3><p>单通道语音增强的信号模型如$(1)$所示，观测的带噪信号$\mathbf{y} = \{y_0, \cdots, y_{N - 1}\}$可以视为由目标干净语音$\mathbf{s} = \{s_0, \cdots, s_{N - 1}\}$和噪声信号$\mathbf{n} = \{n_0, \cdots, n_{N - 1}\}$在时域上的叠加而成，$N$表示信号样本点的个数。经过短时傅里叶变换（Short-Time Fourier Transform，STFT）之后，在频域上同样可以表示为相应的成分叠加形式：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+\mathbf{y} = \mathbf{s} + \mathbf{n} \overset{\text{STFT}}{\longrightarrow} \mathbf{Y} = \mathbf{S} + \mathbf{N},
+\end{equation}</script><p>其中$\mathbf{Y}, \mathbf{S}, \mathbf{N} \in \mathbb{C}^{T \times F}$。$T, F$分别表示STFT的帧数和频点数。需要注意的是，在数据仿真（data simulation）的阶段，我们最好保证上述关系，以便匹配本文后续介绍的一些代价函数。</p>
+<p>神经网络大行其道之后，学者借助网络在大量的带噪/干净语料对上，学习到的可以用于恢复目标语音的一些中间变量进行语音增强。早期比较成功的尝试是在频域进行的，即先将音频进行STFT变换，在频域增强之后，再借助逆变换还原，代表性的工作有俄亥俄州立大学汪德亮组提出的频谱掩蔽<sup>[1,2,3]</sup>（Time-frequency Masking） 和佐治亚理工学院李锦辉教授提出的频谱映射<sup>[4,5]</sup>（Spectral Mapping）两种方法。</p>
+<p>频谱掩蔽方法通过神经网络从带噪信号的声学特征中估计出每个时频点（Time-Frequency bins，TF-bins）的信号掩码（mask），用于表示目标信号成分的占比。TF-mask的概念最早出现在空间聚类算法和CASA中。基于语谱上的稀疏性原理，我们可以借助逆短时傅里叶变换（inverse Short-Time Fourier Transform，iSTFT）将经TF-mask掩蔽的带噪线性谱从频域还原到时域作为增强语音的结果。由于目标语音的相位信息尚不可知，早期的处理方法是使用原带噪信号的相位信息替代。上述过程可以表示成如下数学表达式：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \hat{\mathbf{s}} = \text{iSTFT} \left(\hat{\mathbf{M}} \odot |\mathbf{Y}|, \angle \mathbf{Y} \right),
+\end{equation}</script><p>其中$\hat{\mathbf{M}} \in \mathbb{R}^{T \times F}$表示神经网络预测的目标mask，$|\mathbf{Y}|$和$\angle \mathbf{Y}$分别表示噪声信号的线性谱和相位。谱映射方法采用使用网络直接预测目标的线性谱$|\hat{\mathbf{S}}|$的方式，信号还原过程相应的表示为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \hat{\mathbf{s}} = \text{iSTFT} \left(|\hat{\mathbf{S}}|, \angle \mathbf{Y} \right).
+\end{equation}</script><p>在理想的情况下，谱映射的方法比时频掩蔽法的理论上限更高，因为后者即使mask可以完美学得，相比原始干净的谱特征也是存在误差的。但是从训练的角度来说，由于目标mask的值一般落在一个有界的区域，所以相比直接预测线性特征，网络往往更加容易收敛。基于公式$(1)$中定义的信号模型，早期被广泛尝试和使用的用于恢复目标语谱$|\mathbf{S}|$的mask类型主要有如下几种：</p>
+<ul>
+<li><p>理想二值掩码<sup>[3]</sup>（Ideal Binary Mask，IBM）。IBM的定义可以表示为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+  \mathbf{M}^{\text{IBM}}_{t,f} = \mathcal{I} \left(\frac{|\mathbf{S}_{t,f}|}{|\mathbf{N}_{t,f}|} > \theta \right) \in \{0, 1\}.
+\end{equation}</script><p>其中$\mathcal{I}(\cdot)$表示指示函数。当TF-bin上的信噪比超出某个阈值$\theta$时，就认为该频点上，目标信号占据统治地位，IBM值取1，反之取0。在一般实验中，我们会取$\theta = 1$。</p>
+</li>
+<li><p>理想比率掩码<sup>[6]</sup>（Ideal Ratio Mask，IRM）。不同于IBM，IRM的值是受限连续的，它被定义为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+  \mathbf{M}^{\text{IRM}}_{t,f} = \frac{|\mathbf{S}_{t,f}|}{|\mathbf{S}_{t,f}| + |\mathbf{N}_{t,f}|} \in [0, 1].
+\end{equation}</script><p>IRM的一个性质是信号模型中各个成分的掩码值加和为1（在单通道增强模型中即噪声成分和目标语音成分）。</p>
+</li>
+<li><p>理想幅度掩码<sup>[7]</sup>（Ideal Amplitude Mask，IAM）。IAM又称FFT-mask，和IRM的定义类似，只是分母被替换为观测信号的模值：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+  \mathbf{M}^{\text{IAM}}_{t,f} = \frac{|\mathbf{S}_{t,f}|}{|\mathbf{Y}_{t,f}|} \in [0, +\infty].
+\end{equation}</script><p>根据复数的三角不等式$|a + b| \leqslant |a| + |b|$，相同的$\mathbf{S}, \mathbf{N}$计算出来的IAM要大于IBM，且在理论上IAM的值没有上限。</p>
+</li>
+<li><p>相位敏感掩码<sup>[8]</sup>（Phase-Sensitive Mask，PSM）。以上三种TF-mask均没有考虑到目标分量和噪声信号的相位差别，PSM提出使用目标分量在观测信号方向上的投影做为IAM定义式中的分子：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+  \mathbf{M}^{\text{PSM}}_{t,f} = \frac{|\mathbf{S}_{t,f}| \cos(\angle \mathbf{S}_{t,f} 
+  - \angle \mathbf{Y}_{t,f})}{|\mathbf{Y}_{t,f}|} \in [-\infty, +\infty].
+\end{equation}</script><p>在增强任务中取得了超越其他实数mask的结论。由于投影结果可正可负，因此，理论上的PSM相比IAM而言，没有下界约束。</p>
+</li>
+</ul>
+<p>一般的，训练阶段将TF-mask或增强谱的预测视为一个回归任务，使用均方误差（Mean Square Error，MSE）作为目标函数进行训练：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathcal{L}_{\text{MSE}} = \left \Vert \hat{\mathbf{M}} - \mathbf{M}_{\text{GT}} \right \Vert_F^2.
+\end{equation}</script><p>其中$\hat{\mathbf{M}}$为网络预测的结果，$\mathbf{M}_{\text{GT}}$为对应的真实参照值，$\Vert \cdot \Vert_F$表示矩阵的F范数。对于IBM，因为值是离散的，也可以使用BCE（Binary Cross Entropy）进行优化。此外，在使用IAM或者PSM的时候，有如下两个方面需要注意：</p>
+<p>第一是上下界的截断。因为实TF-mask的预测网络一般采用非线性的激活函数（比如ReLU，Sigmoid等等）作为最终输出，预测值非负，所以对于PSM这种可能产生负值的mask，需要加一个下界处理（深入分析之后，这其实是目标语音和带噪语音相位反向条件下的非负最优解）。而为了网络训练的稳定，也会对IAM和PSM进行上界约束，这样得到的mask成为截断的IAM/PSM（tIAM，tPSM）：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+\begin{aligned}
+    \mathbf{M}_{\text{tPSM}} & = \min \left(\max(0, \mathbf{M}_{\text{PSM}}), m_{\text{ub}} \right), \\
+    \mathbf{M}_{\text{tIAM}} & = \min \left(\mathbf{M}_{\text{IAM}}, m_{\text{ub}} \right),
+\end{aligned}
+\end{equation}</script><p>其中$m_{\text{ub}}$表示设定的TF-mask值上界。</p>
+<p>其二是损失函数的变形。对于这两种mask，我们常常使用信号谱层面重构的MSE来替代在公式$(8)$中mask层面的MSE，这种方法分别被称之为幅度谱近似（Magnitude Spectrum Approximation，MSA）和截断相位敏感谱近似（truncated Phase-sensitive Spectrum Approximation，tPSA），数学表达为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \begin{aligned}
+    \mathcal{L}_{\text{MSA}} & = \left \Vert |\mathbf{Y}| \odot \hat{\mathbf{M}}  - |\mathbf{S}| \right \Vert_F^2, \\
+    \mathcal{L}_{\text{tPSA}} & = \left \Vert |\mathbf{Y}| \odot 
+    \hat{\mathbf{M}} - |\mathbf{S}| \odot \max(0, \cos(\angle \mathbf{S} - \angle \mathbf{Y})) \right \Vert_F^2.
+\end{aligned}
+\end{equation}</script><p>上述部分已经围绕频谱掩蔽和谱映射两种方法的动机和优化目标进行了简单介绍。它们的共性在于只在语谱特征上进行了增强，相位上并未做进一步的处理。考虑到相位对于提升重构语音质量有着十分明显的作用（体现在一些客观指标上，比如PESQ，SNR等等），因此如何突破相位增强这一问题也逐渐成为学术界研究的重点。由于相位在结构性和稳定性上要比谱特征要差很多，即使原始信号只发生很小量的偏移，每个频率上的相位值也会有较大的变化，再加上其周期性和相位混叠等现象的影响，实际语音的相位往往是十分随机的，因此尝试使用神经网络去直接预测绝对相位十分困难。</p>
+<p>一种比较直观的方法即同时恢复目标语音的复数谱$\hat{\mathbf{S}}$，可以借助复数掩码（Complex Masks）或者复数谱映射的方法进行，之后iSTFT的还原操作替换为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \hat{\mathbf{s}} = \text{iSTFT} \left( |\mathbf{\hat{\mathbf{S}}}|, \angle \mathbf{\hat{\mathbf{S}}} \right),
+\end{equation}</script><p>其中$\mathbf{\hat{\mathbf{S}}} = \mathbf{Y} \odot \hat{\mathbf{M}_{\text{CM}}}$。2016年Williamson等人提出复数比率掩码<sup>[9]</sup>（Complex Ratio Mask，CRM）定义为$\mathbf{M}_{\text{CRM}} = \mathbf{S} / \mathbf{Y} = |\mathbf{S}| \odot e^{j(\angle \mathbf{S} - \angle \mathbf{Y})} / |\mathbf{Y}|$，由于其实部（即PSM）和虚部都是无界的，实际训练中使用压缩后的结果为目标。测试阶段再对应的进行解压做频谱掩蔽和信号还原。虽然较实mask可以获得一定的提升，但是在实际压缩参数的选取中，不合适的压缩/解压参数对重构影响较大，甚至有可能取得适得其反的结果。此外，一种修正的复数掩码计算方式配合复数卷积网络和时域的代价函数被提出<sup>[10]</sup>，约束了幅制掩码部分的上届，但是允许相位部分自由调节。在我自己的实现中，该方法表现相比CRM要相对鲁棒一些。</p>
+<p>此外更加直接的方法是在时域上进行音频的建模和目标函数计算。早在2015年，Yuxuan Wang等人就提出使用iFFT层将掩蔽的频谱转到时域进行重构误差函数的计算和梯度的反向传播<sup>[11]</sup>，虽然当时使用的依旧是噪声的相位，但是在语音增强质量和清晰度指标上都超越了IRM的基线。近几年陆续有一些时域上的结构和方法被提出，比如基于GAN<sup>[12]</sup>和卷积网络<sup>[13,14,15]</sup>的等等。这些方法可以直接生成时域上的样本点，因此免去了频域中iSTFT对相位的依赖，很好的跳过了相位增强这一问题，我们常常在文献中称之为端到端（End-to-End，E2E）的语音增强方法。</p>
+<h3 id="单通道语音分离"><a href="#单通道语音分离" class="headerlink" title="单通道语音分离"></a>单通道语音分离</h3><p>单通道语音分离的信号模型和增强类似，只是存在多个说话人的重叠，观测的混合信号$\mathbf{y}$可以视为噪声$\mathbf{n}$和$C$个说话人$\mathbf{s}^i, i \in {0, \cdots, C - 1}$信号的交叠，数学上可以表达为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{y} = \sum_i \mathbf{s}^i + \mathbf{n} 
+    \overset{\text{STFT}}{\longrightarrow} \mathbf{Y} = \sum_i \mathbf{S}^i + \mathbf{N}.
+\end{equation}</script><p>语音分离即是要从混合的观测信号中恢复每个原始说话人的信号内容。随着深度学习技术在语音增强领域的成功应用，学者开始研究如何将其应用到解决分离问题上去。早期尝试是在我们称之为说话人相关（Speaker Dependent，SD）和目标说话人相关（Target Dependent，TD）的场景下的。SD模型的训练在固定的说话人混合数据上进行<sup>[16]</sup>，网络同时预测每个说话人的TF-mask，测试时说话人种类和训练集保持一致，因此不具备在集外说话人上的泛化能力，想要解决其他说话人组合下的分离问题只能通过训练多个模型来实现。TD模型只能提取单一固定的目标说话人<sup>[17]</sup>，但是对干扰说话人的类型没有限制。这种情景下的解决思路和上一节介绍的语音增强方法非常一致，只是目标从语音信号变成了特定的说话人，想要实现多说话人的提取也必须训练多个模型。学术界和工业界更多期待的是一种被称为说话人无关（Speaker Independent，SI）的分离方法，模型可以泛化到任意新的说话人中去，即测试和训练时候都不受说话人种类的干扰，因此相对而言具备更加广阔的研究和落地前景。</p>
+<p>以两个说话人为例，如果采用SD的方法，即同时预测两个说话人的mask，采用的目标函数，比如：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathcal{L}_{\text{MSA, SD}} = \sum_{c = \{0, 1\}} \left \Vert |\mathbf{Y}| \odot \hat{\mathbf{M}}_c  - |\mathbf{S}_c| \right \Vert_F^2.
+\end{equation}</script><p>直接在大量的双说话人混合语料上进行训练是无法取得成功的。因为模型在训练阶段面临所谓的标签置换问题<sup>[18]</sup>（Label Permutation Problem）。该问题指的是由于分离模型本身无法决定所分离的说话人顺序，在计算代价函数时我们又需要指定和训练标签对应的匹配顺序，一旦指定的顺序和实际输出的顺序不符，那么网络便会向相反的方向进行优化，从而导致网络训练失败的现象。比如实际预测的说话人mask顺序为$\hat{\mathbf{M}}_1, \hat{\mathbf{M}}_0$，而此时如果还根据公式$(13)$就会产生相反的梯度更新方向。说话人个数越多，计算代价函数时可能的匹配方式就越多，因此网络的优化也越难进行。</p>
+<p>最早尝试解决标签置换问题并在说话人无关的语音分离任务上取得成功的是深度聚类<sup>[18]</sup>（Deep Clustering，DPCL）方法。它是由北美三菱电子研究院（MERL）的John R. Hershey等人在2015年提出的，同时还在WSJ数据集上创建了用于分离任务的公开数据集wsj0-2/3mix，极大的推动了说话人无关的语音分离技术的发展。DPCL没有直接尝试在代价函数中解决标签置换问题，而是通过嵌入表示-聚类的思路，得到每个说话人的IBM。具体说来，DPCL使用神经网络将混合语音频谱上的每个TF-bin映射成一个有区分性的$D$维嵌入向量：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{|Y|}^{TF} \to \mathbf{V}^{TF \times D},
+\end{equation}</script><p>使得同一个说话人能量占比强的bin对应的嵌入向量距离较近，不同说话人占比强的距离较远。在测试阶段，使用聚类算法，比如K-means等，得到每个TF-bin的聚类标签，进而生成IBM，用于掩蔽混合语谱并还原成语音信号。神经网络的代价函数基于最小化两个亲和性矩阵的距离：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \begin{aligned}
+        \mathcal{L}_{\text{DPCL}} & = \Vert \mathbf{V} \mathbf{V}^T - \mathbf{U}\mathbf{U}^T\Vert_F^2 \\
+                                  & = \Vert \mathbf{V}^T \mathbf{V} \Vert_F^2 + \Vert \mathbf{U}^T \mathbf{U} \Vert_F^2
+                                  - 2 \Vert \mathbf{V}^T \mathbf{U} \Vert_F^2,
+    \end{aligned}
+\end{equation}</script><p>其中$\mathbf{U} \in \mathbb{R}^{TF \times C}$表示由IBM目标堆叠而成的one-hot编码矩阵。在实际训练中，由于能量较小的时频点难以划分类别归属，一般设置一个阈值将静音的TF-bin在代价函数计算和推断、聚类过程中屏蔽掉。</p>
+<p>在DPCL的最早文献中，作者还尝试了一种从代价函数计算上解决标签置换问题的方法，但是没有获得成功。后来，这种方法被微软研究院的Dong Yu等人成功实践，并称之为置换不变训练<sup>[19]</sup>（Permutation Invariant Training，PIT）。PIT的思路是，既然网络无法决定说话人输出的顺序，那么就在代价函数计算时，遍历每个训练样本（帧级别或者句子级别）所有可能的组合方式，选择最小的Loss值进行梯度回传。对于有$C$个说话人的分离问题中，需要遍历$C!$种组合方法。早期由于采用前馈网络进行mask预测，标签置换问题存在于每一帧的输出中，需要在帧级别做PIT。随后改进的网络采用RNN结构，在句子级优化置换不变的目标函数，取得了更好的分离结果，这种方式也被称为句子级的置换不变训练<sup>[20]</sup>（Utterance-level Permutation Invariant Training，uPIT）。以tPSA为例，代价函数可以写为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathcal{L}_{\text{uPIT}, \text{tPSA}} = \min_{\pi \in \mathcal{P}} \sum_c \left \Vert |\mathbf{Y}| \odot 
+    \hat{\mathbf{M}}_{\pi(c)} - \max(0, \cos(\angle \mathbf{S}_c - \angle \mathbf{Y})) \odot |\mathbf{S}_c|
+    \right \Vert_F^2,
+\end{equation}</script><p>其中$\mathcal{P}$表示在$C$个说话时的所有排列方式。Dong Yu等人使用PSA优化训练双向长短时间记忆网络（BLSTM）取得了和DPCL类似的结果。</p>
+<p>这两种方法是目前解决说话人无关的语音分离问题中的主要思路。近两年来，基于此也发展出了很多改进的形式和结构，比较具有代表性的有Zhuo Chen等人在DPCL上的后续工作Deep Attractor Network<sup>[21,22]</sup>（DANet），俄亥俄州立大学Zhongqiu Wang提出的Chimera++<sup>[23]</sup>等。DPCL和PIT的思路还被延伸到在多通道语音分离场景中，同样取得了突破性的成果。但是这些工作和增强存在的问题相同，都聚焦于如何最小化估计的TF-mask的误差，以达到频谱增强的目的，重构相位的问题尚未被解决。对此，学者分别从频域和时域上给出了各自的解决方案。</p>
+<p>频域上的方法依旧是针对如何修正原始的噪声相位进行，其中增强部分介绍的复数掩码/复数谱映射的思路也是适用的。2018年Zhongqiu Wang借用多输入频谱逆转<sup>[24]</sup>（Multiple Input Spectrogram Inversion，MISI）的方法修正每个说话人的相位信息，同时使用时域上的代价函数，也被称为波形近似（Waveform Approximation，WA），替代之前的PSA，使得mask估计网络和MISI部分可以在时域的代价函数下进行联合优化。WA的定义为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathcal{L}_{\text{uPIT}, \text{WA}} = \min_{\pi \in \mathcal{P}} \left \Vert \hat{\mathbf{s}}_{\pi(c)} - \mathbf{s}_c \right \Vert_1,
+\end{equation}</script><p>其中$\Vert \cdot \Vert_1$表示向量的1范数。进行时域和频域变换的关键STFT和iSTFT均使用一维卷积层实现，因此可以进行高效的推断和自动梯度求导。通过MISI-WA的方法在wsj0-2mix的测试集上获得了相比Chimera++网络1个dB的Si-SNR提升。2019年，其又提出了包括改进版的MISI，使用组延迟（Group Delay）以及符号预测网络在内的相位重构方法，获得了在wsj0-2/3mix数据集上最好的分离效果。</p>
+<p>时域上建模的方法以哥伦比亚大学Yi Luo等人提出的TasNet<sup>[25]</sup>为代表。TasNet使用一维编码和解码卷积层替代频域方法中的STFT和iSTFT，主分离网络在编码的空间中进行特征学习和解混，并直接使用Si-SNR<sup>[26]</sup>作为时域上重构语音$\mathbf{s}_e$的代价函数，其定义如下：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \text{Si-SNR} \left(\mathbf{s}_e, \mathbf{s}_r \right) = 20 \log_{10} \frac{\Vert \alpha \cdot 
+    \mathbf{s}_r \Vert_2}{\Vert \mathbf{s}_e - \alpha \cdot \mathbf{s}_r \Vert_2}.
+\end{equation}</script><p>$\alpha = \mathbf{s}_e^T \mathbf{s}_r / \mathbf{s}_r^T \mathbf{s}_r$是一个正交缩放因子，使得loss的值和信号的缩放程度无关，$\mathbf{s}_r$表示目标参考信号。结合PIT，网络的代价函数为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathcal{L}_{\text{uPIT}, \text{Si-SNR}} = \max_{\pi \in \mathcal{P}} \text{Si-SNR} \left(\hat{\mathbf{s}}_{\pi(c)}, \mathbf{s}_c \right).
+\end{equation}</script><p>2018年，受WaveNet结构启发，Yi Luo改进了主分离网络的结构，提出了以一维空洞卷积层（TCN结构）堆叠而成的级联块作为分离主体的Conv-TasNet<sup>[27]</sup>，成为首个在wsj0-2mix数据集上超越Oracle Mask掩蔽结果的模型。此结构相比之前的频域模型具有如下两个优势：1）时延低，TasNet的帧长和帧移（2.50/1.25ms）相比频域通常的32/16ms要低的多，因此在一些有实时率要求的场景下有着潜在的应用空间。 2）参数量少，推断速度快。相比频域模型中经常使用的RNN结构，一维卷积在参数量和训练，推理的速度上都有着明显的优势。</p>
+<p>以上所述的模型均未使用任何说话人相关的先验信息，也被称为盲源分离算法。它们所共同存在的问题主要如下：其一是存在说话人个数的依赖问题，其二是模型本身不能将分离的信号和具体的说话人对应起来（输出的无序性）。对于第一点，DPCL和PIT系列的表现有所不同。DPCL的模型没有对说话人个数的依赖，但是在测试阶段的聚类中，需要事先指定说话人的个数。而PIT系列，网络的输出分支数决定了所能分离的说话人个数上限。两个模型都可以进行所谓的多说话人训练（Multi-speaker Training），即训练中使用含有不同说话人个数的混合语料，以此达到可以分离不同说话人个数混合的语句的目的。此外，学者还开始了一种被称为知情语音分离（Informed Speech Separation）方案的研究。它指的是假设在可以获得目标说话人相关的一些先验信息，包括说话人的声纹特征（Speaker Embeddings）、方向特征（Directional Features）、视觉特征（Visual Features）的前提下，只进行单一目标说话人抽取的方法。模型的预测和输入的有偏（biased）特征对应的说话人保持一致，同时模型本身不依赖于混合句子中的说话人的个数，比较好的解决了BSS中存在的问题。这一系列的工作主要包括Google的VoiceFilter<sup>[28]</sup>，NTT的SpeakerBeam工作<sup>[29]</sup>，Microsoft的LG（Location Guided）模型<sup>[30]</sup>， Google和Oxford的音视频分离工作<sup>[31,32]</sup>等等。当然弊端就是完全依赖系统中指导特征质量，一旦它们的区分性丧失，分离的效果也就难以得到保证。</p>
+<h3 id="多通道增强与分离"><a href="#多通道增强与分离" class="headerlink" title="多通道增强与分离"></a>多通道增强与分离</h3><p>远场语音交互的实际场景，比如会议系统，智能音箱等，常常会使用麦克风阵列技术，同时收集多路语音信号用于前端声学处理，这类增强和语音分离技术我们一般称之为多通道技术。由于不同的麦克风所处的空间位置不同，收集的信号之间会存在相对的延迟，这种时延信息为我们设计算法提供了除了时间，频率之外第三个维度的信息：空间信息（Spatial）。多通道语音增强和分离技术的关键就在于如何利用这里的空间成分。</p>
+<p>阵列技术中最具代表性的算法便是波束形成（Beamforming）<sup>[33,34]</sup>，也被称为空间滤波（Spatial Filtering）。其本质是一组线性滤波系数，通过每个频率子带上的滤波操作，对非目标方向上的噪声能量进行抑制，进而达到提升输出语音信号质量目的。由于在波束形成器的设计阶段，会对信号失真度进行约束，因此，它的增强输出不会产生严重的语音失真，对于识别任务而言比较友好，但是在信噪比的提升上也因此受限，不及前文所说的频谱掩蔽算法等等。波束形成可以分为固定波束算法和自适应波束形成算法两大类。固定波束形成器（Fixed Beamformer）需要在已知麦克风阵列几何结构的前提下，先设计好在每个方向上的滤波系数，实际运行中，不进行任何的更新，因此它的指向性是固定的，即每个波束只能对特定方向上的声源进行增强。代表性的算法为延迟相加（Delay and Sum，DS），超指向（Super-Directive，DS）等等。自适应波束形成器的滤波权重可以随着声学环境的变动而自发的调整，即指向性可以自适应的发生变化，因此对新环境的适应能力较强，代表性的算法有多通道维纳滤波（Multi-Channel Wiener Filtering）,最小方差无失真相应（Minimum Variance Distortionless Response，MVDR），广义特征值分解（Generalized Eigenvalue Decomposition，GEVD）。和波束形成相关度比较大的算法是声源定位（Sound Source Localization，SSL），主要用于计算出声源所在方向，常常和固定波束形成器一起使用，用于选择合适的波束。语音分离上则是一些早期为了解决鸡尾酒会问题而专门提出的概念。方法上大体分为两类，一类以ICA，IVA，TRINICON<sup>[35]</sup>为代表，期望从观测信号中估计出一个解混矩阵，可以最大化解混后信号的独立性。另一类以Sawada提出的空间聚类算法为代表<sup>[36]</sup>。这类算法工作的原理是，当声源在空间位置上的分布不同时，其到达麦克风的时延会存在差异，产生不同的相位分布。在每个频率子带的时频点上，能量占优的声源观测到的相位信息会趋于一致，不同的声源差异就会在每个频率上形成聚类效应。所以选择合适的聚类算法在每个频率上对观测结果进行聚类，就可以得到每个声源的TF-mask。空间聚类算法一般假设一个混合模型建模每个TF-bin的观测向量，通过EM算法估计混合模型中每个成分的参数之后，用该观测下的后验概率做为每个声源的TF-mask估计。目前被研究过的混合分布有CWMM<sup>[37]</sup>，CGMM<sup>[38]</sup>和CACGMM<sup>[39]</sup>等等。</p>
+<p>神经网络在单通道增强和分离任务中得到广泛应用之后，学者逐渐开始将其拓展到多通道算法中来。其中有一部分用于对上述传统算法的改进和结合，比如Jahn Heymann提出的基于时频掩码的波束形成<sup>[40]</sup>（Mask based Beamforming），使用神经网络预测的TF-mask来估计自适应波束形成算法中的协方差矩阵和导向向量等统计量，相比传统的SSL-MVDR和空间聚类的算法在CHiME3数据上分别取得了25%和12%的WER绝对下降。此外，还有一些空间聚类算法和神经网络结合的思路，比如使用前者估计的TF-mask作为神经网络训练的标签<sup>[41]</sup>，以及使用混合分布模型的log似然作为神经网络优化的目标<sup>[42]</sup>，进行无监督学习；使用DPCL产生的嵌入特征和原始空间上的观测特征在混合模型中联合建模的方法<sup>[43]</sup>等等。</p>
+<p>特征方面，单通道的场景下，神经网络只利用单一的谱特征信息进行TF-mask的预测，而在多通道场景中，需要考虑如何让神经网络去有效的利用空间信息。上面提到的和空间聚类算法联合的思路需要依赖额外的模型和处理步骤，因此算法上显得臃肿。而单纯的空间聚类算法却只利用了空间信息，没有对谱特征进行建模，也无法从利用海量数据进行学习。基于这两点考虑，Zhongqiu Wang等人提出了在DPCL和PIT模型中利用通道相位差<sup>[44,45]</sup>（Inter-channel Phase Difference，IPD）的方法增加输入特征的空间信息。通道$i$和$j$之间的IPD定义如下：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \text{IPD}_{ij} = \angle e^{j(\angle \mathbf{Y}_i - \angle \mathbf{Y}_j)} 
+    = \text{mod}(\angle \mathbf{Y}_i - \angle \mathbf{Y}_j + \pi, 2\pi) - \pi.
+\end{equation}</script><p>由于相位的周期性，IPD这种空间特征是不连续的，cosIPD或者sinIPD在频域可以将IPD转换成连续的螺旋状的分布，对于神经网络而言相对容易建模，因此在实际实验中常常使用它们作为空间特征。其次由于空间混叠的存在，空间特征是存在歧义的，单纯的空间特征不具备足够的区分性，因此还需要和谱特征拼接在一起作为网络输入。IPD首先在DPCL中得到了应用，在2通道的情况下，使用了cosIPD和sinIPD拼接的结果可以在多通道wsj0-2mix数据上拿到2dB的SDR绝对提升，对应的在Chimera++网络中，可以获得2.5dB的SDR绝对提升。</p>
+<p>此外，还有一种更具区分性的特征被应用于分离任务中，即角度特征<sup>[30,45,46]</sup>（Angle Feature，也被称为方向特征，Directional Features）。在已知声源方向的条件下，角度特征表示为实际观测到的相位差和该声源波达方向下理想相位差的余弦距离：</p>
+<script type="math/tex; mode=display">
+\begin{equation} 
+    \text{AF}_{ij, \theta} = \cos(\text{IPD}_{ij} - \Delta_\theta),
+\end{equation}</script><p>其中$\theta$表示声源方向，$\Delta_\theta$表示该方向下计算得到的参考相位差估计，目前可以使用两种方法计算，一是根据麦克风的拓扑结构，二是用PCA的方法估计，需要借助该声源的TF-mask。如果两者接近，那么在对应的TF-bin上，方向特征的值会趋近于1，不同方向上的说话人特征因此可以被区分开，且分布上和频谱，理想掩码存在一定的相似性，如果存在$P$对麦克风信号对$\psi$，可以通过如下的计算增加其鲁棒性，类似SRP-PHAT算法中的操作：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \text{AF}_{\theta} = \frac{1}{P}\sum_{i,j \in \psi} \cos(\text{IPD}_{ij} - \Delta_\theta).
+\end{equation}</script><p>基于上述的多通道空间特征和方案，后续有学者提出了一些针对多通道说话人分离问题的系统性解决方案（即包含定位，分离，增强等模块），有代表性的比如[46,47,48]等。</p>
+<p>下面从信号模型入手，导出一下常用的几种自适应波束形成器。信号模型上远场条件下相比单通道要更加复杂，需要考虑声源位置，信号传播，干扰噪声，房间混响等因素。一般的，麦克风$i \in \{0, \cdots, M - 1\}$处接收到的信号$\mathbf{y}_i$可以建模为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \begin{aligned}
+        \mathbf{y}_i & = \sum_{j} \mathbf{x}_{ij} + \mathbf{n} \\
+                     & = \sum_{j} \mathbf{r}_{ij} * \mathbf{s}_j + \sum_k \mathbf{r}_{ik} * \mathbf{n}_k + \mathbf{n}_i,
+    \end{aligned}
+\end{equation}</script><p>其中$\mathbf{x}_{ij} = \mathbf{r}_{ij} * \mathbf{s}_j, j \in \{0, \cdots, C - 1\}$。$C$表示说话人个数，$*$表示卷积操作， $\mathbf{r}_{ij}, \mathbf{r}_{ik}$分别为声源$j$和定向噪声$k$到麦克风$i$处的传输函数，$\mathbf{n}_i$表示麦克风$i$处的环境噪声。可以使用STFT将上式在频域表示为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+\begin{aligned}
+    \mathbf{y}_{i, f} & = \sum_j r_{ij, f} \mathbf{s}_{j, f} + \sum_k r_{ik, f} \mathbf{n}_{k,f} + \mathbf{n}_{i, f} \\
+                      & = \sum_j r_{ij, f} \mathbf{s}_{j, f} + \mathbf{n}_{f}.
+\end{aligned}
+\end{equation}</script><p>$\mathbf{y}_{i, f}, \mathbf{s}_{j, f}, \mathbf{n}_f \in \mathbb{C}^{T}$，$f$表示频率索引。在信号处理中，通常习惯以$\mathbf{y}_{t,f} = [y_{0, tf}, \cdots, y_{M - 1, tf}]$为一个独立的观测向量，上式还可以重写为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{y}_{t, f} = \sum_j \mathbf{r}_{j, f} \cdot s_{j, tf} + \mathbf{n}_{t, f},
+\end{equation}</script><p>其中$\mathbf{r}_{j, f} = [r_{0j, f}, \cdots, r_{(M - 1)j, f}]$。一般在增强问题中，$C = 1$，上式可以简化为：</p>
+<script type="math/tex; mode=display">
+\begin{equation} \label{enh-tf-expr}
+    \mathbf{y}_{t, f} = \mathbf{x}_{t, f} + \mathbf{n}_{t, f} = \mathbf{d}_f \cdot s_{t, f} + \mathbf{n}_{t, f}
+\end{equation}</script><p>我们将$\mathbf{d}_f = \mathbf{r}_{0, f} \in \mathbb{C}^{M}$称为导向向量（Steer Vector），用于表示声源到阵列处的声学传输过程。这个概念在很多波束形成算法设计中频繁出现，因此十分重要。</p>
+<p>波束形成算法的核心问题就是如何估计一组线性滤波系数，对非目标方向上的噪声进行能量抑制。这个过程在频域可以表示为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \hat{s}_{t,f} = \mathbf{w}_f^H \mathbf{y}_{t, f},
+\end{equation}</script><p>其中$\mathbf{w}_f \in \mathbb{C}^M$为在频率子带$f$上的滤波系数，$(\cdot)^H$表示共轭转置。固定波束算法中，$\mathbf{w}_f$被提前设计好并在运行时保持不变，而自适应波束形成算法则会根据所处的声学环境自动的更新滤波系数。代表性的自适应波束形成算法有MVDR、GEVD、PMWF等，下面会依次介绍MVDR和GEVD两种方法。</p>
+<p>将式$(26)$带入$(27)$可得：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \hat{s}_{t,f} = (\mathbf{w}_f^H \mathbf{d}_f) s_{t, f} + \mathbf{w}_f^H \mathbf{n}_{t, f},
+\end{equation}</script><p>其中$\mathbf{w}_f^H \mathbf{n}_{t, f}$被称为残留噪声（Residual Noise）。MVDR的优化目标即是要最小化输出的残留噪声能量，并保证目标语音不失真。该优化问题可以表示为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{w}_f^{\text{MVDR}} = \arg \min_{\mathbf{w}_f} E_t \left[ |\mathbf{w}_f^H \mathbf{n}_{t, f}|^2 \right] 
+    \quad \text{s.t} \quad \mathbf{w}_f^H \mathbf{d}_f = 1.
+\end{equation}</script><p>使用拉格朗日乘子法可得MVDR滤波系数的解为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{w}_f^{\text{MVDR}} = \frac{(\mathbf{R}_f^n)^{-1} \mathbf{d}_f}{\mathbf{d}_f^H(\mathbf{R}_f^n)^{-1} \mathbf{d}_f},
+\end{equation}</script><p>其中$\mathbf{R}_f^n = E_t [\mathbf{n}_{t, f} \mathbf{n}_{t, f}^H] \in \mathbb{C}^{M \times M}$表示噪声成分的协方差矩阵。由此可以看出，MVDR的性能好坏关键在于导向向量$\mathbf{d}_f$和噪声的协方差矩阵$\mathbf{R}_f^n$估计上。传统的方法需要依赖定位模块得到声源的波达方向（Direction of Arrival，DoA），并依据麦克风的阵列结构计算出理想情况下的导向向量。以均匀线性阵列（Uniform Linear Array，ULA）为例子，<br>在平面波，无混响的建模假设下，可以计算出已知波达方向$\theta$时，各路信号相对于0号麦克风的时延向量：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{\tau}_\theta = [0, d\cos(\theta)/c, \cdots, d(M - 1)\cos(\theta)/c],
+\end{equation}</script><p>其中$c$表示声音传播速度，$d$表示相邻两个麦克风之间的间距。在信号无衰减的理想情况下，导向向量为：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{d}_{\theta, \omega} = [1, e^{-j\omega \tau_{\theta, 1}}, \cdots, e^{-j\omega \tau_{\theta, M - 1}}],
+\end{equation}</script><p>其中$\omega = 2\pi f / K$，$K$为FFT全频点数。实际中因为考虑到房间混响，信号衰减等因素，这种方法计算出来的导向向量是不准确的，因此带来的MVDR性能也十分有限，准确的估计导向向量也是传统方法的一个难点。同理，对于噪声的协方差矩阵也是如此。在空间聚类算法中，研究者提出使用借助TF-mask的方法来估计协方差矩阵，即：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{R}_f^{k} = \frac{1}{\sum_t m_{t, f}^k} \sum_t m_{t, f}^k \mathbf{y}_{t, f} \mathbf{y}_{t, f}^H, \; k \in \{n, s\},
+\end{equation}</script><p>其中$m_{t, f}^k$为估计的成分$k$在时频点$t,f$处的mask，相关其他的算法介绍将在本文的第二节进行。此外，由于MVDR的计算中存在求逆运算，因此，常常在数值稳定性上也存在一定的隐患。</p>
+<p>不同于MVDR，GEVD的优化目标从信噪比出发，希望最大化滤波之后，每个频率上的信噪比：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{w}_f^{\text{GEVD}} = \arg \max_{\mathbf{w}_f} 
+    \frac{E_t \left[ |\mathbf{w}_f^H \mathbf{x}_{t, f}|^2 \right]}{E_t \left[ |\mathbf{w}_f^H \mathbf{n}_{t, f}|^2 \right]} 
+    = \arg \max_{\mathbf{w}_f} \frac{\mathbf{w}_f^H \mathbf{R}_{f}^s \mathbf{w}_f}{\mathbf{w}_f^H \mathbf{R}_{f}^n \mathbf{w}_f}.
+\end{equation}</script><p>$\mathbf{R}_{f}^s$为声源信号的协方差矩阵。上式中的极值是一个瑞利商问题，所以可以用广义特征值算法来进行求解，结果即是$\mathbf{R}_{f}^n$和$\mathbf{R}_{f}^s$的主广义特征向量（最大广义特征值对应的特征向量）。GEVD的滤波的结果可能会引入一定程度的语音失真，即每个频率上的信噪比增益不同。一般的，可以加入一步后滤波操作来缓解这种现象造成的影响，称为Blind Analytic Normalization（BAN）：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    g_{f}^{\text{BAN}} = \frac{\sqrt{\mathbf{w}_f^H \mathbf{R}_{f} \mathbf{R}_{f} \mathbf{w}_f / M}}{\mathbf{w}_f^H \mathbf{R}_{f} \mathbf{w}_f}.
+\end{equation}</script><p>应用到式$(27)$中：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \hat{s}_{t,f} = g_{f}^{\text{BAN}} \cdot (\mathbf{w}_f^{\text{GEVD}})^H \mathbf{y}_{t, f}.
+\end{equation}</script><p>此外，关于$\mathbf{R}_{f}^n$和$\mathbf{R}_{f}^s$，一般会假设目标信号和噪声信号不相关，因此，它们有如下关系，可以用来简化或者演化一些波束形成表达式的等价形式：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{R}_{f}^y = \mathbf{R}_{f}^n + \mathbf{R}_{f}^s,
+\end{equation}</script><p>其中$\mathbf{R}_{f}^y = E_t [\mathbf{y}_{t, f} \mathbf{y}_{t, f}^H ]$。比如式$(34)$可以写成：</p>
+<script type="math/tex; mode=display">
+\begin{equation} 
+    \mathbf{w}_f^{\text{GEVD}} = \arg \max_{\mathbf{w}_f}  
+    \frac{\mathbf{w}_f^H \mathbf{R}_{f}^y \mathbf{w}_f}{\mathbf{w}_f^H \mathbf{R}_{f}^n \mathbf{w}_f} - 1.
+\end{equation}</script><p>式$(30)$也常常写成PMWF中$\beta = 0$的这个无关导向向量的形式：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{w}_f^{\text{PMWF-}\beta} = \frac{(\mathbf{R}_f^n)^{-1} \mathbf{R}_f^s}{\beta + \text{trace}\left[(\mathbf{R}_f^n)^{-1} \mathbf{R}_f^s \right]} \mathbf{u}_r.
+\end{equation}</script><p>$\mathbf{u}_r$表示一个one-hot矩阵，用于选择参考麦克风。其中$\beta = 0$时，则对应多通道维纳滤波（MCWF）。这部分的具体推导可见<a href="https://www.funcwj.cn/2019/01/10/rank1-const-pmwf">rank1-const-pmwf</a>。</p>
+<p>关于导向向量，目前被广泛使用的是一种被称为主成分分析（PCA）的方法，它使用估计的声源信号协方差矩阵的主特征向量（用$\mathcal{P}(\cdot)$表示）代替：</p>
+<script type="math/tex; mode=display">
+\begin{equation}
+    \mathbf{d}_f = \mathcal{P}(\mathbf{R}_f^s).
+\end{equation}</script><p>由于理论上的单一声源协方差矩阵是一个秩为1的埃尔米特矩阵，因此，可以用PCA的方法将估计的$\mathbf{R}_f^s$近似表示为一个秩为1的矩阵，此时主特征向量即发挥着和导向向量相同的作用，可以用它做替代。这种方法得到的导向向量估计准确性较高，且将问题转化到了协方差矩阵的估计上，算法也不需要额外依赖定位等其他模块。而基于时频掩码的自适应波束形成技术就是通过TF-mask的预测来估计式$(33)$中的噪声/声源协方差矩阵，再通过等式$(30), (34), (27)$进行滤波系数计算和语音增强的算法。</p>
+<h3 id="新的趋势"><a href="#新的趋势" class="headerlink" title="新的趋势"></a>新的趋势</h3><p>除了上述介绍的这些基础和成熟的方法之外，个人觉得目前的工作大致有如下趋势。首先增强和分离的方法基本被统一在端到端优化的框架下，不论是完全的时域模型还是频域配合时域的代价函数，很少再有围绕着实数谱或者掩码做的工作了。任务上从最近开源的几批数据（文章）上看，解决分离任务的场景已经从单一的说话人干扰，切换到了远场多通道过下，存在方向噪声，混响，多说话人这类比较复杂和实际的场景下了。网络结构方面，基于编/解码器的架构（包括UNet，TasNet，CRNN，TCN这些）替代RNN结构，成为了目前的主流模型。其次是前端和ASR结合的前后端联合工作。由于后端的ASR已经完成了到端到端（RNN-T，CTC，Attention）框架的转换，因此，在此之上结合的多通道前端的工作也在进行中，包括espnet中已经merge的与自适应波束（MVDR）的联合训练方案和一些基于固定波束，注意力机制的方案。这里面我觉得存在的一个可以探究的点在于，我们需要不需要刻意的结合信号领域的一些知识或者操作，去设计一些“有数学意义”网络结构？最后是多模态的工作，无论是视觉组开始做speech（VGG），还是speech的人开始结合视觉（NTT，Tencent，Google，Alibaba，Sougou），音视频融合的增强，分离以及识别，包括TTS等工作从文章数量和公司宣传上看，最近都有所增多和加强。随着后续开源数据的不断放出，也一定会有一些有影响力和代表性的工作产生。</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1] Y. Wang, D. Wang. Boosting Classification Based Speech Separation Using Temporal Dynamics[C]. Thirteenth Annual Conference of the International Speech Communication Association, 2012.<br>[2] Y. Wang, D. Wang. Cocktail Party Processing via Structured Prediction[C]. Advances in Neural Information Processing Systems, 2012:224–232.<br>[3] Y. Wang, D. Wang. Towards Scaling up Classification-based Speech Separation[J]. IEEE Transactions on Audio, Speech, and Language Processing, 2013, 21(7):1381–1390.<br>[4] Y. Xu, J. Du, L.-R. Dai, et al. An Experimental Study on Speech Enhancement Based on Deep Neural Networks[J]. IEEE Signal processing letters, 2013, 21(1):65–68.<br>[5] Y. Xu, J. Du, L.-R. Dai, et al. A Regression Approach to Speech Enhancement Based on Deep Neural Networks[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2014, 23(1):7–19.<br>[6] A. Narayanan, D. Wang. Ideal Ratio Mask Estimation Using Deep Neural Networks for Robust Speech Recognition[C]. 2013 IEEE International Conference on Acoustics, Speech and Signal Processing, 2013:7092–7096.<br>[7] Y. Wang, A. Narayanan, D. Wang. On Training Targets for Supervised Speech Separation[J]. IEEE/ACM transactions on audio, speech, and language processing, 2014, 22(12):1849–1858.<br>[8] H. Erdogan, J. R. Hershey, S. Watanabe, et al. Phase-sensitive and Recognition-boosted Speech Separation Using Deep Recurrent Neural Networks[C]. 2015 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2015:708–712.<br>[9] D. S. Williamson, Y. Wang, D. Wang. Complex Ratio Masking for Monaural Speech Separation[J]. IEEE/ACM transactions on audio, speech, and language processing, 2015, 24(3):483–492.<br>[10] H.-S. Choi, J.-H. Kim, J. Huh, et al. Phase-aware Speech Enhancement with Deep Complex U-net[J]. arXiv preprint arXiv:1903.03107, 2019.<br>[11] Y. Wang, D. Wang. A Deep Neural Network for Time-domain Signal Reconstruction[C]. 2015 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2015:4390–4394.<br>[12] S. Pascual, A. Bonafonte, J. Serra. Segan: Speech Enhancement Generative Adversarial Network[J]. arXiv preprint arXiv:1703.09452, 2017.<br>[13] D. Rethage, J. Pons, X. Serra. A Wavenet for Speech Denoising[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:50695073.<br>[14] S.-W. Fu, T.-W. Wang, Y. Tsao, et al. End-to-end Waveform Utterance Enhancement for Direct Evaluation Metrics Optimization by Fully Convolutional Neural Networks[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2018, 26(9):1570–1584.<br>[15] Pandey A. and Wang D.L. (2019): A new framework for CNN-based speech enhancement in the time domain. IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 27, pp. 1179-1188.<br>[16] P.-S. Huang, M. Kim, M. Hasegawa-Johnson, et al. Deep Learning for Monaural Speech Separation[C]. 2014 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2014:1562–1566.<br>[17] J. Du, Y. Tu, Y. Xu, et al. Speech Separation of a Target Speaker Based on Deep Neural Networks[C]. 2014 12th International Conference on Signal Processing (ICSP), 2014:473–477.<br>[18] J. R. Hershey, Z. Chen, J. Le Roux, et al. Deep Clustering: Discriminative Embeddings for Segmentation and Separation[C]. 2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2016:31–35.<br>[19] D. Yu, M. Kolbæk, Z.-H. Tan, et al. Permutation Invariant Training of Deep Models for Speaker-independent Multi-talker Speech Separation[C]. 2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2017:241–245.<br>[20] M. Kolbæk, D. Yu, Z.-H. Tan, et al. Multitalker Speech Separation with Utterancelevel Permutation Invariant Training of Deep Recurrent Neural Networks[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(10):1901–1913.<br>[21] Z. Chen, Y. Luo, N. Mesgarani. Deep Attractor Network for Single-microphone Speaker Separation[C]. 2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2017:246–250.<br>[22] Y. Luo, Z. Chen, N. Mesgarani. Speaker-independent Speech Separation with Deep Attractor Network[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2018, 26(4):787–796.<br>[23] Z.-Q. Wang, J. Le Roux, J. R. Hershey. Alternative Objective Functions for Deep Clustering[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:686–690.<br>[24] Z.-Q. Wang, J. L. Roux, D. Wang, et al. End-to-end Speech Separation with Unfolded Iterative Phase Reconstruction[J]. arXiv preprint arXiv:1804.10204, 2018.<br>[25] Y. Luo, N. Mesgarani. Tasnet: Time-domain Audio Separation Network for Real-time, Single-channel Speech Separation[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:696–700.<br>[26] J. Le Roux, S. Wisdom, H. Erdogan, et al. Sdr–half-baked Or Well Done?[C]. ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2019:626–630.<br>[27] Y. Luo, N. Mesgarani. Conv-tasnet: Surpassing Ideal Time–frequency Magnitude Masking for Speech Separation[J]. IEEE/ACM transactions on audio, speech, and language processing, 2019, 27(8):1256–1266.<br>[28] Q. Wang, H. Muckenhirn, K. Wilson, et al. Voicefilter: Targeted Voice Separation by Speaker-conditioned Spectrogram Masking[J]. arXiv preprint arXiv:1810.04826, 2018.<br>[29] K. Žmolíková, M. Delcroix, K. Kinoshita, et al. Speakerbeam: Speaker Aware Neural Network for Target Speaker Extraction in Speech Mixtures[J]. IEEE Journal of Selected Topics in Signal Processing, 2019, 13(4):800–814.<br>[30] Z. Chen, X. Xiao, T. Yoshioka, et al. Multi-channel Overlapped Speech Recognition with Location Guided Speech Extraction Network[C]. 2018 IEEE Spoken Language Technology Workshop (SLT), 2018:558–565.<br>[31] T. Afouras, J. S. Chung, A. Zisserman. The Conversation: Deep Audio-visual Speech Enhancement[J]. arXiv preprint arXiv:1804.04121, 2018.<br>[32] A. Ephrat, I. Mosseri, O. Lang, et al. Looking to Listen at the Cocktail Party: A Speaker-independent Audio-visual Model for Speech Separation[J]. arXiv preprint arXiv:1804.03619, 2018.<br>[33] S. Gannot, E. Vincent, S. Markovich-Golan, et al. A Consolidated Perspective on Multimicrophone Speech Enhancement and Source Separation[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4):692–730.<br>[34] J. Benesty, J. Chen, Y. Huang. Microphone Array Signal Processing[M]. Springer Science &amp; Business Media, 2008.<br>[35] H. Buchner, R. Aichner, W. Kellermann. Trinicon: A Versatile Framework for Multichannel Blind Signal Processing[C]. 2004 IEEE International Conference on Acoustics, Speech, and Signal Processing, 2004, 3:iii–889.<br>[36] H. Sawada, S. Araki, S. Makino. Underdetermined Convolutive Blind Source Separation via Frequency Bin-wise Clustering and Permutation Alignment[J]. IEEE Transactions on Audio, Speech, and Language Processing, 2010, 19(3):516–527.<br>[37] D. H. T. Vu, R. Haeb-Umbach. Blind Speech Separation Employing Directional Statistics in an Expectation Maximization Framework[C]. 2010 IEEE International Conference on Acoustics, Speech and Signal Processing, 2010:241–244.<br>[38] T. Higuchi, N. Ito, S. Araki, et al. Online Mvdr Beamformer Based on Complex Gaussian Mixture Model with Spatial Prior for Noise Robust Asr[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4):780–793.<br>[39] N. Ito, S. Araki, T. Nakatani. Complex Angular Central Gaussian Mixture Model for Directional Statistics in Mask-based Microphone Array Signal Processing[C]. 2016 24th European Signal Processing Conference (EUSIPCO), 2016:1153–1157.<br>[40] J. Heymann, L. Drude, R. Haeb-Umbach. Neural Network Based Spectral Mask Estimation for Acoustic Beamforming[C]. 2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2016:196–200.<br>[41] L. Drude, D. Hasenklever, R. Haeb-Umbach. Unsupervised Training of a Deep Clustering Model for Multichannel Blind Source Separation[C]. ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2019:695–699.<br>[42] L. Drude, J. Heymann, R. Haeb-Umbach. Unsupervised Training of Neural Mask-based Beamforming[J]. arXiv preprint arXiv:1904.01578, 2019.<br>[43] L. Drude, R. Haeb-Umbach. Tight Integration of Spatial and Spectral Features for Bss with Deep Clustering Embeddings.[C]. Interspeech, 2017:2650–2654.<br>[44] Z.-Q. Wang, J. Le Roux, J. R. Hershey. Multi-channel Deep Clustering: Discriminative Spectral and Spatial Embeddings for Speaker-independent Speech Separation[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:1–5.<br>[45] Z.-Q. Wang, D. Wang. Integrating Spectral and Spatial Features for Multi-channel Speaker Separation.[C]. Interspeech, 2018:2718–2722.<br>[46] Z.-Q. Wang, D. Wang. All-neural Multi-channel Speech Enhancement.[C]. Interspeech, 2018:3234–3238.<br>[47] T. Yoshioka, H. Erdogan, Z. Chen, et al. Recognizing Overlapped Speech in Meetings: A Multichannel Separation Approach Using Neural Networks[J]. arXiv preprint arXiv:1810.03655, 2018.<br>[48] T. Yoshioka, Z. Chen, C. Liu, et al. Low-latency Speaker-independent Continuous Speech Separation[C]. ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2019:6980–6984.</p>
+]]></content>
+      <categories>
+        <category>Speech Separation</category>
+        <category>Speech Enhancement</category>
+      </categories>
+      <tags>
+        <tag>Multi-channel</tag>
+        <tag>Beamformer</tag>
+        <tag>uPIT</tag>
+        <tag>Mask</tag>
+        <tag>DPCL</tag>
+        <tag>Single-channel</tag>
+        <tag>MVDR</tag>
+        <tag>GEVD</tag>
+        <tag>PMWF</tag>
       </tags>
   </entry>
   <entry>
@@ -143,9 +393,9 @@ s_t^\theta = \sum_c \mathbf{y}_t * \mathbf{h}_{\theta, c} \tag{3}</script><p>其
 \begin{align}
 \mathbf{R}_{tf}^n &= \mathbf{I} \notag \\
 \mathbf{R}_{tf}^s &= \sum_t \mathbf{y}_{tf}^H\mathbf{y}_{tf} \cdot 1/T \notag
-\end{align}</script><p>但是也不能完全避免permutation问题的出现，可以在一些样例里面看到一些bad case。CACGMM的初始化完全随机，EM输出的$\gamma$需要在过一遍align算法，这部分算法的原理尚未细看，但是对最终结果的影响是很大的（一旦align处理的不好，完全看不出估计的mask中谱的形状，下面放了一个比较正常的样例，cluster2是noise成分），感兴趣的可以参考一下<a href="https://github.com/fgnt/pb_bss/blob/96fd72cb5934fb3ec21a707cc54ac6263782a71a/pb_bss/permutation_alignment.py#L133" target="_blank" rel="noopener">这里</a>。最终的代码也已经经过测试，merge到<a href="setk">https://github.com/funcwj/setk</a>中去了。</p>
+\end{align}</script><p>但是也不能完全避免permutation问题的出现，可以在一些样例里面看到一些bad case。CACGMM的初始化完全随机，EM输出的$\gamma$需要在过一遍align算法，这部分算法的原理尚未细看，但是对最终结果的影响是很大的（一旦align处理的不好，完全看不出估计的mask中谱的形状，下面放了一个比较正常的样例，cluster2是noise成分），感兴趣的可以参考一下<a href="https://github.com/fgnt/pb_bss/blob/96fd72cb5934fb3ec21a707cc54ac6263782a71a/pb_bss/permutation_alignment.py#L133" target="_blank" rel="noopener">这里</a>。最终的代码也已经经过测试，merge到<a href="https://github.com/funcwj/setk" target="_blank" rel="noopener">setk</a>中去了。</p>
 <p><img src="/images/cacgmm_demo.png" width="600"></p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. Higuchi T, Ito N, Araki S, et al. Online MVDR beamformer based on complex Gaussian mixture model with spatial prior for noise robust ASR[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4): 780-793.<br>[2]. Ito N, Araki S, Nakatani T. Complex angular central Gaussian mixture model for directional statistics in mask-based microphone array signal processing[C]//2016 24th European Signal Processing Conference (EUSIPCO). IEEE, 2016: 1153-1157.<br>[3].  <a href="https://github.com/fgnt/pb_bss" target="_blank" rel="noopener">https://github.com/fgnt/pb_bss</a><br>[4]. Drude L, Hasenklever D, Haeb-Umbach R. Unsupervised training of a deep clustering model for multichannel blind source separation[C]//ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2019: 695-699.<br>[5]. Drude L, Heymann J, Haeb-Umbach R. Unsupervised training of neural mask-based beamforming[J]. arXiv preprint arXiv:1904.01578, 2019.<br>[6]. Kanda N, Boeddeker C, Heitkaemper J, et al. Guided Source Separation Meets a Strong ASR Backend: Hitachi/Paderborn University Joint Investigation for Dinner Party ASR[J]. arXiv preprint arXiv:1905.12230, 2019.</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1] Higuchi T, Ito N, Araki S, et al. Online MVDR beamformer based on complex Gaussian mixture model with spatial prior for noise robust ASR[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4): 780-793.<br>[2] Ito N, Araki S, Nakatani T. Complex angular central Gaussian mixture model for directional statistics in mask-based microphone array signal processing[C]//2016 24th European Signal Processing Conference (EUSIPCO). IEEE, 2016: 1153-1157.<br>[3] <a href="https://github.com/fgnt/pb_bss" target="_blank" rel="noopener">https://github.com/fgnt/pb_bss</a><br>[4] Drude L, Hasenklever D, Haeb-Umbach R. Unsupervised training of a deep clustering model for multichannel blind source separation[C]//ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2019: 695-699.<br>[5] Drude L, Heymann J, Haeb-Umbach R. Unsupervised training of neural mask-based beamforming[J]. arXiv preprint arXiv:1904.01578, 2019.<br>[6] Kanda N, Boeddeker C, Heitkaemper J, et al. Guided Source Separation Meets a Strong ASR Backend: Hitachi/Paderborn University Joint Investigation for Dinner Party ASR[J]. arXiv preprint arXiv:1905.12230, 2019.</p>
 ]]></content>
       <categories>
         <category>Speech Separation</category>
@@ -179,13 +429,13 @@ s_t^\theta = \sum_c \mathbf{y}_t * \mathbf{h}_{\theta, c} \tag{3}</script><p>其
 \theta _\text{SSL} = \arg \max_{\theta} \mathcal{F}(\mathbf{d}_\theta, \mathbf{y})</script><p>简单来说就是用观测信号$\mathbf{y}$和每个方向上的导向向量计算一个$\mathcal{F}(\cdot)$，最大者对应角度就是定位的结果。由于每个麦克风的空间位置不同，因此定向声到达每个麦克风处会形成相应的延迟，空间信息由此产生。延迟是直接和相位相关的（时移在频域中体现为相移），所以我们说spatial的时候，基本都在说相位。这里面还存在一些小问题，其一，相位它是周期的，也就是我们可以从相对距离或者时延推出相位差，但是从相位差不能导出唯一的时延迟或者距离，比方说如果麦克风的间距大于一半波长的时候（所谓的空间混叠）。其二就是相位的绝对值没有什么意义，这也就是单通道中一般很少研究相位这个概念，即使有，比如Group Delay这种还是相对值（一阶差分）。多通道中可以利用的主要是通道信号之间的相位差（IPD，Inter-channal Phase Difference）这个信息。</p>
 <p>之前一篇博客也提到过，在短时傅里叶分析中的每个的sub-band上，同向声源能量占比高的TF-bin上观测到的相位差彼此接近，所以这是一个可以帮助做分离/增强的区分性信息。从steer vector中我们可以算出该方向上的声源可被观测到的理想情况下的（oracle）的相移，所以如果观测值和理论值越接近，那么该声源属于此方向上的概率就越高。由此可以将上述定位表达式进一步表示为：</p>
 <script type="math/tex; mode=display">
-\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \cos\{\angle \mathbf{d}_{i,\theta} - \angle \mathbf{d}_{j,\theta} - \angle \mathbf{y}_i + \angle \mathbf{y}_j\}</script><p>$\angle \mathbf{y}_i - \angle \mathbf{y}_j$就是IPD。注意一下，此表达式其实和下面的等价，其中$\mathcal{R}(\cdot)$表示取实部。 GCC/SRP-PHAT一般这么写，但是不太直观，不方便理解，比如为什么取实部之类的意义不明确。</p>
+\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \cos\{\angle \mathbf{d}_{i, f}^\theta - \angle \mathbf{d}_{j, f}^\theta - \angle \mathbf{y}_{i, tf} + \angle \mathbf{y}_{j,tf}\}</script><p>$\angle \mathbf{y}_i - \angle \mathbf{y}_j$就是IPD。注意一下，此表达式其实和下面的等价，其中$\mathcal{R}(\cdot)$表示取实部。 GCC/SRP-PHAT一般这么写，但是不太直观，不方便理解，比如为什么取实部之类的意义不明确。</p>
 <script type="math/tex; mode=display">
-\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \mathcal{R} \left \{ \mathbf{d}_{i,\theta} \mathbf{d}_{j,\theta}^H \cdot \mathbf{z}_i\mathbf{z}_j^H \right \}</script><p>其中</p>
+\theta_\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \mathcal{R} \left \{ \mathbf{d}_{i,f}^\theta \left(\mathbf{d}_{i,f}^\theta \right)^H \cdot \mathbf{z}_{i, tf} \left(\mathbf{z}_{i, tf} \right)^H \right \}</script><p>其中</p>
 <script type="math/tex; mode=display">
 \mathbf{z}_i = \frac{\mathbf{y}_i}{|\mathbf{y}_i|} = [e^{-j\theta_0}, \cdots, e^{-j\theta_{M - 1}}]</script><p>知道了基本的定位原理就可以反向利用角度信息。angle/directional feature就是在$\theta$已知的情况下，选取若干麦克风pair按照上面的方法计算出$T \times F$的特征矩阵（免去累加的过程）。和oracle相移越接近的TF bin上，特征的值越大。实际数据上在房间混响不严重，说话人的夹角比较大的情况下，angle feature是一个比较鲁棒的特征，对于分离或者增强模型的帮助也很大。</p>
 <script type="math/tex; mode=display">
-\mathbf{A}_{t,f}^\theta = \sum_{<i,j>} \cos\{\angle \mathbf{d}_{\theta}^i - \angle \mathbf{d}_{\theta}^j - \angle \mathbf{y}_i + \angle \mathbf{y}_j\}</script><p>再看一下$\theta_\text{SSL}$的表达式，在假设说话人方位不变的情况下，就对整个句子上的每个TF-bin做一个加和，通过$\arg\max$得到DoA的估计值。如果想观测DoA的时变信息，那么可以只在频率轴上做累加，保留时间轴，得到的$T \times D$的矩阵就是所谓的angular spectrogram，这个东西我也在之前的文章中展现过，给出一个比较理想的的样例如下。如果不止一个说话人，还可以通过speaker的TF-mask做weight，从而估计出每一个说话人的角度。</p>
+\mathbf{A}_{t,f}^\theta = \sum_{<i,j>} \cos\{\angle \mathbf{d}^{\theta}_{i,f} - \angle \mathbf{d}^{\theta}_{j, f} - \angle \mathbf{y}_{i,tf} + \angle \mathbf{y}_{j, tf}\}</script><p>再看一下$\theta_\text{SSL}$的表达式，在假设说话人方位不变的情况下，就对整个句子上的每个TF-bin做一个加和，通过$\arg\max$得到DoA的估计值。如果想观测DoA的时变信息，那么可以只在频率轴上做累加，保留时间轴，得到的$T \times D$的矩阵就是所谓的angular spectrogram，这个东西我也在之前的文章中展现过，给出一个比较理想的的样例如下。如果不止一个说话人，还可以通过speaker的TF-mask做weight，从而估计出每一个说话人的角度。</p>
 <p><img src="/images/dev1_female3_liverec_130ms_1m_mix.png", width="550"></p>
 <h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>最后简单的小结一下。我这篇文章没有介绍新的概念，主要借着steer vector把之前说过的beamformer，spatial feature，SSL算法等从一个统一的角度又过了一遍。这些东西呢，一开始也没有理解的十分到位，后面随着做东西的时间长了，反复想了几次，才发现它们背后逻辑的统一性。前端signal的东西有意思的地方主要就是集中在它背后的逻辑性的，当然我接触的只是冰山一角。借着面试时候某大佬和我说过一句话做结束：有很多work后人在复现的时候，都不需要任何signal的背景和知识就可以玩起来，但是在最开始我们做的时候，是一定有着对这些东西比较深刻的见解和认知的。否则路子那么多，你怎么能保证你这么做一定能work呢？</p>
 ]]></content>
@@ -265,7 +515,7 @@ s_t^\theta = \sum_c \mathbf{y}_t * \mathbf{h}_{\theta, c} \tag{3}</script><p>其
       </tags>
   </entry>
   <entry>
-    <title>SETK One Year</title>
+    <title>SETK in 2018</title>
     <url>/2019/03/11/setk-one-year/</url>
     <content><![CDATA[<p>去年四月份的时候，写了一些对这个<a href="https://github.com/funcwj/setk" target="_blank" rel="noopener">repo</a>的想法。最初并没有什么明确的目标，只是单纯的想在kaldi上写一些东西。我那时正在做enhancement相关的任务，最先在python+pytorch环境下跑出的结果，觉得在kaldi上做也不是很难，就想花一些功夫迁一下，把增强任务中一些固定的程序流程集成。最先是从最基本的(i)STFT开始，着手写了一些speech重构，谱，相位特征的一些基础命令。后来因为在nnet3上用Quadratic Loss训练mask模型的效果不错，就增加了一部分训练脚本，mask计算和后处理separation的代码，形成了一个围绕single-channel任务的工具闭环。增强相关的任务，包括特征提取，mask计算，网络训练，语音重构都可以在kaldi上做，验证一些数据的效果也是很快的（记得当时半天就把CHiME4上的一些任务做了重现）。所以当时README上写的就是”Speech Enhancement Toolkit based on Kaldi”。</p>
 <a id="more"></a>
@@ -3175,7 +3425,6 @@ p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)
 </ul>
 <p>Semi-Tied方法属于第二种，是基于state-specific rotation提出的一种通过在状态之间共享变换矩阵，解决该问题的方式。</p>
 <a id="more"></a>
-
 <h3 id="State-Specific-Rotation"><a href="#State-Specific-Rotation" class="headerlink" title="State-Specific Rotation"></a>State-Specific Rotation</h3><p>State-Specific Rotation用来对特征矩阵中的相关性建模，顺序如下</p>
 <ol>
 <li>对于每一个状态，有一个协方差矩阵，对它进行特征值分解</li>
@@ -3183,32 +3432,60 @@ p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)
 <li>对该状态的多个高斯分量的对角协方差矩阵进行训练</li>
 </ol>
 <p>注：特征值分解【spectral decomposition】（线性代数学过）<br>对于一个状态$s$，它的协方差矩阵 $\Sigma_{full}^s$ 通过下式计算：</p>
-<p>$$<br>\Sigma_{full}^s = \frac{\sum_t\gamma_t^s(o_t - \mu^s)(o_t - \mu^s)^T}{\sum_t\gamma_t^s} \<br>\gamma_t^s = p(q_t^s|M, O_T)<br>$$</p>
-<p>其中$\mu^s$表示对齐到该状态的数据均值，$\gamma_t^s$表示在$t$时刻，来自状态$s$的概率，$\Sigma_{full}^s$分解如下</p>
-<p>$$<br>\Sigma_{full}^s = U^s\Lambda^sU^{sT}<br>$$</p>
-<p>其中，$U^s$是特征向量组成的特征矩阵，$\Lambda^s$是对角矩阵</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\Sigma_{full}^s & = \frac{\sum_t\gamma_t^s(o_t - \mu^s)(o_t - \mu^s)^T}{\sum_t\gamma_t^s} \\
+\gamma_t^s & = p(q_t^s|M, O_T)
+\end{aligned}</script><p>其中$\mu^s$表示对齐到该状态的数据均值，$\gamma<em>t^s$表示在$t$时刻，来自状态$s$的概率，$\Sigma</em>{full}^s$分解如下</p>
+<script type="math/tex; mode=display">
+\Sigma_{full}^s = U^s\Lambda^sU^{sT}</script><p>其中，$U^s$是特征向量组成的特征矩阵，$\Lambda^s$是对角矩阵</p>
 <p>在训练阶段，对于每一帧观测特征$o_t$，将它关联到状态$s$，做如下变换得到状态相关的观测$o_t^s$：</p>
-<p>$$o_t^s = U^{sT}o_t$$</p>
-<p>在一个状态内，对于每一个分量$m$，均值$\mu^{sm}$和方差$\Sigma_{diag}^m$更新如下：</p>
-<p>$$<br>\mu^{sm} = \frac{\sum_t \gamma_t^m o_t^s}{\sum_t \gamma_t^m} \<br>\Sigma_{diag}^m = \frac{\sum_t \gamma_t^m(o_t^s - \mu^{sm})(o_t^s - \mu^{sm})^T}{\sum_t \gamma_t^m}<br>$$</p>
-<p>而每一个分量对应的协方差矩阵$\Sigma^m$定义为：</p>
-<p>$$<br>\Sigma^m = U^s\Sigma_{diag}^mU^{sT}<br>$$<br>识别阶段，每一个状态下特定分量的似然为<br>$$<br>L(o_t; \mu^m, \Sigma^m, U^s) = \mathcal N(o_t^s;\mu^{sm}, \Sigma_{diag}^m)<br>$$<br>有一点不明白，说这种方式不能用标准的ML算法更新，也和多分量模型无关，有一些解决的方法，暂时没有看懂……</p>
+<script type="math/tex; mode=display">o_t^s = U^{sT}o_t</script><p>在一个状态内，对于每一个分量$m$，均值$\mu^{sm}$和方差$\Sigma_{diag}^m$更新如下：</p>
+<script type="math/tex; mode=display">
+\mu^{sm} = \frac{\sum_t \gamma_t^m o_t^s}{\sum_t \gamma_t^m} \Sigma_{diag}^m = \frac{\sum_t \gamma_t^m(o_t^s - \mu^{sm})(o_t^s - \mu^{sm})^T}{\sum_t \gamma_t^m}</script><p>而每一个分量对应的协方差矩阵$\Sigma^m$定义为：</p>
+<script type="math/tex; mode=display">
+\Sigma^m = U^s\Sigma_{diag}^mU^{sT}</script><p>识别阶段，每一个状态下特定分量的似然为</p>
+<script type="math/tex; mode=display">
+L(o_t; \mu^m, \Sigma^m, U^s) = \mathcal N(o_t^s;\mu^{sm}, \Sigma_{diag}^m)</script><p>有一点不明白，说这种方式不能用标准的ML算法更新，也和多分量模型无关，有一些解决的方法，暂时没有看懂……</p>
 <h3 id="Semi-Tied-Covariance-Matrices"><a href="#Semi-Tied-Covariance-Matrices" class="headerlink" title="Semi-Tied Covariance Matrices"></a>Semi-Tied Covariance Matrices</h3><p>Semi-Tied理解为，对于识别器中的每一个分量，我们不使用不同的协方差矩阵，换句话说，它的协方差矩阵有两个量组成</p>
 <ol>
 <li>一个分量相关的对角协方差矩阵$\Sigma_{diag}^m$</li>
 <li>Semi-Tied的非对角矩阵$H^r$</li>
 </ol>
-<p>那么，识别器中每一个GMM中每一个分量的协方差矩阵可以表示为：<br>$$<br>\Sigma^m = H^r\Sigma_{diag}^mH^{rT}<br>$$</p>
-<p>由上式，令$A^r = (H^r)^{-1}$：<br>$$<br>\Sigma_{diag}^m = (H^r)^{-1}\Sigma^m(H^{rT})^{-1} \<br>= A^r\Sigma^mA^{rT}<br>$$</p>
-<p>其中$H^r$可以被多个分量共享，从这里看，STC这种模型也就是比传统的GMM模型多了一个分量间可共享的矩阵$H^r$，使用EM算法更新，需要更新每个分量中的一下几个量：<br>$$<br>(c^m, \mu^m, \Sigma_{diag}^m, H^r)<br>$$</p>
-<p>使用EM算法对以上参数进行估计，定义$Q$函数$Q(\hat{M}, M)$（$\hat{}$表示新模型）：<br>$$<br>Q(\hat{M}, M) = \sum_Z \log P(X,Z|\hat{M})P(Z|X, M) \<br>= \sum_{t, ; m \in M^r}\gamma_t^m \left{ \log \left(|\hat{\Sigma}^m|^{-1}\right) - (o_t - \hat{\mu}^m)^T(\hat{\Sigma}^{m})^{-1}(o_t - \hat{\mu}^m) \right}<br>$$</p>
-<p>上式中去除了一些优化无关的常量和系数，结合$\Sigma^m$的定义，上式展开为<br>$$<br>Q(\hat{M},M) = \sum_{t,; m \in M^r} \gamma_t^m\left{\log \left(\frac{|\hat<br>{A}^r|^2}{|\hat{\Sigma}<em>{diag}^m| } \right) - (o_t - \hat{\mu}^m)^T\left(\hat{A}^{tT}(\hat{\Sigma}</em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m) \right}<br>$$</p>
-<p>这里做一个化简，原理在“状态绑定之决策树似然公式”中证明过：<br>$$<br>\sum_{t,; m \in M^r} \gamma_t^m\left[(o_t - \hat{\mu}^m)^T\left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)\right] \<br>= \sum</em>{t,; m \in M^r} \gamma_t^m \cdot \text{tr}\left[\left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \<br>= \text{tr}\left[ \sum</em>{t,; m \in M^r} \gamma_t^m \left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \<br>= \text{tr}\left[ \sum</em>{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)\sum</em>{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right]<br>$$</p>
-<p>由<br>$$<br>\frac{\sum_{t}\gamma_t^m(o_t - \mu^m)(o_t - \mu^m)^T}{\sum_t \gamma_t^m} = \Sigma^m = \left(A^{rT}(\Sigma_{diag}^{m})^{-1}A^{r}\right)^{-1}<br>$$</p>
-<p>得：<br>$$<br>\text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}<em>{diag}^{m})^{-1}\hat{A}^{r}\right)\sum</em>{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \<br>= \text{tr}\left[ \sum_{t,;m \in M^r} \gamma_t^m I \right] = n\sum_{t,;m \in M^r} \gamma_t^m<br>$$</p>
-<p>于是，$Q(M, \hat{M})$可写成：<br>$$<br>Q(\hat{M}, M) = \sum_{t,; m \in M^r} \gamma_t^m\left{\log \frac{|\hat{A}^r|^2}{|\hat{\Sigma}<em>{diag}^m| } \right} - n\sum</em>{t,;m \in M^r} \gamma_t^m<br>$$</p>
-<p>在M步，更新的均值，方差如下：<br>$$<br>\hat{\mu}^m = \frac{\sum_t \gamma_t^m o_t}{\sum_t \gamma_t^m} \<br>\hat{\Sigma}^m = \frac{\sum_t \gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T}{\sum_t \gamma_t^m} \<br>\hat{\Sigma}_{diag}^m = \text{diag}\left( \hat{A}^r\hat{\Sigma}^m\hat{A}^{rT} \right)<br>$$</p>
-]]></content>
+<p>那么，识别器中每一个GMM中每一个分量的协方差矩阵可以表示为：</p>
+<script type="math/tex; mode=display">
+\Sigma^m = H^r\Sigma_{diag}^mH^{rT}</script><p>由上式，令$A^r = (H^r)^{-1}$：</p>
+<script type="math/tex; mode=display">
+\Sigma_{diag}^m = (H^r)^{-1}\Sigma^m(H^{rT})^{-1} = A^r\Sigma^mA^{rT}</script><p>其中$H^r$可以被多个分量共享，从这里看，STC这种模型也就是比传统的GMM模型多了一个分量间可共享的矩阵$H^r$，使用EM算法更新，需要更新每个分量中的一下几个量：</p>
+<script type="math/tex; mode=display">
+(c^m, \mu^m, \Sigma_{diag}^m, H^r)</script><p>使用EM算法对以上参数进行估计，定义$Q$函数$Q(\hat{M}, M)$（$\hat{}$表示新模型）：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+Q(\hat{M}, M) & = \sum_Z \log P(X,Z|\hat{M})P(Z|X, M) \\
+              & = \sum_{t, \; m \in M^r}\gamma_t^m \left\{ \log \left(|\hat{\Sigma}^m|^{-1}\right) - (o_t - \hat{\mu}^m)^T(\hat{\Sigma}^{m})^{-1}(o_t - \hat{\mu}^m) \right\}
+\end{aligned}</script><p>上式中去除了一些优化无关的常量和系数，结合$\Sigma^m$的定义，上式展开为</p>
+<script type="math/tex; mode=display">
+Q(\hat{M},M) = \sum_{t,\; m \in M^r} \gamma_t^m\left\{\log \left(\frac{|\hat
+{A}^r|^2}{|\hat{\Sigma}_{diag}^m| } \right) - (o_t - \hat{\mu}^m)^T\left(\hat{A}^{tT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m) \right\}</script><p>这里做一个化简，原理在“状态绑定之决策树似然公式”中证明过：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\sum_{t,\; m \in M^r} & \gamma_t^m\left[(o_t - \hat{\mu}^m)^T\left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)\right] \\
+& = \sum_{t,\; m \in M^r} \gamma_t^m \cdot \text{tr}\left[\left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \\
+& = \text{tr}\left[ \sum_{t,\; m \in M^r} \gamma_t^m \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] \\
+& = \text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)\sum_{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right]
+\end{aligned}</script><p>由</p>
+<script type="math/tex; mode=display">
+\frac{\sum_{t}\gamma_t^m(o_t - \mu^m)(o_t - \mu^m)^T}{\sum_t \gamma_t^m} = \Sigma^m = \left(A^{rT}(\Sigma_{diag}^{m})^{-1}A^{r}\right)^{-1}</script><p>得：</p>
+<script type="math/tex; mode=display">
+\text{tr}\left[ \sum_{m \in M^r} \left(\hat{A}^{rT}(\hat{\Sigma}_{diag}^{m})^{-1}\hat{A}^{r}\right)\sum_{t}\gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T\right] = \text{tr}\left[ \sum_{t,\;m \in M^r} \gamma_t^m I \right] = n\sum_{t,\;m \in M^r} \gamma_t^m</script><p>于是，$Q(M, \hat{M})$可写成：</p>
+<script type="math/tex; mode=display">
+Q(\hat{M}, M) = \sum_{t,\; m \in M^r} \gamma_t^m\left\{\log \frac{|\hat{A}^r|^2}{|\hat{\Sigma}_{diag}^m| } \right\} - n\sum_{t,\;m \in M^r} \gamma_t^m</script><p>在M步，更新的均值，方差如下：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+\hat{\mu}^m & = \frac{\sum_t \gamma_t^m o_t}{\sum_t \gamma_t^m} \\
+\hat{\Sigma}^m & = \frac{\sum_t \gamma_t^m(o_t - \hat{\mu}^m)(o_t - \hat{\mu}^m)^T}{\sum_t \gamma_t^m} \\
+\hat{\Sigma}_{diag}^m & = \text{diag}\left( \hat{A}^r\hat{\Sigma}^m\hat{A}^{rT} \right)
+\end{aligned}</script>]]></content>
       <categories>
         <category>ASR</category>
       </categories>

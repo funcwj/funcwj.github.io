@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://www.funcwj.cn/images/cacgmm_demo.png">
 <meta property="article:published_time" content="2019-09-30T05:29:44.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:50:41.235Z">
+<meta property="article:modified_time" content="2020-03-13T13:30:01.202Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Multi-channel">
 <meta property="article:tag" content="CACGMM">
@@ -137,7 +137,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">81</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">82</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -248,7 +248,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>6k</span>
+              <span>5.9k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -328,9 +328,9 @@
 \begin{align}
 \mathbf{R}_{tf}^n &= \mathbf{I} \notag \\
 \mathbf{R}_{tf}^s &= \sum_t \mathbf{y}_{tf}^H\mathbf{y}_{tf} \cdot 1/T \notag
-\end{align}</script><p>但是也不能完全避免permutation问题的出现，可以在一些样例里面看到一些bad case。CACGMM的初始化完全随机，EM输出的$\gamma$需要在过一遍align算法，这部分算法的原理尚未细看，但是对最终结果的影响是很大的（一旦align处理的不好，完全看不出估计的mask中谱的形状，下面放了一个比较正常的样例，cluster2是noise成分），感兴趣的可以参考一下<a href="https://github.com/fgnt/pb_bss/blob/96fd72cb5934fb3ec21a707cc54ac6263782a71a/pb_bss/permutation_alignment.py#L133" target="_blank" rel="noopener">这里</a>。最终的代码也已经经过测试，merge到<a href="setk">https://github.com/funcwj/setk</a>中去了。</p>
+\end{align}</script><p>但是也不能完全避免permutation问题的出现，可以在一些样例里面看到一些bad case。CACGMM的初始化完全随机，EM输出的$\gamma$需要在过一遍align算法，这部分算法的原理尚未细看，但是对最终结果的影响是很大的（一旦align处理的不好，完全看不出估计的mask中谱的形状，下面放了一个比较正常的样例，cluster2是noise成分），感兴趣的可以参考一下<a href="https://github.com/fgnt/pb_bss/blob/96fd72cb5934fb3ec21a707cc54ac6263782a71a/pb_bss/permutation_alignment.py#L133" target="_blank" rel="noopener">这里</a>。最终的代码也已经经过测试，merge到<a href="https://github.com/funcwj/setk" target="_blank" rel="noopener">setk</a>中去了。</p>
 <p><img src="/images/cacgmm_demo.png" width="600"></p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. Higuchi T, Ito N, Araki S, et al. Online MVDR beamformer based on complex Gaussian mixture model with spatial prior for noise robust ASR[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4): 780-793.<br>[2]. Ito N, Araki S, Nakatani T. Complex angular central Gaussian mixture model for directional statistics in mask-based microphone array signal processing[C]//2016 24th European Signal Processing Conference (EUSIPCO). IEEE, 2016: 1153-1157.<br>[3].  <a href="https://github.com/fgnt/pb_bss" target="_blank" rel="noopener">https://github.com/fgnt/pb_bss</a><br>[4]. Drude L, Hasenklever D, Haeb-Umbach R. Unsupervised training of a deep clustering model for multichannel blind source separation[C]//ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2019: 695-699.<br>[5]. Drude L, Heymann J, Haeb-Umbach R. Unsupervised training of neural mask-based beamforming[J]. arXiv preprint arXiv:1904.01578, 2019.<br>[6]. Kanda N, Boeddeker C, Heitkaemper J, et al. Guided Source Separation Meets a Strong ASR Backend: Hitachi/Paderborn University Joint Investigation for Dinner Party ASR[J]. arXiv preprint arXiv:1905.12230, 2019.</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1] Higuchi T, Ito N, Araki S, et al. Online MVDR beamformer based on complex Gaussian mixture model with spatial prior for noise robust ASR[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4): 780-793.<br>[2] Ito N, Araki S, Nakatani T. Complex angular central Gaussian mixture model for directional statistics in mask-based microphone array signal processing[C]//2016 24th European Signal Processing Conference (EUSIPCO). IEEE, 2016: 1153-1157.<br>[3] <a href="https://github.com/fgnt/pb_bss" target="_blank" rel="noopener">https://github.com/fgnt/pb_bss</a><br>[4] Drude L, Hasenklever D, Haeb-Umbach R. Unsupervised training of a deep clustering model for multichannel blind source separation[C]//ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2019: 695-699.<br>[5] Drude L, Heymann J, Haeb-Umbach R. Unsupervised training of neural mask-based beamforming[J]. arXiv preprint arXiv:1904.01578, 2019.<br>[6] Kanda N, Boeddeker C, Heitkaemper J, et al. Guided Source Separation Meets a Strong ASR Backend: Hitachi/Paderborn University Joint Investigation for Dinner Party ASR[J]. arXiv preprint arXiv:1905.12230, 2019.</p>
 
     </div>
 
@@ -450,7 +450,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-count">82</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -621,12 +621,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">327k</span>
+    <span title="站点总字数">356k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:57</span>
+    <span title="站点阅读时长">5:24</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>

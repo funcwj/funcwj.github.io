@@ -132,7 +132,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">81</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">82</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -248,7 +248,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>119</span>
+              <span>144</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -271,6 +271,7 @@
 <li>Convolutional Operations (语音任务中关于卷积操作的一些妙用和技巧)</li>
 <li>Update Hexo &amp; Next （站点更新记录）</li>
 <li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
+<li>SETK in 2019 (过去一年写了什么和一些想法)</li>
 </ul>
 
       
@@ -359,6 +360,103 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2020/02/15/frp-ssh/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2020/01/13/intro-on-se-and-ss/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's site">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2020/01/13/intro-on-se-and-ss/" class="post-title-link" itemprop="url">Speech Enhancement & Separation简介</a>
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-13 11:24:04" itemprop="dateCreated datePublished" datetime="2020-01-13T11:24:04+08:00">2020-01-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Separation/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Separation</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Enhancement/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Enhancement</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>29k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>26 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>这几年明显感觉做分离增强这块的人越来越多了，一方面学术研究上逐渐成为了一个热点，不断的有新的模型和思路产生，一方面工业界想将技术落到具体的产品中，也必将面临实际声学环境中的各种噪声，说话人干扰问题。我曾经从新人的角度，考虑如下三个因素，推荐对语音感兴趣的人从前端开始着手：1）相比识别任务，没有特征提取，解码，对齐这些繁杂的操作，门槛相对低了很多；2）前端处理的结果，可以通过样例直观的感受到，相比识别WER和解码结果这种反馈度不高的结果，趣味性和吸引力要高很多；3）对数据的依赖较低，识别需要一定量的数据积累，抄本也需要依赖人工标注，而增强分离这些任务，做一些toy的东西，用开源的数据和噪声仿真就行了。当然这些是基于目前主流的深度学习方法所下的论断，在此之前，声学，信号等领域的大佬们已经用他们的才智对抗这些问题很多年了，形成了非常完备的理论系统，如果要深入那些方法的话，数学统计理论的要求自然不可与我们现在单纯训模型并论。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/01/13/intro-on-se-and-ss/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -518,7 +616,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>6k</span>
+              <span>5.9k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -760,7 +858,7 @@
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
           
-            <a href="/2019/03/11/setk-one-year/" class="post-title-link" itemprop="url">SETK One Year</a>
+            <a href="/2019/03/11/setk-one-year/" class="post-title-link" itemprop="url">SETK in 2018</a>
         </h1>
 
         <div class="post-meta">
@@ -1016,100 +1114,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2018/11/03/beamformer-details/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/uploads/avatar.JPG">
-      <meta itemprop="name" content="WJ">
-      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJ's site">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/11/03/beamformer-details/" class="post-title-link" itemprop="url">View Beamformer Again</a>
-        </h1>
-
-        <div class="post-meta">
-          
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2018-11-03 03:04:47" itemprop="dateCreated datePublished" datetime="2018-11-03T03:04:47+08:00">2018-11-03</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Speech-Enhancement/" itemprop="url" rel="index">
-                    <span itemprop="name">Speech Enhancement</span>
-                  </a>
-                </span>
-            </span>
-
-          <br>
-            <span class="post-meta-item" title="本文字数">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-file-word-o"></i>
-              </span>
-                <span class="post-meta-item-text">本文字数：</span>
-              <span>3.6k</span>
-            </span>
-            <span class="post-meta-item" title="阅读时长">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-clock-o"></i>
-              </span>
-                <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
-            </span>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>上一篇关于beamformer的文章应该是一年之前，刚入门的时候看了，理解有些粗浅，现在就一些细节上的问题（也是上篇文章中没有提及的地方）补充一些理解，后面实践加深会继续补充。</p>
-<h4 id="导向向量估计"><a href="#导向向量估计" class="headerlink" title="导向向量估计"></a>导向向量估计</h4><p>首先，导向向量$\mathbf{d}_f$的估计，$\mathbf{d}_f$描述的是声源的方位信息，对波束形成器的指向性十分关键。目前常见的方法是用协方差矩阵$\mathbf{R}_{xx}$的主特征值进行估计，背后的假设在理想情况下，方向性声源的$\mathbf{R}_{xx}^\theta$是个秩为1的矩阵，即可以表示为：</p>
-<script type="math/tex; mode=display">
-\mathbf{R}_{xx}^\theta = E[s_f \mathbf{d}_{f}^\theta] = \phi_{ss} \mathbf{d}_{f}^\theta (\mathbf{d}_{f}^\theta)^H</script>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/11/03/beamformer-details/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1182,7 +1186,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-count">82</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1353,12 +1357,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">327k</span>
+    <span title="站点总字数">356k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:57</span>
+    <span title="站点阅读时长">5:24</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>

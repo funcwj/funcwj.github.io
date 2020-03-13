@@ -32,7 +32,7 @@
 <meta property="og:image" content="http://www.funcwj.cn/images/unknown-beam-peek.png">
 <meta property="og:image" content="https://www.funcwj.cn/images/dev1_female3_liverec_130ms_1m_mix.png">
 <meta property="article:published_time" content="2019-08-03T17:17:32.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:52:35.595Z">
+<meta property="article:modified_time" content="2020-03-13T13:25:17.215Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Multi-channel">
 <meta property="article:tag" content="Spatial">
@@ -138,7 +138,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">81</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">82</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -289,13 +289,13 @@
 \theta _\text{SSL} = \arg \max_{\theta} \mathcal{F}(\mathbf{d}_\theta, \mathbf{y})</script><p>简单来说就是用观测信号$\mathbf{y}$和每个方向上的导向向量计算一个$\mathcal{F}(\cdot)$，最大者对应角度就是定位的结果。由于每个麦克风的空间位置不同，因此定向声到达每个麦克风处会形成相应的延迟，空间信息由此产生。延迟是直接和相位相关的（时移在频域中体现为相移），所以我们说spatial的时候，基本都在说相位。这里面还存在一些小问题，其一，相位它是周期的，也就是我们可以从相对距离或者时延推出相位差，但是从相位差不能导出唯一的时延迟或者距离，比方说如果麦克风的间距大于一半波长的时候（所谓的空间混叠）。其二就是相位的绝对值没有什么意义，这也就是单通道中一般很少研究相位这个概念，即使有，比如Group Delay这种还是相对值（一阶差分）。多通道中可以利用的主要是通道信号之间的相位差（IPD，Inter-channal Phase Difference）这个信息。</p>
 <p>之前一篇博客也提到过，在短时傅里叶分析中的每个的sub-band上，同向声源能量占比高的TF-bin上观测到的相位差彼此接近，所以这是一个可以帮助做分离/增强的区分性信息。从steer vector中我们可以算出该方向上的声源可被观测到的理想情况下的（oracle）的相移，所以如果观测值和理论值越接近，那么该声源属于此方向上的概率就越高。由此可以将上述定位表达式进一步表示为：</p>
 <script type="math/tex; mode=display">
-\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \cos\{\angle \mathbf{d}_{i,\theta} - \angle \mathbf{d}_{j,\theta} - \angle \mathbf{y}_i + \angle \mathbf{y}_j\}</script><p>$\angle \mathbf{y}_i - \angle \mathbf{y}_j$就是IPD。注意一下，此表达式其实和下面的等价，其中$\mathcal{R}(\cdot)$表示取实部。 GCC/SRP-PHAT一般这么写，但是不太直观，不方便理解，比如为什么取实部之类的意义不明确。</p>
+\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \cos\{\angle \mathbf{d}_{i, f}^\theta - \angle \mathbf{d}_{j, f}^\theta - \angle \mathbf{y}_{i, tf} + \angle \mathbf{y}_{j,tf}\}</script><p>$\angle \mathbf{y}_i - \angle \mathbf{y}_j$就是IPD。注意一下，此表达式其实和下面的等价，其中$\mathcal{R}(\cdot)$表示取实部。 GCC/SRP-PHAT一般这么写，但是不太直观，不方便理解，比如为什么取实部之类的意义不明确。</p>
 <script type="math/tex; mode=display">
-\theta _\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \mathcal{R} \left \{ \mathbf{d}_{i,\theta} \mathbf{d}_{j,\theta}^H \cdot \mathbf{z}_i\mathbf{z}_j^H \right \}</script><p>其中</p>
+\theta_\text{SSL} = \arg \max_\theta \sum_{<i,j>} \sum_{t,f} \mathcal{R} \left \{ \mathbf{d}_{i,f}^\theta \left(\mathbf{d}_{i,f}^\theta \right)^H \cdot \mathbf{z}_{i, tf} \left(\mathbf{z}_{i, tf} \right)^H \right \}</script><p>其中</p>
 <script type="math/tex; mode=display">
 \mathbf{z}_i = \frac{\mathbf{y}_i}{|\mathbf{y}_i|} = [e^{-j\theta_0}, \cdots, e^{-j\theta_{M - 1}}]</script><p>知道了基本的定位原理就可以反向利用角度信息。angle/directional feature就是在$\theta$已知的情况下，选取若干麦克风pair按照上面的方法计算出$T \times F$的特征矩阵（免去累加的过程）。和oracle相移越接近的TF bin上，特征的值越大。实际数据上在房间混响不严重，说话人的夹角比较大的情况下，angle feature是一个比较鲁棒的特征，对于分离或者增强模型的帮助也很大。</p>
 <script type="math/tex; mode=display">
-\mathbf{A}_{t,f}^\theta = \sum_{<i,j>} \cos\{\angle \mathbf{d}_{\theta}^i - \angle \mathbf{d}_{\theta}^j - \angle \mathbf{y}_i + \angle \mathbf{y}_j\}</script><p>再看一下$\theta_\text{SSL}$的表达式，在假设说话人方位不变的情况下，就对整个句子上的每个TF-bin做一个加和，通过$\arg\max$得到DoA的估计值。如果想观测DoA的时变信息，那么可以只在频率轴上做累加，保留时间轴，得到的$T \times D$的矩阵就是所谓的angular spectrogram，这个东西我也在之前的文章中展现过，给出一个比较理想的的样例如下。如果不止一个说话人，还可以通过speaker的TF-mask做weight，从而估计出每一个说话人的角度。</p>
+\mathbf{A}_{t,f}^\theta = \sum_{<i,j>} \cos\{\angle \mathbf{d}^{\theta}_{i,f} - \angle \mathbf{d}^{\theta}_{j, f} - \angle \mathbf{y}_{i,tf} + \angle \mathbf{y}_{j, tf}\}</script><p>再看一下$\theta_\text{SSL}$的表达式，在假设说话人方位不变的情况下，就对整个句子上的每个TF-bin做一个加和，通过$\arg\max$得到DoA的估计值。如果想观测DoA的时变信息，那么可以只在频率轴上做累加，保留时间轴，得到的$T \times D$的矩阵就是所谓的angular spectrogram，这个东西我也在之前的文章中展现过，给出一个比较理想的的样例如下。如果不止一个说话人，还可以通过speaker的TF-mask做weight，从而估计出每一个说话人的角度。</p>
 <p><img src="/images/dev1_female3_liverec_130ms_1m_mix.png", width="550"></p>
 <h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>最后简单的小结一下。我这篇文章没有介绍新的概念，主要借着steer vector把之前说过的beamformer，spatial feature，SSL算法等从一个统一的角度又过了一遍。这些东西呢，一开始也没有理解的十分到位，后面随着做东西的时间长了，反复想了几次，才发现它们背后逻辑的统一性。前端signal的东西有意思的地方主要就是集中在它背后的逻辑性的，当然我接触的只是冰山一角。借着面试时候某大佬和我说过一句话做结束：有很多work后人在复现的时候，都不需要任何signal的背景和知识就可以玩起来，但是在最开始我们做的时候，是一定有着对这些东西比较深刻的见解和认知的。否则路子那么多，你怎么能保证你这么做一定能work呢？</p>
 
@@ -417,7 +417,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">81</span>
+          <span class="site-state-item-count">82</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -588,12 +588,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">327k</span>
+    <span title="站点总字数">356k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">4:57</span>
+    <span title="站点阅读时长">5:24</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>
