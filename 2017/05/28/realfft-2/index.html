@@ -30,7 +30,7 @@
 <meta property="og:description" content="FFT最后一步，解释RealFFT的算法原理。RealFFT输入，对于实序列$x_n(0 \le n \le N - 1)$，以$(x_{2n }, x_{2n + 1})$的形式输入，输出为实序列FFT变换结果的前$N &#x2F; 2$个点。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-05-27T16:21:31.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:53:05.923Z">
+<meta property="article:modified_time" content="2020-03-16T15:47:01.795Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Code">
 <meta property="article:tag" content="C&#x2F;C++">
@@ -247,14 +247,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.6k</span>
+              <span>1.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -269,13 +269,17 @@
         <p>FFT最后一步，解释RealFFT的算法原理。<br>RealFFT输入，对于实序列$x_n(0 \le n \le N - 1)$，以$(x_{2n }, x_{2n + 1})$的形式输入，输出为实序列FFT变换结果的前$N / 2$个点。<br><a id="more"></a></p>
 <p>比如，以长为16的序列${1, 1, 1, 1, 0, \ldots 0 }$输入<code>ComplexFFT</code>和<code>RealFFT</code>，结果输出分别为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">[  4.000000,   0.000000] </span><br><span class="line">[  3.013670,   2.013670] </span><br><span class="line">[  1.000000,   2.414214] </span><br><span class="line">[ -0.248303,   1.248303] </span><br><span class="line">[  0.000000,   0.000000] </span><br><span class="line">[  0.834089,  -0.165911] </span><br><span class="line">[  1.000000,   0.414214] </span><br><span class="line">[  0.400544,   0.599456] </span><br><span class="line">[  0.000000,   0.000000] </span><br><span class="line">[  0.400544,  -0.599456] </span><br><span class="line">[  1.000000,  -0.414214] </span><br><span class="line">[  0.834089,   0.165911] </span><br><span class="line">[  0.000000,   0.000000] </span><br><span class="line">[ -0.248303,  -1.248303] </span><br><span class="line">[  1.000000,  -2.414214] </span><br><span class="line">[  3.013670,  -2.013670] </span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">[  4.000000,   0.000000]</span><br><span class="line">[  3.013670,   2.013670]</span><br><span class="line">[  1.000000,   2.414214]</span><br><span class="line">[ -0.248303,   1.248303]</span><br><span class="line">[  0.000000,   0.000000]</span><br><span class="line">[  0.834089,  -0.165911]</span><br><span class="line">[  1.000000,   0.414214]</span><br><span class="line">[  0.400544,   0.599456]</span><br></pre></td></tr></table></figure><br>观察可以发现，利用序列的共轭对称性可以补全一些其余的点（有一个点无法补全，即对称中心点）<br>下面说明算法流程</p>
 <script type="math/tex; mode=display">
-X_k = \sum_{n = 0}^{N - 1}x_nW_N^{kn} \\
-= \sum_{n = 0}^{N / 2 - 1}x_{2n}W_N^{2nk} + x_{2n + 1}W_N^{(2n + 1)k} \\
-= \sum_{n = 0}^{N / 2 - 1}x_{2n}W_{N/2}^{nk} +  W_N^k\sum_{n = 0}^{N / 2 - 1}x_{2n + 1}W_{N/2}^{nk} \\
-= F_k + W_N^kG_k</script><p>共轭对称证明：</p>
+\begin{aligned}
+X_k  & = \sum_{n = 0}^{N - 1}x_nW_N^{kn} \\
+ & = \sum_{n = 0}^{N / 2 - 1}x_{2n}W_N^{2nk} + x_{2n + 1}W_N^{(2n + 1)k} \\
+ & = \sum_{n = 0}^{N / 2 - 1}x_{2n}W_{N/2}^{nk} +  W_N^k\sum_{n = 0}^{N / 2 - 1}x_{2n + 1}W_{N/2}^{nk} \\
+ & = F_k + W_N^kG_k
+\end{aligned}</script><p>共轭对称证明：</p>
 <script type="math/tex; mode=display">
-X_{n-k}^* = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
-= F_k + W_N^{*-k}G_k = F_k + W_N^kG_k = X_k</script><p>之前的$F_k, G_k$已经计算完毕，只需要在上次程序的基础之上计算</p>
+\begin{aligned}
+X_{n-k}^*  & = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
+& = F_k + W_N^{*-k}G_k = F_k + W_N^kG_k = X_k
+\end{aligned}</script><p>之前的$F_k, G_k$已经计算完毕，只需要在上次程序的基础之上计算</p>
 <script type="math/tex; mode=display">F_k + W_N^kG_k</script><p>即可。</p>
 <p>实现如下：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ComplexFFT(R, I, <span class="number">0</span>);</span><br><span class="line"><span class="keyword">float</span> FR, FI, GR, GI, YR, YI, CYR, CYI, XR, XI, cosr, sinr;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> r = <span class="number">1</span>; r &lt;= MAX_LEN; r++)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span>(r == <span class="number">1</span>)</span><br><span class="line">		FR = R[r], FI = <span class="number">0.0</span>, GR = I[r], GI = <span class="number">0.0</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		YR  = R[r], YI = I[r];</span><br><span class="line">		CYR = R[MAX_LEN + <span class="number">2</span> - r], CYI = -I[MAX_LEN + <span class="number">2</span> - r];</span><br><span class="line">		FR  = (YR + CYR) / <span class="number">2</span>, FI = (YI + CYI) / <span class="number">2</span>;</span><br><span class="line">		GR  = (YI - CYI) / <span class="number">2</span>, GI = (CYR - YR) / <span class="number">2</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	cosr = <span class="built_in">cos</span>((r - <span class="number">1</span>) * PI / MAX_LEN);</span><br><span class="line">	sinr = <span class="built_in">sin</span>((r - <span class="number">1</span>) * PI / MAX_LEN);</span><br><span class="line">	XR = FR + cosr * GR - sinr * GI;</span><br><span class="line">	XI = FI + cosr * GI + sinr * GR;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[%12f, %12f]\n"</span>, XR, XI);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>

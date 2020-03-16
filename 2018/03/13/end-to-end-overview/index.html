@@ -30,7 +30,7 @@
 <meta property="og:description" content="本篇Blog虽然看起来像极了新闻稿，但实际上只是自己想做一个E2E的梳理（顺便交了某课程大作业），毕竟这玩意最近这么火。有一部分论文自己只看个大概，说法未必准确，各位看观小心~。 语音识别（Automatic Speech Recognition，ASR）是要完成输入音频的采样序列到字符序列的映射任务。传统识别模块主要包含声学模型，字典，语言模型三个部分，其中声学模型用于将输入特征转化为声学单元的">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2018-03-13T15:49:21.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:50:54.028Z">
+<meta property="article:modified_time" content="2020-03-16T15:54:29.459Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Attention">
 <meta property="article:tag" content="E2E">
@@ -268,8 +268,8 @@
       
         <p>本篇Blog虽然看起来像极了新闻稿，但实际上只是自己想做一个E2E的梳理（顺便交了某课程大作业），毕竟这玩意最近这么火。有一部分论文自己只看个大概，说法未必准确，各位看观小心~。</p>
 <p>语音识别（Automatic Speech Recognition，ASR）是要完成输入音频的采样序列到字符序列的映射任务。传统识别模块主要包含声学模型，字典，语言模型三个部分，其中声学模型用于将输入特征转化为声学单元的后验概率，字典用于表示声学单元序列到字符的映射关系，而语言模型则用于表示字符上下文之间的条件概率。由于声学模型的训练需要预知声学单元和输入特征之间的对齐信息，而常见的声学单元，比如CD-state，CD-phone等的时间对齐信息无法直接从抄本中的字符序列中获知。因此，DNN等声学模型的训练需要以传统的HMM-GMM模型进行启动引导，获得帧级别的状态标签，这一步操作称为对齐。也正是由于CD-state之类的建模单元颗粒度太小，无法直接转化成字符级别的输出，因此，需要融合字典，语言模型等信息，信息融合在声学解码器中进行。</p>
-<p>因为抄本的长度往往小于特征序列的长度， 所以，实现特征到序列直接映射的核心在于如何处理这种对齐关系。传统的NN-HMM框架正是无法进行这种不等长的序列映射，因此才需要对齐和解码。很显然，我们期望的是一种更加自然的模型结构，可以直接以抄本作为label完成训练，直接以字/词作为输出单元，从而简化训练和解码流程。2012年之后，随着传统声学建模技术的逐渐成熟，国内外学者和研究机构开始基于语音识别这种序列映射的特性，借鉴图像，机器翻译领域的一些成功案例，开始尝试端到端（End-to-End，E2E）的建模方法。</p>
 <a id="more"></a>
+<p>因为抄本的长度往往小于特征序列的长度， 所以，实现特征到序列直接映射的核心在于如何处理这种对齐关系。传统的NN-HMM框架正是无法进行这种不等长的序列映射，因此才需要对齐和解码。很显然，我们期望的是一种更加自然的模型结构，可以直接以抄本作为label完成训练，直接以字/词作为输出单元，从而简化训练和解码流程。2012年之后，随着传统声学建模技术的逐渐成熟，国内外学者和研究机构开始基于语音识别这种序列映射的特性，借鉴图像，机器翻译领域的一些成功案例，开始尝试端到端（End-to-End，E2E）的建模方法。</p>
 <p>为了保持脉络清晰，本部分会顺着时间线介绍三种比较成熟的端到端的建模方法：CTC<sup>[13][14]</sup>（Connectionist Temporal Classification）RNN Transducer<sup>[12]</sup>，Attention<sup>[5][9][10]</sup>机制及其在声学建模中的应用，中间会穿插一些分析和讨论，帮助理清思路。有些文章中会以Sequence to Sequence（Seq2Seq）的概念表达声学建模中端到端的含义，在这里统一称为E2E。需要注意一点，本节所述方法的输入均为声学特征，并非直接基于原始采样信号（raw waveform）建模。</p>
 <h3 id="CTC"><a href="#CTC" class="headerlink" title="CTC"></a>CTC</h3><p>最早被提出用于E2E训练的是Alex Graves在2006年提出的CTC准则<sup>[13]</sup>，当时用于处理一些输入和标签不等长的问题中，比如手写识别，语音识别等等。本质上说，CTC只是一个定义在序列上的损失函数，而非一种新的网络模型。传统声学模型是一个分类器，其损失函数交叉熵是一个定义在帧级别上的度量函数，最大化当前标签被分类正确的概率，并不能很好的反映网络输出的序列特性，而CTC将句子级别的对齐信息融合在了损失函数中，通过最大化所有和和抄本对齐序列的概率和，实现E2E的模型训练，这种方式由于包含了显式的对齐计算，后来也常常称之为硬对齐（hard-alignment）。</p>
 <p>对齐路径$\mathbf{\pi}$和抄本$\mathbf{y}$和是多对一关系，为了更好的描述这种关系，Graves额外引入了blank标签$\epsilon$的概念，用于隔断不同字符，比如在$T = 5$的约束下，抄本${a,b}$的对齐序列可以是${a\epsilon b\epsilon \epsilon}$，${a\epsilon\epsilon \epsilon b}$，${\epsilon ab\epsilon \epsilon}$等等。用函数$\mathcal{F}$描述$\pi \to \mathbf{y}$映射关系为$\mathcal{F}(\pi) = \mathbf{y}$。若定义输入特征序列$\mathbf{x} = \{\mathbf{x}_1, \mathbf{x}_1, \cdots, \mathbf{x}_T\}$，那么CTC损失准则表达为：</p>

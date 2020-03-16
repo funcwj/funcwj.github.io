@@ -1374,9 +1374,9 @@ m_{ft}^k = \frac{\alpha_f^k \mathcal{N}_c(\mathbf{y}_{ft}|0, \phi^k_{ft}\mathbf{
     <url>/2018/05/12/beampattern-and-fixed-beamformer/</url>
     <content><![CDATA[<p>在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。</p>
 <p>beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。</p>
+<a id="more"></a>
 <p>根据上述表述，beamformer要想表现的完美，准确的DoA不可或缺。如果可以实时的根据信号环境调整DoA，那么在工作中，beamformer的指向性便会发生改变，这种波束形成器被称为adaptive beamformer。反之，如果固定其指向性，在工作中只增强事先设定的方向信号，便被称为fixed beamformer。反映到beam weights上，如果beam weights被计算出并保持不变，对应后者，如果有声学环境的参数掺杂在其中，或者不断的update DoA，则对应前者，比如MVDR，PMWF，Max-SNR等等。</p>
 <p>上篇文章中也提到了，用NN做前端，一般用mask模型估计adaptive beamformer中target的协相关/功率谱密度矩阵，并用其最大特征向量来估计steer vector。我们更加在意系统最终对WER或者PESQ，SDR，SNR等等（根据任务不同）的贡献，而不会刻意的去分析其指向性。这种不涉及麦克风拓扑结构，不涉及声源信息的方法称为Blind方法。</p>
-<a id="more"></a>
 <h4 id="Beam-Pattern"><a href="#Beam-Pattern" class="headerlink" title="Beam Pattern"></a>Beam Pattern</h4><p>现在做如下定义：存在$M$个麦克风的线阵中，第$i$个麦克风相对第一个的距离为$d_i(d_0 = 0, d_i &lt; d_j \;\text{if} \; i &lt; j)$，如果DoA为$\theta(\theta \in [0, \pi])$，声速为$c$，那么，第$i$个麦克风相对第一个的延时$\tau_i$定义为：</p>
 <script type="math/tex; mode=display">
 \tau_{\theta i}  = \frac{\cos(\theta)d_i}{c}</script><p>以MVDR为例，已知相对延迟$\tau$，beam weights由下式得出：</p>
@@ -1637,8 +1637,8 @@ R^{xy}_\tau = E[x_k y_{k + \tau}] = \sum_k x_k y_{k+\tau}</script><p>从上式�
     <url>/2018/03/13/end-to-end-overview/</url>
     <content><![CDATA[<p>本篇Blog虽然看起来像极了新闻稿，但实际上只是自己想做一个E2E的梳理（顺便交了某课程大作业），毕竟这玩意最近这么火。有一部分论文自己只看个大概，说法未必准确，各位看观小心~。</p>
 <p>语音识别（Automatic Speech Recognition，ASR）是要完成输入音频的采样序列到字符序列的映射任务。传统识别模块主要包含声学模型，字典，语言模型三个部分，其中声学模型用于将输入特征转化为声学单元的后验概率，字典用于表示声学单元序列到字符的映射关系，而语言模型则用于表示字符上下文之间的条件概率。由于声学模型的训练需要预知声学单元和输入特征之间的对齐信息，而常见的声学单元，比如CD-state，CD-phone等的时间对齐信息无法直接从抄本中的字符序列中获知。因此，DNN等声学模型的训练需要以传统的HMM-GMM模型进行启动引导，获得帧级别的状态标签，这一步操作称为对齐。也正是由于CD-state之类的建模单元颗粒度太小，无法直接转化成字符级别的输出，因此，需要融合字典，语言模型等信息，信息融合在声学解码器中进行。</p>
-<p>因为抄本的长度往往小于特征序列的长度， 所以，实现特征到序列直接映射的核心在于如何处理这种对齐关系。传统的NN-HMM框架正是无法进行这种不等长的序列映射，因此才需要对齐和解码。很显然，我们期望的是一种更加自然的模型结构，可以直接以抄本作为label完成训练，直接以字/词作为输出单元，从而简化训练和解码流程。2012年之后，随着传统声学建模技术的逐渐成熟，国内外学者和研究机构开始基于语音识别这种序列映射的特性，借鉴图像，机器翻译领域的一些成功案例，开始尝试端到端（End-to-End，E2E）的建模方法。</p>
 <a id="more"></a>
+<p>因为抄本的长度往往小于特征序列的长度， 所以，实现特征到序列直接映射的核心在于如何处理这种对齐关系。传统的NN-HMM框架正是无法进行这种不等长的序列映射，因此才需要对齐和解码。很显然，我们期望的是一种更加自然的模型结构，可以直接以抄本作为label完成训练，直接以字/词作为输出单元，从而简化训练和解码流程。2012年之后，随着传统声学建模技术的逐渐成熟，国内外学者和研究机构开始基于语音识别这种序列映射的特性，借鉴图像，机器翻译领域的一些成功案例，开始尝试端到端（End-to-End，E2E）的建模方法。</p>
 <p>为了保持脉络清晰，本部分会顺着时间线介绍三种比较成熟的端到端的建模方法：CTC<sup>[13][14]</sup>（Connectionist Temporal Classification）RNN Transducer<sup>[12]</sup>，Attention<sup>[5][9][10]</sup>机制及其在声学建模中的应用，中间会穿插一些分析和讨论，帮助理清思路。有些文章中会以Sequence to Sequence（Seq2Seq）的概念表达声学建模中端到端的含义，在这里统一称为E2E。需要注意一点，本节所述方法的输入均为声学特征，并非直接基于原始采样信号（raw waveform）建模。</p>
 <h3 id="CTC"><a href="#CTC" class="headerlink" title="CTC"></a>CTC</h3><p>最早被提出用于E2E训练的是Alex Graves在2006年提出的CTC准则<sup>[13]</sup>，当时用于处理一些输入和标签不等长的问题中，比如手写识别，语音识别等等。本质上说，CTC只是一个定义在序列上的损失函数，而非一种新的网络模型。传统声学模型是一个分类器，其损失函数交叉熵是一个定义在帧级别上的度量函数，最大化当前标签被分类正确的概率，并不能很好的反映网络输出的序列特性，而CTC将句子级别的对齐信息融合在了损失函数中，通过最大化所有和和抄本对齐序列的概率和，实现E2E的模型训练，这种方式由于包含了显式的对齐计算，后来也常常称之为硬对齐（hard-alignment）。</p>
 <p>对齐路径$\mathbf{\pi}$和抄本$\mathbf{y}$和是多对一关系，为了更好的描述这种关系，Graves额外引入了blank标签$\epsilon$的概念，用于隔断不同字符，比如在$T = 5$的约束下，抄本${a,b}$的对齐序列可以是${a\epsilon b\epsilon \epsilon}$，${a\epsilon\epsilon \epsilon b}$，${\epsilon ab\epsilon \epsilon}$等等。用函数$\mathcal{F}$描述$\pi \to \mathbf{y}$映射关系为$\mathcal{F}(\pi) = \mathbf{y}$。若定义输入特征序列$\mathbf{x} = \{\mathbf{x}_1, \mathbf{x}_1, \cdots, \mathbf{x}_T\}$，那么CTC损失准则表达为：</p>
@@ -2569,11 +2569,15 @@ H(p, q) = - \sum_{i}p(i) \log q(i)</script><p>$p$为真实分布，$q$为网络�
 <script type="math/tex; mode=display">
 \mathbf{\Sigma}^{-1} = [\mathbf{\Sigma}^{-1}_1, \mathbf{\Sigma}^{-1}_2, \cdots, \mathbf{\Sigma}^{-1}_C]</script><p><code>U_</code>和<code>Sigma_inv_M_</code>由上面两个变量计算得到，分别定义为$\mathbf{U}_{C \times R \times R}, \mathbf{B}_{C \times F \times R}$：</p>
 <script type="math/tex; mode=display">
-\mathbf{U} = \mathbf{T}^T \cdot \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{T}_2^T \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{T}_C^T \mathbf{\Sigma}^{-1}_C\mathbf{T}_C ] \\
-\mathbf{B} = \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{\Sigma}^{-1}_C \mathbf{T}_C]</script><p>令$\mathbf{w} = \mathbf{Q}^{-1}\mathbf{L}$，那么$\mathbf{Q}, \mathbf{L}$的计算过程如下：</p>
+\begin{aligned}
+\mathbf{U} & = \mathbf{T}^T \cdot \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{T}_2^T \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{T}_C^T \mathbf{\Sigma}^{-1}_C\mathbf{T}_C ] \\
+\mathbf{B} & = \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{\Sigma}^{-1}_C \mathbf{T}_C]
+\end{aligned}</script><p>令$\mathbf{w} = \mathbf{Q}^{-1}\mathbf{L}$，那么$\mathbf{Q}, \mathbf{L}$的计算过程如下：</p>
 <script type="math/tex; mode=display">
-\mathbf{L}_{R \times 1} = \sum_{c = 1}^C (\mathbf{B}_c^T)_{R \times F} (\mathbf{F}_c)_{F \times 1} \\
-\mathbf{Q}_{R \times R} = \sum_{c = 1}^C \mathbf{U}_c\gamma_c + \mathbf{I}</script><p>观察到$\mathbf{T}_i^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_i$为对称矩阵，所以为了存储高效，保留上三角即可，因而$\mathbf{U}_{C \times R \times R}$可以退化为$\mathbf{U}_{C \times (R + 1) / 2}$，写成：</p>
+\begin{aligned}
+\mathbf{L}_{R \times 1} & = \sum_{c = 1}^C (\mathbf{B}_c^T)_{R \times F} (\mathbf{F}_c)_{F \times 1} \\
+\mathbf{Q}_{R \times R} & = \sum_{c = 1}^C \mathbf{U}_c\gamma_c + \mathbf{I}
+\end{aligned}</script><p>观察到$\mathbf{T}_i^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_i$为对称矩阵，所以为了存储高效，保留上三角即可，因而$\mathbf{U}_{C \times R \times R}$可以退化为$\mathbf{U}_{C \times (R + 1) / 2}$，写成：</p>
 <script type="math/tex; mode=display">
 \mathbf{U}_{C \times (R + 1) / 2} = 
 \begin{vmatrix}
@@ -2608,17 +2612,23 @@ H(p, q) = - \sum_{i}p(i) \log q(i)</script><p>$p$为真实分布，$q$为网络�
 <script type="math/tex; mode=display">
 \gamma_i^c = \frac{\pi_c \mathcal{N}_c(\mathbf{x}_i|\Theta_c)}{\sum_{c = 1}^C \pi_c \mathcal{N}_c(\mathbf{x}_i|\Theta_c)}</script><p>由此可以得到每个分量的零阶，一阶和二阶统计量，分别记为：</p>
 <script type="math/tex; mode=display">
-N_c = \sum_{i = 1}^T \gamma_i^c \\
-\mathbf{F}_c = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \\
-\mathbf{S}_c = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \mathbf{x}_i^T</script><p>MAP按照如下更新方法调整UBM中的统计参数（Bayesian adaptation）：</p>
+\begin{aligned}
+N_c & = \sum_{i = 1}^T \gamma_i^c \\
+\mathbf{F}_c & = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \\
+\mathbf{S}_c & = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \mathbf{x}_i^T
+\end{aligned}</script><p>MAP按照如下更新方法调整UBM中的统计参数（Bayesian adaptation）：</p>
 <script type="math/tex; mode=display">
-\pi'_c = [\alpha_c N_c / T + (1 - \alpha_c)\pi_c]\beta \\
-\mu'_c = \alpha_c E_c(\mathbf{x}) + (1 - \alpha_c)\mu_c \\
-\mathbf{\Sigma}'_c = \alpha_c E_c(\mathbf{x}^2) + (1 - \alpha_c)(\mathbf{\Sigma}_c + \mu_c\mu_c^T) - \mu'_c \mu'^T_c</script><p>其中</p>
+\begin{aligned}
+\pi'_c & = [\alpha_c N_c / T + (1 - \alpha_c)\pi_c]\beta \\
+\mu'_c & = \alpha_c E_c(\mathbf{x}) + (1 - \alpha_c)\mu_c \\
+\mathbf{\Sigma}'_c & = \alpha_c E_c(\mathbf{x}^2) + (1 - \alpha_c)(\mathbf{\Sigma}_c + \mu_c\mu_c^T) - \mu'_c \mu'^T_c
+\end{aligned}</script><p>其中</p>
 <script type="math/tex; mode=display">
-E_c(\mathbf{x}) = \mathbf{F}_c / N_c \\
-E_c(\mathbf{x}^2) = \mathbf{S}_c / N_c \\
-\alpha_c = N_c / (N_c + r)</script><p>$r$一般在$C = 2048$时取16，$\beta$用来保证$\sum_{c = 1}^C\pi’_c = 1$。$\alpha_c$这个量用来表示UBM受新数据影响的程度。比如$\alpha_c \to 1$时，更新公式中原来的参数受到屏蔽，更多的依赖新一轮的统计信息，因而更加的偏向说话人相关的概率模型。</p>
+\begin{aligned}
+E_c(\mathbf{x}) & = \mathbf{F}_c / N_c \\
+E_c(\mathbf{x}^2) & = \mathbf{S}_c / N_c \\
+\alpha_c & = N_c / (N_c + r)
+\end{aligned}</script><p>$r$一般在$C = 2048$时取16，$\beta$用来保证$\sum_{c = 1}^C\pi’_c = 1$。$\alpha_c$这个量用来表示UBM受新数据影响的程度。比如$\alpha_c \to 1$时，更新公式中原来的参数受到屏蔽，更多的依赖新一轮的统计信息，因而更加的偏向说话人相关的概率模型。</p>
 <p>把adaptation得到的模型均值取出来进行拼接得到的超向量再加上一些后处理方法，比如cos距离或者SVM分类，就可以搭建最基本的说话人系统了。</p>
 <h3 id="supervector的分解"><a href="#supervector的分解" class="headerlink" title="supervector的分解"></a>supervector的分解</h3><p>上面提到，既然supervector可以作为一个很好的说话人特征，那么就可以着手对其进行集中分析了。目前形成的体系是对说话人相关的超向量$\mathbf{s}$视为以下几个部分的叠加：</p>
 <ol>
@@ -2654,8 +2664,10 @@ E_c(\mathbf{x}^2) = \mathbf{S}_c / N_c \\
 \mathbf{L} = \mathbf{I} + \mathbf{T}^T\mathbf{\Sigma}^{-1}\mathbf{N}\mathbf{T}</script></blockquote>
 <p>用$\mathbf{N}_{c}, \mathbf{F}_{c}$表示数据集合$\mathcal{X}$上第c个分量的零阶和归一化的一阶统计量：</p>
 <script type="math/tex; mode=display">
-\mathbf{N}_{c} = \sum_{i = 1}^T \gamma_i^c \\
-\mathbf{F}_{c} = \sum_{i = 1}^T \gamma_i^c (\mathbf{x}_i - \mu_c)\\</script><p>$\mu_c，\Sigma_c$为UBM中第$c$个分量的均值和方差。那么$\mathbf{N}, \mathbf{F}$表示为：</p>
+\begin{aligned}
+\mathbf{N}_{c} & = \sum_{i = 1}^T \gamma_i^c \\
+\mathbf{F}_{c} & = \sum_{i = 1}^T \gamma_i^c (\mathbf{x}_i - \mu_c)
+\end{aligned}</script><p>$\mu_c，\Sigma_c$为UBM中第$c$个分量的均值和方差。那么$\mathbf{N}, \mathbf{F}$表示为：</p>
 <script type="math/tex; mode=display">
 \mathbf{N}_{CF \times CF} = 
 \begin{vmatrix}
@@ -2938,13 +2950,17 @@ S_{ij} &= 1 + S_{uv} \notag
 \boldsymbol y =  \boldsymbol{w}^T \cdot \boldsymbol x</script><h3 id="LDA"><a href="#LDA" class="headerlink" title="LDA"></a>LDA</h3><p>LDA的期望是，将高维度的数据通过某种变换/降维（投影到低维度），使得类间方差最大，类内方差最小，也就是要让同一类数据尽可能的接近，不同类数据尽可能的分开。所以，如果定义要优化的目标函数，那么，表征不同数据接近程度的离散矩阵和表征同类数据类内离散程度的离散矩阵应该被分别放置在分母和分子位置，最终取使得优化目标最大的变换矩阵即可。</p>
 <p>定义原始数据维度为$D$，数据集标注为$C$类，对于类$P_i$，类内离散程度$\boldsymbol{S}_w$用类内方差$\boldsymbol{V}_i$之和表示：</p>
 <script type="math/tex; mode=display">
-\boldsymbol{S}_w = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i
+\begin{aligned}
+\boldsymbol{S}_w & = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i
 = \frac{1}{C}\sum_{i = 1}^C \frac{1}{N_i}\sum_{\boldsymbol{x} \in P_i}(\boldsymbol{x} - \boldsymbol{\mu}_i)(\boldsymbol{x} - \boldsymbol{\mu}_i)^T \\
-= \frac{1}{C}\sum_{i = 1}^C E[\boldsymbol{X}_i^2] - E[\boldsymbol{X}_i]^2</script><p>类间方差$\boldsymbol{S}_b$用各类中心点$\boldsymbol{\mu}_i$相对整体样本的中心点$\boldsymbol{\mu}$计算得到的协方差$\boldsymbol{V}_i^r$之和表示：</p>
+& = \frac{1}{C}\sum_{i = 1}^C E[\boldsymbol{X}_i^2] - E[\boldsymbol{X}_i]^2
+\end{aligned}</script><p>类间方差$\boldsymbol{S}_b$用各类中心点$\boldsymbol{\mu}_i$相对整体样本的中心点$\boldsymbol{\mu}$计算得到的协方差$\boldsymbol{V}_i^r$之和表示：</p>
 <script type="math/tex; mode=display">
-\boldsymbol{S}_b = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i^r
-= \frac{1}{C}\sum_{i = 1}^C (\boldsymbol{\mu}_i - \boldsymbol{\mu})(\boldsymbol{\mu}_i - \boldsymbol{\mu})^T\\
-= E[\boldsymbol{\mu}_c^2] - E[\boldsymbol{X}]^2</script><p>由以上两式，可以得到优化的目标函数：</p>
+\begin{aligned}
+\boldsymbol{S}_b & = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i^r
+= \frac{1}{C}\sum_{i = 1}^C (\boldsymbol{\mu}_i - \boldsymbol{\mu})(\boldsymbol{\mu}_i - \boldsymbol{\mu})^T \\
+& = E[\boldsymbol{\mu}_c^2] - E[\boldsymbol{X}]^2
+\end{aligned}</script><p>由以上两式，可以得到优化的目标函数：</p>
 <script type="math/tex; mode=display">
 J(\boldsymbol{W}) = \frac{\boldsymbol{W}^T\boldsymbol{S}_b\boldsymbol{W}}{\boldsymbol{W}^T\boldsymbol{S}_w\boldsymbol{W}}</script><h3 id="kaldi中的LDA变换"><a href="#kaldi中的LDA变换" class="headerlink" title="kaldi中的LDA变换"></a>kaldi中的LDA变换</h3><p>kaldi中经常对提取的声学特征做LDA变换，也是首先收集统计量，之后做LDA变换，输出变换矩阵。<br>统计量累计<code>lda-acc</code>接受GMM模型，声学特征和后验，输出统计量（主要是以下三个变量的值）。从GMM模型中可以知道pdf_class的个数，也就是数据集合的总的类别，记为$C$，特征维度记为$D$。那么统计量的维度以及存储的信息如下：<br><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// C X 1 每一类的累计后验</span></span><br><span class="line">Vector&lt;<span class="keyword">double</span>&gt; zero_acc_;</span><br><span class="line"><span class="comment">// C X D 每一类的累计特征</span></span><br><span class="line">Matrix&lt;<span class="keyword">double</span>&gt; first_acc_;</span><br><span class="line"><span class="comment">// D X D 对称矩阵，存下三角 所有类的累计加权特征的平方</span></span><br><span class="line">SpMatrix&lt;<span class="keyword">double</span>&gt; total_second_acc_;</span><br></pre></td></tr></table></figure><br>具体求解变换矩阵的过程没有找到对应的理论依据，根据代码，过程如下：<br>定义全局方差（将所有数据视为一个整体）：</p>
 <script type="math/tex; mode=display">
@@ -4163,44 +4179,48 @@ L(S) & = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma
 <a id="more"></a>
 <h3 id="高斯混合模型"><a href="#高斯混合模型" class="headerlink" title="高斯混合模型"></a>高斯混合模型</h3><p>对于一个一元变量的高斯分布的概率密度函数(pdf)定义为</p>
 <script type="math/tex; mode=display">
-\begin{align}
+\begin{aligned}
 P(x) & = \frac{1}{\sqrt{2\pi\mu}}e^{-(\frac{x - \mu}{\sigma})^2 / 2} \notag \\
 &= \mathcal N(x;\mu, \sigma)\notag
-\end{align}</script><p>拓展到多元高斯分布</p>
+\end{aligned}</script><p>拓展到多元高斯分布</p>
 <script type="math/tex; mode=display">
-\begin{align}
+\begin{aligned}
 P(\boldsymbol x) & = \frac{1}{(2\pi)^{D/2}|\boldsymbol \varSigma|^{1/2}}e^{(\boldsymbol x - \boldsymbol \mu)^T\boldsymbol \varSigma^{-1} (\boldsymbol x - \boldsymbol \mu)} \notag \\
 &= \mathcal N(\boldsymbol x;\boldsymbol \mu, \boldsymbol \varSigma)\notag
-\end{align}</script><p>再拓展到高斯混合分布：</p>
+\end{aligned}</script><p>再拓展到高斯混合分布：</p>
 <script type="math/tex; mode=display">
 P(\boldsymbol x) = \sum_{m = 1}^Mc_m\mathcal N(\boldsymbol x;\boldsymbol \mu_m, \boldsymbol \varSigma_m)</script><p>其中$m$为高斯数</p>
 <h3 id="GMM的参数估计"><a href="#GMM的参数估计" class="headerlink" title="GMM的参数估计"></a>GMM的参数估计</h3><h4 id="确定隐变量"><a href="#确定隐变量" class="headerlink" title="确定隐变量"></a>确定隐变量</h4><p>对于GMM生成的数据，我们并不知道他来自哪一个分布，反映数据来源这部分信息是未知的，定义$h_i^m$表示第$i$个数据是否来自于第$m$个高斯分量</p>
 <p>定义：</p>
 <script type="math/tex; mode=display">
-\boldsymbol \Theta = (c_1, c_2, \cdots, c_M; \boldsymbol \mu_1, \boldsymbol \mu_2, \cdots, \boldsymbol \mu_M;\boldsymbol \varSigma_1, \boldsymbol \varSigma_2, \cdots, \boldsymbol \varSigma_M) \\
-\boldsymbol Y = (\boldsymbol y_1, \boldsymbol y_2, \cdots, \boldsymbol y_N) \\
-\boldsymbol H = 
+\begin{aligned}
+\boldsymbol \Theta & = (c_1, c_2, \cdots, c_M; \boldsymbol \mu_1, \boldsymbol \mu_2, \cdots, \boldsymbol \mu_M;\boldsymbol \varSigma_1, \boldsymbol \varSigma_2, \cdots, \boldsymbol \varSigma_M) \\
+\boldsymbol Y & = (\boldsymbol y_1, \boldsymbol y_2, \cdots, \boldsymbol y_N) \\
+\boldsymbol H & = 
 \begin{pmatrix}
 h_1^1 & h_1^2 & \cdots & h_1^M  \\
 h_2^1 & h_2^2 & \cdots & h_2^M  \\
 \vdots & \vdots & \ddots & \vdots \\  
 h_N^1 & h_N^2 & \cdots & h_N^M  \\
-\end{pmatrix} \\</script><p>则，完全数据的似然函数为</p>
+\end{pmatrix} \\
+\end{aligned}</script><p>则，完全数据的似然函数为</p>
 <script type="math/tex; mode=display">
-\begin{align}
+\begin{aligned}
 P(\boldsymbol Y, \boldsymbol H|\boldsymbol \Theta) & = \prod_{n = 1}^NP(\boldsymbol y_n, \boldsymbol H_n|\boldsymbol \Theta) \notag \\
 & = \prod_{n = 1}^N\prod_{m = 1}^M \left[c_m \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)\right]^{h_n^m} \notag
-\end{align}</script><h4 id="确定-Q-函数"><a href="#确定-Q-函数" class="headerlink" title="确定$Q$函数"></a>确定$Q$函数</h4><p>在E步，我们要确定$Q$函数，根据$Q$函数定义</p>
-<script type="math/tex; mode=display">Q(\Theta, \Theta^t) = E_H[logP(H,Y|\Theta) | Y, \Theta^t]</script><script type="math/tex; mode=display">
-\begin{align}
-logP(\boldsymbol Y, \boldsymbol H|\boldsymbol \Theta) & = \sum_{n = 1}^N\sum_{m = 1}^M h_n^m \left\{logc_m + log\left[ \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)\right]\right\} \notag \\
-\end{align}</script><p>可以得到</p>
+\end{aligned}</script><h4 id="确定-Q-函数"><a href="#确定-Q-函数" class="headerlink" title="确定$Q$函数"></a>确定$Q$函数</h4><p>在E步，我们要确定$Q$函数，根据$Q$函数定义</p>
+<script type="math/tex; mode=display">Q(\Theta, \Theta^t) = E_H[\log P(H,Y|\Theta) | Y, \Theta^t]</script><script type="math/tex; mode=display">
+\begin{aligned}
+\log P(\boldsymbol Y, \boldsymbol H|\boldsymbol \Theta) & = \sum_{n = 1}^N\sum_{m = 1}^M h_n^m \left\{\log c_m + \log \left[ \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)\right]\right\} \notag \\
+\end{aligned}</script><p>可以得到</p>
 <script type="math/tex; mode=display">
-Q(\Theta, \Theta^t) = \sum_{m = 1}^M \sum_{n = 1}^N\left\{E_{h_n^m} \cdot logc_m + E_{h_n^m} \cdot log
+Q(\Theta, \Theta^t) = \sum_{m = 1}^M \sum_{n = 1}^N\left\{E_{h_n^m} \cdot \log c_m + E_{h_n^m} \cdot \log
 \left[ \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)\right]\right\}</script><p>其中，$E_{h_n^m}$是隐变量在完全数据下的期望</p>
 <script type="math/tex; mode=display">
-E_{h_n^m} = E(h_n^m|Y_n, \Theta^t) = P(h_n^m = 1 | Y_n, \Theta^t) \\
-= \frac{c_m \cdot \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)}{\sum_{m = 1}^{m = M} \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)}</script><h4 id="期望最大化"><a href="#期望最大化" class="headerlink" title="期望最大化"></a>期望最大化</h4><p>得到$E_{h_n^m}$之后，对$Q$函数求偏导，可以得到混合高斯模型中参量的更新公式</p>
+\begin{aligned}
+E_{h_n^m} & = E(h_n^m|Y_n, \Theta^t) = P(h_n^m = 1 | Y_n, \Theta^t) \\
+& = \frac{c_m \cdot \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)}{\sum_{m = 1}^{m = M} \mathcal N(\boldsymbol y_n;\boldsymbol \mu_m, \boldsymbol \varSigma_m)}
+\end{aligned}</script><h4 id="期望最大化"><a href="#期望最大化" class="headerlink" title="期望最大化"></a>期望最大化</h4><p>得到$E_{h_n^m}$之后，对$Q$函数求偏导，可以得到混合高斯模型中参量的更新公式</p>
 <ul>
 <li><p>$c_m$</p>
 <script type="math/tex; mode=display">
@@ -4334,13 +4354,17 @@ c_m & = \frac{\mathcal{O}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
     <content><![CDATA[<p>FFT最后一步，解释RealFFT的算法原理。<br>RealFFT输入，对于实序列$x_n(0 \le n \le N - 1)$，以$(x_{2n }, x_{2n + 1})$的形式输入，输出为实序列FFT变换结果的前$N / 2$个点。<br><a id="more"></a></p>
 <p>比如，以长为16的序列${1, 1, 1, 1, 0, \ldots 0 }$输入<code>ComplexFFT</code>和<code>RealFFT</code>，结果输出分别为<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[  4.000000,   0.000000] </span><br><span class="line">[  3.013670,   2.013670] </span><br><span class="line">[  1.000000,   2.414214] </span><br><span class="line">[ -0.248303,   1.248303] </span><br><span class="line">[  0.000000,   0.000000] </span><br><span class="line">[  0.834089,  -0.165911] </span><br><span class="line">[  1.000000,   0.414214] </span><br><span class="line">[  0.400544,   0.599456] </span><br><span class="line">[  0.000000,   0.000000] </span><br><span class="line">[  0.400544,  -0.599456] </span><br><span class="line">[  1.000000,  -0.414214] </span><br><span class="line">[  0.834089,   0.165911] </span><br><span class="line">[  0.000000,   0.000000] </span><br><span class="line">[ -0.248303,  -1.248303] </span><br><span class="line">[  1.000000,  -2.414214] </span><br><span class="line">[  3.013670,  -2.013670] </span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">[  4.000000,   0.000000]</span><br><span class="line">[  3.013670,   2.013670]</span><br><span class="line">[  1.000000,   2.414214]</span><br><span class="line">[ -0.248303,   1.248303]</span><br><span class="line">[  0.000000,   0.000000]</span><br><span class="line">[  0.834089,  -0.165911]</span><br><span class="line">[  1.000000,   0.414214]</span><br><span class="line">[  0.400544,   0.599456]</span><br></pre></td></tr></table></figure><br>观察可以发现，利用序列的共轭对称性可以补全一些其余的点（有一个点无法补全，即对称中心点）<br>下面说明算法流程</p>
 <script type="math/tex; mode=display">
-X_k = \sum_{n = 0}^{N - 1}x_nW_N^{kn} \\
-= \sum_{n = 0}^{N / 2 - 1}x_{2n}W_N^{2nk} + x_{2n + 1}W_N^{(2n + 1)k} \\
-= \sum_{n = 0}^{N / 2 - 1}x_{2n}W_{N/2}^{nk} +  W_N^k\sum_{n = 0}^{N / 2 - 1}x_{2n + 1}W_{N/2}^{nk} \\
-= F_k + W_N^kG_k</script><p>共轭对称证明：</p>
+\begin{aligned}
+X_k  & = \sum_{n = 0}^{N - 1}x_nW_N^{kn} \\
+ & = \sum_{n = 0}^{N / 2 - 1}x_{2n}W_N^{2nk} + x_{2n + 1}W_N^{(2n + 1)k} \\
+ & = \sum_{n = 0}^{N / 2 - 1}x_{2n}W_{N/2}^{nk} +  W_N^k\sum_{n = 0}^{N / 2 - 1}x_{2n + 1}W_{N/2}^{nk} \\
+ & = F_k + W_N^kG_k
+\end{aligned}</script><p>共轭对称证明：</p>
 <script type="math/tex; mode=display">
-X_{n-k}^* = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
-= F_k + W_N^{*-k}G_k = F_k + W_N^kG_k = X_k</script><p>之前的$F_k, G_k$已经计算完毕，只需要在上次程序的基础之上计算</p>
+\begin{aligned}
+X_{n-k}^*  & = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
+& = F_k + W_N^{*-k}G_k = F_k + W_N^kG_k = X_k
+\end{aligned}</script><p>之前的$F_k, G_k$已经计算完毕，只需要在上次程序的基础之上计算</p>
 <script type="math/tex; mode=display">F_k + W_N^kG_k</script><p>即可。</p>
 <p>实现如下：</p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line">ComplexFFT(R, I, <span class="number">0</span>);</span><br><span class="line"><span class="keyword">float</span> FR, FI, GR, GI, YR, YI, CYR, CYI, XR, XI, cosr, sinr;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> r = <span class="number">1</span>; r &lt;= MAX_LEN; r++)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span>(r == <span class="number">1</span>)</span><br><span class="line">		FR = R[r], FI = <span class="number">0.0</span>, GR = I[r], GI = <span class="number">0.0</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		YR  = R[r], YI = I[r];</span><br><span class="line">		CYR = R[MAX_LEN + <span class="number">2</span> - r], CYI = -I[MAX_LEN + <span class="number">2</span> - r];</span><br><span class="line">		FR  = (YR + CYR) / <span class="number">2</span>, FI = (YI + CYI) / <span class="number">2</span>;</span><br><span class="line">		GR  = (YI - CYI) / <span class="number">2</span>, GI = (CYR - YR) / <span class="number">2</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	cosr = <span class="built_in">cos</span>((r - <span class="number">1</span>) * PI / MAX_LEN);</span><br><span class="line">	sinr = <span class="built_in">sin</span>((r - <span class="number">1</span>) * PI / MAX_LEN);</span><br><span class="line">	XR = FR + cosr * GR - sinr * GI;</span><br><span class="line">	XI = FI + cosr * GI + sinr * GR;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[%12f, %12f]\n"</span>, XR, XI);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -4358,24 +4382,48 @@ X_{n-k}^* = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
   <entry>
     <title>RealFFT算法铺垫</title>
     <url>/2017/05/27/realfft-1/</url>
-    <content><![CDATA[<p>继续FFT，上回已经手写FFT了，但是也遗留了一个问题，实际应用中FFT处理的都是实信号，但是为了使用我上回写的<code>ComplexFFT</code>函数，需要给其虚部补0，这一操作不仅浪费空间，而且计算耗时啊。RealFFT算法就是处理实信号的快速算法。</p>
-<a id="more"></a>
-
+    <content><![CDATA[<p>继续FFT，上回已经手写FFT了，但是也遗留了一个问题，实际应用中FFT处理的都是实信号，但是为了使用我上回写的<code>ComplexFFT</code>函数，需要给其虚部补0，这一操作不仅浪费空间，而且计算耗时啊。RealFFT算法就是处理实信号的快速算法。<br><a id="more"></a></p>
 <p>同时，搞信号的重构也让我对实FFT的对称性加深了认识，确实是有用的……</p>
-<ul>
-<li>实信号DFT的对称性<br>$$<br>W_N^k=e^{-2kj\pi/N} \<br>X_k = \sum_{n = 0}^{N-1}x_nW_N^{nk}<br>$$</li>
-</ul>
-<p>注意这里$x_n$是实数<br>$$<br>X_{N - r} = \sum_{n = 0}^{N-1}x_nW_N^{(N - r)k} \<br>= \sum_{n = 0}^{N-1}x_nW_N^{-rk}W_N^{Nk} \<br>=  \sum_{n = 0}^{N-1}x_nW_N^{-rk} = \sum_{n = 0}^{N-1}[x_nW_N^{rk}]^* = X_r^*<br>$$<br>反之：<br>$$<br>X_{N - r}^* = X_r \quad \<br>(1 \le r\le N-1)<br>$$<br>在$0$这点：<br>$$<br>X_0 = \sum_{n = 0}^{N-1}x_n<br>$$<br>直观一点，看个例子，使用<code>ComplexFFT</code>函数，输入</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[ 0.000078,    0.000000] &#x3D;&gt; [  67.890442,    0.000000]</span><br><span class="line">[ 1.315378,    0.000000] &#x3D;&gt; [ -13.852791,    1.756794]</span><br><span class="line">[ 7.556053,    0.000000] &#x3D;&gt; [   0.532240,  -14.502794]</span><br><span class="line">[ 4.586502,    0.000000] &#x3D;&gt; [ -10.848876,    0.947389]</span><br><span class="line">[ 5.327672,    0.000000] &#x3D;&gt; [   8.034233,    8.668694]</span><br><span class="line">[ 2.189592,    0.000000] &#x3D;&gt; [  -8.089980,   12.082935]</span><br><span class="line">[ 0.470446,    0.000000] &#x3D;&gt; [ -14.220805,    6.269228]</span><br><span class="line">[ 6.788647,    0.000000] &#x3D;&gt; [   5.620103,    0.964417]</span><br><span class="line">[ 6.792964,    0.000000] &#x3D;&gt; [  -2.237431,    0.000000]</span><br><span class="line">[ 9.346930,    0.000000] &#x3D;&gt; [   5.620103,   -0.964417]</span><br><span class="line">[ 3.835021,    0.000000] &#x3D;&gt; [ -14.220805,   -6.269228]</span><br><span class="line">[ 5.194164,    0.000000] &#x3D;&gt; [  -8.089980,  -12.082935]</span><br><span class="line">[ 8.309653,    0.000000] &#x3D;&gt; [   8.034233,   -8.668694]</span><br><span class="line">[ 0.345721,    0.000000] &#x3D;&gt; [ -10.848876,   -0.947389]</span><br><span class="line">[ 0.534616,    0.000000] &#x3D;&gt; [   0.532240,   14.502794]</span><br><span class="line">[ 5.297002,    0.000000] &#x3D;&gt; [ -13.852791,   -1.756794]</span><br></pre></td></tr></table></figure>
-<p>注意，这种对称性不包括直流分量的。<br>使用对称性还可以做许多优化，包括RealFFT。<br>这里的铺垫是指：使用一次FFT计算的结果，得到实部，虚部序列的FFT结果，以下面这个为例子:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[ 0.000078,    1.315378] &#x3D;&gt; [  76.081299,   78.423798]</span><br><span class="line">[ 7.556053,    4.586502] &#x3D;&gt; [  -7.566336,   10.051374]</span><br><span class="line">[ 5.327672,    2.189592] &#x3D;&gt; [  -2.170276,  -19.456476]</span><br><span class="line">[ 0.470446,    6.788647] &#x3D;&gt; [  -1.338717,    1.404751]</span><br><span class="line">[ 6.792964,    9.346930] &#x3D;&gt; [ -12.029690,   -0.553211]</span><br><span class="line">[ 3.835021,    5.194164] &#x3D;&gt; [  -1.947378,    5.299602]</span><br><span class="line">[ 8.309653,    0.345721] &#x3D;&gt; [ -19.588976,  -11.740066]</span><br><span class="line">[ 0.534616,    5.297002] &#x3D;&gt; [ -16.009092,    3.573137]</span><br><span class="line">[ 6.711493,    0.076982] &#x3D;&gt; [  11.795471,  -13.576748]</span><br><span class="line">[ 3.834157,    0.668422] &#x3D;&gt; [ -17.982683,   -8.924475]</span><br><span class="line">[ 4.174860,    6.867727] &#x3D;&gt; [ -11.516462,   -1.057013]</span><br><span class="line">[ 5.889766,    9.304365] &#x3D;&gt; [ -32.044506,  -12.575722]</span><br><span class="line">[ 8.461669,    5.269288] &#x3D;&gt; [  12.017742,   -0.259529]</span><br><span class="line">[ 0.919649,    6.539190] &#x3D;&gt; [  16.961304,    5.201901]</span><br><span class="line">[ 4.159994,    7.011906] &#x3D;&gt; [  -0.896533,  -20.641878]</span><br><span class="line">[ 9.103209,    7.621980] &#x3D;&gt; [   6.236089,    5.876601]</span><br></pre></td></tr></table></figure>
-<p>根据一个虚数序列$(X, Y)$得到的$(R, I)$，我们是可以得到$(X,0)$和$(Y,0)$的FFT结果的。<br>推导如下：<br>$$<br>X_k = \sum_{n = 0}^{N-1}x_nW_N^{nk} \<br>= \sum_{n = 0}^{N-1}(f_n+jg_n)W_N^{nk} \<br>= \sum_{n = 0}^{N-1}f_nW_N^{nk}+ j\sum_{n = 0}^{N-1}g_nW_N^{nk} \<br>= F_k + jG_k<br>$$<br>又$f_n,g_n$是实数序列，满足<br>$$<br>F_{N - k}^* = F_k \<br>G_{N - k}^* = G_k<br>$$<br>那么<br>$$<br>X_{N - k}^* = F_{N - k}^* - jG_{N - k}^* \<br>= F_k - jG_k<br>$$<br>要想从$X_k$中恢复出$F_k$和$G_k$，可以通过下式：<br>$$<br>F_k = \frac{1}{2}( X_{N - k}^* + X_k) \<br>G_k = \frac{j}{2}(X_{N - k}^* - X_k) \<br>1 \le k \le N - 1<br>$$<br>当$k = 0$时：<br>$$<br>X_0 = F_0 + jG_0 \<br>= \sum_{n = 0}^{N-1}f_n + j\sum_{n = 0}^{N-1}g_n<br>$$<br>所以：<br>$$<br>F_0 = R(X_0) \<br>G_0 = I(X_0)<br>$$<br>代码实现</p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">ComplexFFT(R, I, <span class="number">0</span>);	</span><br><span class="line"><span class="keyword">float</span> FrR, FrI, GrR, GrI, YrR, YrI, CyrR, CyrI;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> r = <span class="number">1</span>; r &lt;= MAX_LEN; r++)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span>(r == <span class="number">1</span>)</span><br><span class="line">		FrR = R[r], FrI = <span class="number">0.0</span>, GrR = I[r], GrI = <span class="number">0.0</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		YrR  = R[r], YrI = I[r];</span><br><span class="line">		CyrR = R[MAX_LEN + <span class="number">2</span> - r], CyrI = -I[MAX_LEN + <span class="number">2</span> - r];</span><br><span class="line">		FrR  = (YrR + CyrR) / <span class="number">2</span>, FrI = (YrI + CyrI) / <span class="number">2</span>;</span><br><span class="line">		GrR  = (YrI - CyrI) / <span class="number">2</span>, GrI = (-YrR + CyrR) / <span class="number">2</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[%12f, %12f]\t[%12f, %12f]\n"</span>, FrR, FrI, GrR, GrI);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>程序输出</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[   76.081299,     0.000000]	[   78.423798,     0.000000]</span><br><span class="line">[   -0.665123,     2.087387]	[    7.963987,     6.901212]</span><br><span class="line">[   -1.533404,     0.592701]	[  -20.049177,     0.636872]</span><br><span class="line">[    7.811293,    -1.898575]	[    3.303326,     9.150011]</span><br><span class="line">[   -0.005974,    -0.146841]	[   -0.406370,    12.023716]</span><br><span class="line">[  -16.995941,     8.937662]	[   -3.638060,   -15.048564]</span><br><span class="line">[  -15.552719,    -5.341527]	[   -6.398539,     4.036257]</span><br><span class="line">[  -16.995888,     6.248806]	[   -2.675669,    -0.986795]</span><br><span class="line">[   11.795471,     0.000000]	[  -13.576748,     0.000000]</span><br><span class="line">[  -16.995888,    -6.248806]	[   -2.675669,     0.986795]</span><br><span class="line">[  -15.552719,     5.341527]	[   -6.398539,    -4.036257]</span><br><span class="line">[  -16.995941,    -8.937662]	[   -3.638060,    15.048564]</span><br><span class="line">[   -0.005974,     0.146841]	[   -0.406370,   -12.023716]</span><br><span class="line">[    7.811293,     1.898575]	[    3.303326,    -9.150011]</span><br><span class="line">[   -1.533404,    -0.592701]	[  -20.049177,    -0.636872]</span><br><span class="line">[   -0.665123,    -2.087387]	[    7.963987,    -6.901212]</span><br></pre></td></tr></table></figure>
-<p>和以$(X,0)$和$(Y,0)$作为输入时的结果做对比</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[    76.081299,    0.000000]    [   78.423798,    0.000000]</span><br><span class="line">[    -0.665124,    2.087387]    [    7.963987,    6.901213]</span><br><span class="line">[    -1.533404,    0.592701]    [  -20.049177,    0.636871]</span><br><span class="line">[     7.811293,   -1.898576]    [    3.303326,    9.150011]</span><br><span class="line">[    -0.005974,   -0.146841]    [   -0.406370,   12.023716]</span><br><span class="line">[   -16.995941,    8.937661]    [   -3.638060,  -15.048563]</span><br><span class="line">[   -15.552718,   -5.341526]    [   -6.398538,    4.036257]</span><br><span class="line">[   -16.995888,    6.248806]    [   -2.675670,   -0.986795]</span><br><span class="line">[    11.795471,    0.000000]    [  -13.576748,    0.000000]</span><br><span class="line">[   -16.995888,   -6.248806]    [   -2.675670,    0.986795]</span><br><span class="line">[   -15.552718,    5.341526]    [   -6.398538,   -4.036257]</span><br><span class="line">[   -16.995941,   -8.937661]    [   -3.638060,   15.048563]</span><br><span class="line">[    -0.005974,    0.146841]    [   -0.406370,  -12.023716]</span><br><span class="line">[     7.811293,    1.898576]    [    3.303326,   -9.150011]</span><br><span class="line">[    -1.533404,   -0.592701]    [  -20.049177,   -0.636871]</span><br><span class="line">[    -0.665124,   -2.087387]    [    7.963987,   -6.901213]</span><br></pre></td></tr></table></figure>
-<p>基本无误。<br>熟悉了这部分，下面就可以正式啃RealFFT了。</p>
+<p>实信号DFT的对称性:</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+W_N^k & =e^{-2kj\pi/N} \\
+X_k  & = \sum_{n = 0}^{N-1}x_nW_N^{nk}
+\end{aligned}</script><p>注意这里$x_n$是实数</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+X_{N - r} & = \sum_{n = 0}^{N-1}x_nW_N^{(N - r)k} \\
+ & = \sum_{n = 0}^{N-1}x_nW_N^{-rk}W_N^{Nk} \\
+ & =  \sum_{n = 0}^{N-1}x_nW_N^{-rk} = \sum_{n = 0}^{N-1}[x_nW_N^{rk}]^* = X_r^*
+\end{aligned}</script><p>反之：</p>
+<script type="math/tex; mode=display">
+X_{N - r}^* = X_r \quad (1 \le r\le N-1)</script><p>在$0$这点：</p>
+<script type="math/tex; mode=display">
+X_0 = \sum_{n = 0}^{N-1}x_n</script><p>直观一点，看个例子，使用<code>ComplexFFT</code>函数，输入<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[ 0.000078,    0.000000] &#x3D;&gt; [  67.890442,    0.000000]</span><br><span class="line">[ 1.315378,    0.000000] &#x3D;&gt; [ -13.852791,    1.756794]</span><br><span class="line">[ 7.556053,    0.000000] &#x3D;&gt; [   0.532240,  -14.502794]</span><br><span class="line">[ 4.586502,    0.000000] &#x3D;&gt; [ -10.848876,    0.947389]</span><br><span class="line">[ 5.327672,    0.000000] &#x3D;&gt; [   8.034233,    8.668694]</span><br><span class="line">[ 2.189592,    0.000000] &#x3D;&gt; [  -8.089980,   12.082935]</span><br><span class="line">[ 0.470446,    0.000000] &#x3D;&gt; [ -14.220805,    6.269228]</span><br><span class="line">[ 6.788647,    0.000000] &#x3D;&gt; [   5.620103,    0.964417]</span><br><span class="line">[ 6.792964,    0.000000] &#x3D;&gt; [  -2.237431,    0.000000]</span><br><span class="line">[ 9.346930,    0.000000] &#x3D;&gt; [   5.620103,   -0.964417]</span><br><span class="line">[ 3.835021,    0.000000] &#x3D;&gt; [ -14.220805,   -6.269228]</span><br><span class="line">[ 5.194164,    0.000000] &#x3D;&gt; [  -8.089980,  -12.082935]</span><br><span class="line">[ 8.309653,    0.000000] &#x3D;&gt; [   8.034233,   -8.668694]</span><br><span class="line">[ 0.345721,    0.000000] &#x3D;&gt; [ -10.848876,   -0.947389]</span><br><span class="line">[ 0.534616,    0.000000] &#x3D;&gt; [   0.532240,   14.502794]</span><br><span class="line">[ 5.297002,    0.000000] &#x3D;&gt; [ -13.852791,   -1.756794]</span><br></pre></td></tr></table></figure><br>注意，这种对称性不包括直流分量的。<br>使用对称性还可以做许多优化，包括RealFFT。<br>这里的铺垫是指：使用一次FFT计算的结果，得到实部，虚部序列的FFT结果，以下面这个为例子:<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[ 0.000078,    1.315378] &#x3D;&gt; [  76.081299,   78.423798]</span><br><span class="line">[ 7.556053,    4.586502] &#x3D;&gt; [  -7.566336,   10.051374]</span><br><span class="line">[ 5.327672,    2.189592] &#x3D;&gt; [  -2.170276,  -19.456476]</span><br><span class="line">[ 0.470446,    6.788647] &#x3D;&gt; [  -1.338717,    1.404751]</span><br><span class="line">[ 6.792964,    9.346930] &#x3D;&gt; [ -12.029690,   -0.553211]</span><br><span class="line">[ 3.835021,    5.194164] &#x3D;&gt; [  -1.947378,    5.299602]</span><br><span class="line">[ 8.309653,    0.345721] &#x3D;&gt; [ -19.588976,  -11.740066]</span><br><span class="line">[ 0.534616,    5.297002] &#x3D;&gt; [ -16.009092,    3.573137]</span><br><span class="line">[ 6.711493,    0.076982] &#x3D;&gt; [  11.795471,  -13.576748]</span><br><span class="line">[ 3.834157,    0.668422] &#x3D;&gt; [ -17.982683,   -8.924475]</span><br><span class="line">[ 4.174860,    6.867727] &#x3D;&gt; [ -11.516462,   -1.057013]</span><br><span class="line">[ 5.889766,    9.304365] &#x3D;&gt; [ -32.044506,  -12.575722]</span><br><span class="line">[ 8.461669,    5.269288] &#x3D;&gt; [  12.017742,   -0.259529]</span><br><span class="line">[ 0.919649,    6.539190] &#x3D;&gt; [  16.961304,    5.201901]</span><br><span class="line">[ 4.159994,    7.011906] &#x3D;&gt; [  -0.896533,  -20.641878]</span><br><span class="line">[ 9.103209,    7.621980] &#x3D;&gt; [   6.236089,    5.876601]</span><br></pre></td></tr></table></figure><br>根据一个虚数序列$(X, Y)$得到的$(R, I)$，我们是可以得到$(X,0)$和$(Y,0)$的FFT结果的。<br>推导如下：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+X_k & = \sum_{n = 0}^{N-1}x_nW_N^{nk}  = \sum_{n = 0}^{N-1}(f_n+jg_n)W_N^{nk} \\
+ & = \sum_{n = 0}^{N-1}f_nW_N^{nk}+ j\sum_{n = 0}^{N-1}g_nW_N^{nk} = F_k + jG_k
+\end{aligned}</script><p>又$f_n,g_n$是实数序列，满足</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+F_{N - k}^* & = F_k \\
+G_{N - k}^* & = G_k
+\end{aligned}</script><p>那么</p>
+<script type="math/tex; mode=display">
+X_{N - k}^* = F_{N - k}^* - jG_{N - k}^* = F_k - jG_k</script><p>要想从$X_k$中恢复出$F_k$和$G_k$，可以通过下式：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+F_k & = \frac{1}{2}( X_{N - k}^* + X_k) \\
+G_k & = \frac{j}{2}(X_{N - k}^* - X_k) \; 1 \le k \le N - 1
+\end{aligned}</script><p>当$k = 0$时：</p>
+<script type="math/tex; mode=display">
+X_0 = F_0 + jG_0 = \sum_{n = 0}^{N-1}f_n + j\sum_{n = 0}^{N-1}g_n</script><p>所以：</p>
+<script type="math/tex; mode=display">
+\begin{aligned}
+F_0 & = R(X_0) \\
+G_0 & = I(X_0)
+\end{aligned}</script><p>代码实现<br><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">ComplexFFT(R, I, <span class="number">0</span>);	</span><br><span class="line"><span class="keyword">float</span> FrR, FrI, GrR, GrI, YrR, YrI, CyrR, CyrI;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> r = <span class="number">1</span>; r &lt;= MAX_LEN; r++)</span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span>(r == <span class="number">1</span>)</span><br><span class="line">		FrR = R[r], FrI = <span class="number">0.0</span>, GrR = I[r], GrI = <span class="number">0.0</span>;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		YrR  = R[r], YrI = I[r];</span><br><span class="line">		CyrR = R[MAX_LEN + <span class="number">2</span> - r], CyrI = -I[MAX_LEN + <span class="number">2</span> - r];</span><br><span class="line">		FrR  = (YrR + CyrR) / <span class="number">2</span>, FrI = (YrI + CyrI) / <span class="number">2</span>;</span><br><span class="line">		GrR  = (YrI - CyrI) / <span class="number">2</span>, GrI = (-YrR + CyrR) / <span class="number">2</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"[%12f, %12f]\t[%12f, %12f]\n"</span>, FrR, FrI, GrR, GrI);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>程序输出<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[   76.081299,     0.000000]	[   78.423798,     0.000000]</span><br><span class="line">[   -0.665123,     2.087387]	[    7.963987,     6.901212]</span><br><span class="line">[   -1.533404,     0.592701]	[  -20.049177,     0.636872]</span><br><span class="line">[    7.811293,    -1.898575]	[    3.303326,     9.150011]</span><br><span class="line">[   -0.005974,    -0.146841]	[   -0.406370,    12.023716]</span><br><span class="line">[  -16.995941,     8.937662]	[   -3.638060,   -15.048564]</span><br><span class="line">[  -15.552719,    -5.341527]	[   -6.398539,     4.036257]</span><br><span class="line">[  -16.995888,     6.248806]	[   -2.675669,    -0.986795]</span><br><span class="line">[   11.795471,     0.000000]	[  -13.576748,     0.000000]</span><br><span class="line">[  -16.995888,    -6.248806]	[   -2.675669,     0.986795]</span><br><span class="line">[  -15.552719,     5.341527]	[   -6.398539,    -4.036257]</span><br><span class="line">[  -16.995941,    -8.937662]	[   -3.638060,    15.048564]</span><br><span class="line">[   -0.005974,     0.146841]	[   -0.406370,   -12.023716]</span><br><span class="line">[    7.811293,     1.898575]	[    3.303326,    -9.150011]</span><br><span class="line">[   -1.533404,    -0.592701]	[  -20.049177,    -0.636872]</span><br><span class="line">[   -0.665123,    -2.087387]	[    7.963987,    -6.901212]</span><br></pre></td></tr></table></figure><br>和以$(X,0)$和$(Y,0)$作为输入时的结果做对比<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[    76.081299,    0.000000]    [   78.423798,    0.000000]</span><br><span class="line">[    -0.665124,    2.087387]    [    7.963987,    6.901213]</span><br><span class="line">[    -1.533404,    0.592701]    [  -20.049177,    0.636871]</span><br><span class="line">[     7.811293,   -1.898576]    [    3.303326,    9.150011]</span><br><span class="line">[    -0.005974,   -0.146841]    [   -0.406370,   12.023716]</span><br><span class="line">[   -16.995941,    8.937661]    [   -3.638060,  -15.048563]</span><br><span class="line">[   -15.552718,   -5.341526]    [   -6.398538,    4.036257]</span><br><span class="line">[   -16.995888,    6.248806]    [   -2.675670,   -0.986795]</span><br><span class="line">[    11.795471,    0.000000]    [  -13.576748,    0.000000]</span><br><span class="line">[   -16.995888,   -6.248806]    [   -2.675670,    0.986795]</span><br><span class="line">[   -15.552718,    5.341526]    [   -6.398538,   -4.036257]</span><br><span class="line">[   -16.995941,   -8.937661]    [   -3.638060,   15.048563]</span><br><span class="line">[    -0.005974,    0.146841]    [   -0.406370,  -12.023716]</span><br><span class="line">[     7.811293,    1.898576]    [    3.303326,   -9.150011]</span><br><span class="line">[    -1.533404,   -0.592701]    [  -20.049177,   -0.636871]</span><br><span class="line">[    -0.665124,   -2.087387]    [    7.963987,   -6.901213]</span><br></pre></td></tr></table></figure><br>基本无误。<br>熟悉了这部分，下面就可以正式啃RealFFT了。</p>
 ]]></content>
       <categories>
         <category>Algorithm</category>

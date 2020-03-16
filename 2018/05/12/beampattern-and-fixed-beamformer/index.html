@@ -22,17 +22,17 @@
     var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。 beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。 根据上述表述，b">
+  <meta name="description" content="在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。 beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Beam Pattern">
 <meta property="og:url" content="https://www.funcwj.cn/2018/05/12/beampattern-and-fixed-beamformer/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
-<meta property="og:description" content="在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。 beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。 根据上述表述，b">
+<meta property="og:description" content="在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。 beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/doa60_gamma0.jpg">
 <meta property="og:image" content="http://www.funcwj.cn/images/5kpolar.jpg">
 <meta property="article:published_time" content="2018-05-12T15:34:23.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:50:33.809Z">
+<meta property="article:modified_time" content="2020-03-16T15:53:49.515Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Beamformer">
 <meta property="article:tag" content="Beam Pattern">
@@ -270,9 +270,9 @@
       
         <p>在看前端方面的论文的时候，一定会遇到beam pattern这个概念，本篇文章主要讲述beam pattern的意义，应用以及可视化方面的东西。</p>
 <p>beamformer很重要的一个性质就是它的指向性，指向性可以反映波束形成器对每个方向的信号，哪些频率进行增强，哪些频率进行抑制。如果可以准确的估计出DoA的话，增强声源方向的信号，抑制其他方向，就成为了beamformer的主要任务。</p>
+<a id="more"></a>
 <p>根据上述表述，beamformer要想表现的完美，准确的DoA不可或缺。如果可以实时的根据信号环境调整DoA，那么在工作中，beamformer的指向性便会发生改变，这种波束形成器被称为adaptive beamformer。反之，如果固定其指向性，在工作中只增强事先设定的方向信号，便被称为fixed beamformer。反映到beam weights上，如果beam weights被计算出并保持不变，对应后者，如果有声学环境的参数掺杂在其中，或者不断的update DoA，则对应前者，比如MVDR，PMWF，Max-SNR等等。</p>
 <p>上篇文章中也提到了，用NN做前端，一般用mask模型估计adaptive beamformer中target的协相关/功率谱密度矩阵，并用其最大特征向量来估计steer vector。我们更加在意系统最终对WER或者PESQ，SDR，SNR等等（根据任务不同）的贡献，而不会刻意的去分析其指向性。这种不涉及麦克风拓扑结构，不涉及声源信息的方法称为Blind方法。</p>
-<a id="more"></a>
 <h4 id="Beam-Pattern"><a href="#Beam-Pattern" class="headerlink" title="Beam Pattern"></a>Beam Pattern</h4><p>现在做如下定义：存在$M$个麦克风的线阵中，第$i$个麦克风相对第一个的距离为$d_i(d_0 = 0, d_i &lt; d_j \;\text{if} \; i &lt; j)$，如果DoA为$\theta(\theta \in [0, \pi])$，声速为$c$，那么，第$i$个麦克风相对第一个的延时$\tau_i$定义为：</p>
 <script type="math/tex; mode=display">
 \tau_{\theta i}  = \frac{\cos(\theta)d_i}{c}</script><p>以MVDR为例，已知相对延迟$\tau$，beam weights由下式得出：</p>

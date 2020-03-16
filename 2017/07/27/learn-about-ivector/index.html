@@ -30,7 +30,7 @@
 <meta property="og:description" content="本篇主要解释我在学习ivector中遇到的一些比较困惑的点。在kaldi的nnet3中传统声学模型加上ivector已经成为online模型的标配。对于在线模型的特征提取，传统的方法采取全局和滑动窗的CMVN对输入特征进行归一化，而kaldi推荐的方案是使用ivector加上原始声学特征（参见论文A time delay neural network architecture for effici">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-07-27T14:46:07.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:53:42.130Z">
+<meta property="article:modified_time" content="2020-03-16T15:53:14.679Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="iVector">
 <meta name="twitter:card" content="summary">
@@ -245,14 +245,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>4.9k</span>
+              <span>5k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>4 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -273,17 +273,23 @@
 <script type="math/tex; mode=display">
 \gamma_i^c = \frac{\pi_c \mathcal{N}_c(\mathbf{x}_i|\Theta_c)}{\sum_{c = 1}^C \pi_c \mathcal{N}_c(\mathbf{x}_i|\Theta_c)}</script><p>由此可以得到每个分量的零阶，一阶和二阶统计量，分别记为：</p>
 <script type="math/tex; mode=display">
-N_c = \sum_{i = 1}^T \gamma_i^c \\
-\mathbf{F}_c = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \\
-\mathbf{S}_c = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \mathbf{x}_i^T</script><p>MAP按照如下更新方法调整UBM中的统计参数（Bayesian adaptation）：</p>
+\begin{aligned}
+N_c & = \sum_{i = 1}^T \gamma_i^c \\
+\mathbf{F}_c & = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \\
+\mathbf{S}_c & = \sum_{i = 1}^T \gamma_i^c \mathbf{x}_i \mathbf{x}_i^T
+\end{aligned}</script><p>MAP按照如下更新方法调整UBM中的统计参数（Bayesian adaptation）：</p>
 <script type="math/tex; mode=display">
-\pi'_c = [\alpha_c N_c / T + (1 - \alpha_c)\pi_c]\beta \\
-\mu'_c = \alpha_c E_c(\mathbf{x}) + (1 - \alpha_c)\mu_c \\
-\mathbf{\Sigma}'_c = \alpha_c E_c(\mathbf{x}^2) + (1 - \alpha_c)(\mathbf{\Sigma}_c + \mu_c\mu_c^T) - \mu'_c \mu'^T_c</script><p>其中</p>
+\begin{aligned}
+\pi'_c & = [\alpha_c N_c / T + (1 - \alpha_c)\pi_c]\beta \\
+\mu'_c & = \alpha_c E_c(\mathbf{x}) + (1 - \alpha_c)\mu_c \\
+\mathbf{\Sigma}'_c & = \alpha_c E_c(\mathbf{x}^2) + (1 - \alpha_c)(\mathbf{\Sigma}_c + \mu_c\mu_c^T) - \mu'_c \mu'^T_c
+\end{aligned}</script><p>其中</p>
 <script type="math/tex; mode=display">
-E_c(\mathbf{x}) = \mathbf{F}_c / N_c \\
-E_c(\mathbf{x}^2) = \mathbf{S}_c / N_c \\
-\alpha_c = N_c / (N_c + r)</script><p>$r$一般在$C = 2048$时取16，$\beta$用来保证$\sum_{c = 1}^C\pi’_c = 1$。$\alpha_c$这个量用来表示UBM受新数据影响的程度。比如$\alpha_c \to 1$时，更新公式中原来的参数受到屏蔽，更多的依赖新一轮的统计信息，因而更加的偏向说话人相关的概率模型。</p>
+\begin{aligned}
+E_c(\mathbf{x}) & = \mathbf{F}_c / N_c \\
+E_c(\mathbf{x}^2) & = \mathbf{S}_c / N_c \\
+\alpha_c & = N_c / (N_c + r)
+\end{aligned}</script><p>$r$一般在$C = 2048$时取16，$\beta$用来保证$\sum_{c = 1}^C\pi’_c = 1$。$\alpha_c$这个量用来表示UBM受新数据影响的程度。比如$\alpha_c \to 1$时，更新公式中原来的参数受到屏蔽，更多的依赖新一轮的统计信息，因而更加的偏向说话人相关的概率模型。</p>
 <p>把adaptation得到的模型均值取出来进行拼接得到的超向量再加上一些后处理方法，比如cos距离或者SVM分类，就可以搭建最基本的说话人系统了。</p>
 <h3 id="supervector的分解"><a href="#supervector的分解" class="headerlink" title="supervector的分解"></a>supervector的分解</h3><p>上面提到，既然supervector可以作为一个很好的说话人特征，那么就可以着手对其进行集中分析了。目前形成的体系是对说话人相关的超向量$\mathbf{s}$视为以下几个部分的叠加：</p>
 <ol>
@@ -319,8 +325,10 @@ E_c(\mathbf{x}^2) = \mathbf{S}_c / N_c \\
 \mathbf{L} = \mathbf{I} + \mathbf{T}^T\mathbf{\Sigma}^{-1}\mathbf{N}\mathbf{T}</script></blockquote>
 <p>用$\mathbf{N}_{c}, \mathbf{F}_{c}$表示数据集合$\mathcal{X}$上第c个分量的零阶和归一化的一阶统计量：</p>
 <script type="math/tex; mode=display">
-\mathbf{N}_{c} = \sum_{i = 1}^T \gamma_i^c \\
-\mathbf{F}_{c} = \sum_{i = 1}^T \gamma_i^c (\mathbf{x}_i - \mu_c)\\</script><p>$\mu_c，\Sigma_c$为UBM中第$c$个分量的均值和方差。那么$\mathbf{N}, \mathbf{F}$表示为：</p>
+\begin{aligned}
+\mathbf{N}_{c} & = \sum_{i = 1}^T \gamma_i^c \\
+\mathbf{F}_{c} & = \sum_{i = 1}^T \gamma_i^c (\mathbf{x}_i - \mu_c)
+\end{aligned}</script><p>$\mu_c，\Sigma_c$为UBM中第$c$个分量的均值和方差。那么$\mathbf{N}, \mathbf{F}$表示为：</p>
 <script type="math/tex; mode=display">
 \mathbf{N}_{CF \times CF} = 
 \begin{vmatrix}

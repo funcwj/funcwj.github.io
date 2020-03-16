@@ -30,7 +30,7 @@
 <meta property="og:description" content="kaldi中ivector的提取程序在ivector-extract和ivector-extract-online2中，分别提取离线和在线的ivector。考虑到后续需要分析online的解码逻辑，所以在第二篇笔记中会仔细介绍在线情况下统计信息的累计和ivector估计方法。本篇主要介绍离线方法以及在线方法的整体框架。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-07-28T15:43:29.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:53:55.657Z">
+<meta property="article:modified_time" content="2020-03-16T15:50:27.485Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Code">
 <meta property="article:tag" content="Kaldi">
@@ -278,11 +278,15 @@
 <script type="math/tex; mode=display">
 \mathbf{\Sigma}^{-1} = [\mathbf{\Sigma}^{-1}_1, \mathbf{\Sigma}^{-1}_2, \cdots, \mathbf{\Sigma}^{-1}_C]</script><p><code>U_</code>和<code>Sigma_inv_M_</code>由上面两个变量计算得到，分别定义为$\mathbf{U}_{C \times R \times R}, \mathbf{B}_{C \times F \times R}$：</p>
 <script type="math/tex; mode=display">
-\mathbf{U} = \mathbf{T}^T \cdot \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{T}_2^T \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{T}_C^T \mathbf{\Sigma}^{-1}_C\mathbf{T}_C ] \\
-\mathbf{B} = \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{\Sigma}^{-1}_C \mathbf{T}_C]</script><p>令$\mathbf{w} = \mathbf{Q}^{-1}\mathbf{L}$，那么$\mathbf{Q}, \mathbf{L}$的计算过程如下：</p>
+\begin{aligned}
+\mathbf{U} & = \mathbf{T}^T \cdot \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{T}_1^T \mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{T}_2^T \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{T}_C^T \mathbf{\Sigma}^{-1}_C\mathbf{T}_C ] \\
+\mathbf{B} & = \mathbf{\Sigma}^{-1} \cdot \mathbf{T} = [\mathbf{\Sigma}^{-1}_1\mathbf{T}_1, \mathbf{\Sigma}^{-1}_2\mathbf{T}_2, \cdots, \mathbf{\Sigma}^{-1}_C \mathbf{T}_C]
+\end{aligned}</script><p>令$\mathbf{w} = \mathbf{Q}^{-1}\mathbf{L}$，那么$\mathbf{Q}, \mathbf{L}$的计算过程如下：</p>
 <script type="math/tex; mode=display">
-\mathbf{L}_{R \times 1} = \sum_{c = 1}^C (\mathbf{B}_c^T)_{R \times F} (\mathbf{F}_c)_{F \times 1} \\
-\mathbf{Q}_{R \times R} = \sum_{c = 1}^C \mathbf{U}_c\gamma_c + \mathbf{I}</script><p>观察到$\mathbf{T}_i^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_i$为对称矩阵，所以为了存储高效，保留上三角即可，因而$\mathbf{U}_{C \times R \times R}$可以退化为$\mathbf{U}_{C \times (R + 1) / 2}$，写成：</p>
+\begin{aligned}
+\mathbf{L}_{R \times 1} & = \sum_{c = 1}^C (\mathbf{B}_c^T)_{R \times F} (\mathbf{F}_c)_{F \times 1} \\
+\mathbf{Q}_{R \times R} & = \sum_{c = 1}^C \mathbf{U}_c\gamma_c + \mathbf{I}
+\end{aligned}</script><p>观察到$\mathbf{T}_i^T \mathbf{\Sigma}^{-1}_i\mathbf{T}_i$为对称矩阵，所以为了存储高效，保留上三角即可，因而$\mathbf{U}_{C \times R \times R}$可以退化为$\mathbf{U}_{C \times (R + 1) / 2}$，写成：</p>
 <script type="math/tex; mode=display">
 \mathbf{U}_{C \times (R + 1) / 2} = 
 \begin{vmatrix}

@@ -30,7 +30,7 @@
 <meta property="og:description" content="LDA（线性判别分析，又称为Fisher线性判别）是对标记数据的一种常见的降维算法。kaldi在对原始特征的常见处理中，就包括了应用LDA变换这一操作（但是一般不降维，比较奇怪）。本文主要讲解LDA的数学原理和在kaldi中的具体实现。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2017-06-14T16:37:50.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:53:51.230Z">
+<meta property="article:modified_time" content="2020-03-16T15:49:00.216Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Kaldi">
 <meta property="article:tag" content="LDA">
@@ -246,7 +246,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>2.5k</span>
+              <span>2.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -272,13 +272,17 @@
 \boldsymbol y =  \boldsymbol{w}^T \cdot \boldsymbol x</script><h3 id="LDA"><a href="#LDA" class="headerlink" title="LDA"></a>LDA</h3><p>LDA的期望是，将高维度的数据通过某种变换/降维（投影到低维度），使得类间方差最大，类内方差最小，也就是要让同一类数据尽可能的接近，不同类数据尽可能的分开。所以，如果定义要优化的目标函数，那么，表征不同数据接近程度的离散矩阵和表征同类数据类内离散程度的离散矩阵应该被分别放置在分母和分子位置，最终取使得优化目标最大的变换矩阵即可。</p>
 <p>定义原始数据维度为$D$，数据集标注为$C$类，对于类$P_i$，类内离散程度$\boldsymbol{S}_w$用类内方差$\boldsymbol{V}_i$之和表示：</p>
 <script type="math/tex; mode=display">
-\boldsymbol{S}_w = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i
+\begin{aligned}
+\boldsymbol{S}_w & = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i
 = \frac{1}{C}\sum_{i = 1}^C \frac{1}{N_i}\sum_{\boldsymbol{x} \in P_i}(\boldsymbol{x} - \boldsymbol{\mu}_i)(\boldsymbol{x} - \boldsymbol{\mu}_i)^T \\
-= \frac{1}{C}\sum_{i = 1}^C E[\boldsymbol{X}_i^2] - E[\boldsymbol{X}_i]^2</script><p>类间方差$\boldsymbol{S}_b$用各类中心点$\boldsymbol{\mu}_i$相对整体样本的中心点$\boldsymbol{\mu}$计算得到的协方差$\boldsymbol{V}_i^r$之和表示：</p>
+& = \frac{1}{C}\sum_{i = 1}^C E[\boldsymbol{X}_i^2] - E[\boldsymbol{X}_i]^2
+\end{aligned}</script><p>类间方差$\boldsymbol{S}_b$用各类中心点$\boldsymbol{\mu}_i$相对整体样本的中心点$\boldsymbol{\mu}$计算得到的协方差$\boldsymbol{V}_i^r$之和表示：</p>
 <script type="math/tex; mode=display">
-\boldsymbol{S}_b = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i^r
-= \frac{1}{C}\sum_{i = 1}^C (\boldsymbol{\mu}_i - \boldsymbol{\mu})(\boldsymbol{\mu}_i - \boldsymbol{\mu})^T\\
-= E[\boldsymbol{\mu}_c^2] - E[\boldsymbol{X}]^2</script><p>由以上两式，可以得到优化的目标函数：</p>
+\begin{aligned}
+\boldsymbol{S}_b & = \frac{1}{C}\sum_{i = 1}^C \boldsymbol{V}_i^r
+= \frac{1}{C}\sum_{i = 1}^C (\boldsymbol{\mu}_i - \boldsymbol{\mu})(\boldsymbol{\mu}_i - \boldsymbol{\mu})^T \\
+& = E[\boldsymbol{\mu}_c^2] - E[\boldsymbol{X}]^2
+\end{aligned}</script><p>由以上两式，可以得到优化的目标函数：</p>
 <script type="math/tex; mode=display">
 J(\boldsymbol{W}) = \frac{\boldsymbol{W}^T\boldsymbol{S}_b\boldsymbol{W}}{\boldsymbol{W}^T\boldsymbol{S}_w\boldsymbol{W}}</script><h3 id="kaldi中的LDA变换"><a href="#kaldi中的LDA变换" class="headerlink" title="kaldi中的LDA变换"></a>kaldi中的LDA变换</h3><p>kaldi中经常对提取的声学特征做LDA变换，也是首先收集统计量，之后做LDA变换，输出变换矩阵。<br>统计量累计<code>lda-acc</code>接受GMM模型，声学特征和后验，输出统计量（主要是以下三个变量的值）。从GMM模型中可以知道pdf_class的个数，也就是数据集合的总的类别，记为$C$，特征维度记为$D$。那么统计量的维度以及存储的信息如下：<br><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// C X 1 每一类的累计后验</span></span><br><span class="line">Vector&lt;<span class="keyword">double</span>&gt; zero_acc_;</span><br><span class="line"><span class="comment">// C X D 每一类的累计特征</span></span><br><span class="line">Matrix&lt;<span class="keyword">double</span>&gt; first_acc_;</span><br><span class="line"><span class="comment">// D X D 对称矩阵，存下三角 所有类的累计加权特征的平方</span></span><br><span class="line">SpMatrix&lt;<span class="keyword">double</span>&gt; total_second_acc_;</span><br></pre></td></tr></table></figure><br>具体求解变换矩阵的过程没有找到对应的理论依据，根据代码，过程如下：<br>定义全局方差（将所有数据视为一个整体）：</p>
 <script type="math/tex; mode=display">
