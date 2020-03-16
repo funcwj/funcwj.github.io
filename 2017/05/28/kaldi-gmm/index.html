@@ -29,12 +29,14 @@
 <meta property="og:site_name" content="WJ&#39;s site">
 <meta property="og:description" content="这部分主要记录的是GMM在kaldi中的实现。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://www.funcwj.cn/images/kaldi-gmm.png">
 <meta property="article:published_time" content="2017-05-27T17:29:20.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:53:59.172Z">
+<meta property="article:modified_time" content="2020-03-16T15:29:31.812Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Kaldi">
 <meta property="article:tag" content="GMM">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.funcwj.cn/images/kaldi-gmm.png">
 
 <link rel="canonical" href="https://www.funcwj.cn/2017/05/28/kaldi-gmm/">
 
@@ -246,7 +248,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>3.8k</span>
+              <span>3.7k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -266,14 +268,9 @@
 
       
         <p>这部分主要记录的是GMM在kaldi中的实现。<br><a id="more"></a></p>
-<p>kaldi中关于高斯混合模型的表示，更新，主要用到下面这四个类，之间的关系如下：</p>
-<script type="math/tex; mode=display">
-\require{AMScd}
-\begin{CD}
-    \text{DiagGMM} @>\text{update by}>> \text{AccumDiagGmm} \\
-    @V{* \to 1}VV @VV{* \to 1}V \\
-    \text{AmDiagGMM} @>>\text{update by}> \text{AccumAmDiagGmm} 
-\end{CD}</script><p>具体表述为：</p>
+<p>Kaldi中关于高斯混合模型的表示，更新，主要用到下面这四个类，之间的关系如下：</p>
+<p><img src="http://www.funcwj.cn/images/kaldi-gmm.png", width="400"></p>
+<p>具体表述为：</p>
 <ol>
 <li><code>DiagGMM</code>表示一个GMM模型，<code>AmDiagGMM</code>存储了一个GMM声学模型中的所有GMM，也就是pdf</li>
 <li><code>AccumDiagGmm</code>用来对一个GMM模型进行参数更新，<code>AccumAmDiagGmm</code>中存储了一个<code>AccumDiagGmm</code>向量，可以对整个声学模型进行更新</li>
@@ -285,8 +282,10 @@
 <script type="math/tex; mode=display">
 \log{c_m} - \frac{1}{2}(D\log{2\pi}+\log{\boldsymbol{|\varSigma}_m|}) + \frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu}_m)^T\boldsymbol{\varSigma}_m^{-1}(\boldsymbol{x}-\boldsymbol{\mu}_m)</script><p>对于原先的指数部分，展开：</p>
 <script type="math/tex; mode=display">
-\exp = \frac{1}{2}(\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} + \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m) \\
-= \frac{1}{2}\boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m + \frac{1}{2}\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x}</script><p>DiagGMM中<code>gconst_</code>，<code>weights_</code>，<code>inv_vars_</code>，<code>means_invvars_</code>依次存放的值如下：</p>
+\begin{aligned}
+\exp & = \frac{1}{2}(\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} + \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m) \\
+& = \frac{1}{2}\boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m + \frac{1}{2}\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x}
+\end{aligned}</script><p>DiagGMM中<code>gconst_</code>，<code>weights_</code>，<code>inv_vars_</code>，<code>means_invvars_</code>依次存放的值如下：</p>
 <script type="math/tex; mode=display">
 \log{c_m} - \frac{1}{2}(D\log{2\pi}+\log{\boldsymbol{|\varSigma}_m|}-\boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m) \\
 c_m \\
@@ -301,23 +300,26 @@ E_{H_n^m} = \frac{c_m \cdot \mathcal{N(\boldsymbol{x}_n;\boldsymbol{\mu}_m, \bol
 <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Real&gt;</span><br><span class="line">Real VectorBase&lt;Real&gt;::ApplySoftMax() &#123;</span><br><span class="line">  Real <span class="built_in">max</span> = <span class="keyword">this</span>-&gt;Max(), sum = <span class="number">0.0</span>;</span><br><span class="line">  <span class="keyword">for</span> (MatrixIndexT i = <span class="number">0</span>; i &lt; dim_; i++) &#123;</span><br><span class="line">    sum += (data_[i] = Exp(data_[i] - <span class="built_in">max</span>));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">this</span>-&gt;Scale(<span class="number">1.0</span> / sum);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">max</span> + Log(sum);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这个函数的功能如下：</p>
 <script type="math/tex; mode=display">
-\{P_m\} \leftarrow \{e^{P_m - P_{max}}\} \\
-\text{sum} \; \leftarrow \sum_{m = 0}^MP_m=\frac{1}{e^{P_{max}}}\sum_{m = 0}^Me^{P_m} \\
-\{P_m\} \leftarrow \{\frac{P_m}{\text{sum}}\} = \{\frac{e^{P_{max}}}{\sum_{m = 0}^Me^{P_m}} \cdot \frac{e^{P_m}}{e^{P_{max}}}\} = \{\frac{e^{P_m}}{\sum_{m = 0}^Me^{P_m}}\} \\
-\text{return} \; \log\sum_{m = 0}^Me^{P_m}</script><p>由于实际参与运算的${P_m}$实际上都是取过log的，所以，<code>ApplySoftMax</code>完成了${P_m} \to {P_m / P}$映射功能，表示如下：</p>
+\begin{aligned}
+\{P_m\} & \leftarrow \{e^{P_m - P_{max}}\} \\
+\text{sum} & \leftarrow \sum_{m = 0}^MP_m=\frac{1}{e^{P_{max}}}\sum_{m = 0}^Me^{P_m} \\
+\{P_m\} & \leftarrow \{\frac{P_m}{\text{sum}}\} = \{\frac{e^{P_{max}}}{\sum_{m = 0}^Me^{P_m}} \cdot \frac{e^{P_m}}{e^{P_{max}}}\} = \{\frac{e^{P_m}}{\sum_{m = 0}^Me^{P_m}}\} \\
+\text{return} & \; \log\sum_{m = 0}^Me^{P_m}
+\end{aligned}</script><p>由于实际参与运算的${P_m}$实际上都是取过log的，所以，<code>ApplySoftMax</code>完成了${P_m} \to {P_m / P}$映射功能，表示如下：</p>
 <script type="math/tex; mode=display">
-\require{AMScd}
-\begin{CD}
-      \{\log P_m\} @>\text{softmax}>> \{E_{H_n^m}\}
-\end{CD}</script><p>下面把AccumDiagGmm中的三个变量和EM算法中的更新参数结合起来<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Vector&lt;double&gt; occupancy_;</span><br><span class="line">Matrix&lt;double&gt; mean_accumulator_;</span><br><span class="line">Matrix&lt;double&gt; variance_accumulator_;</span><br></pre></td></tr></table></figure><br>以上三个变量的对应关系如下：</p>
+\{\log P_m\} \xrightarrow{\text{softmax}} \{E_{H_n^m}\}</script><p>下面把AccumDiagGmm中的三个变量和EM算法中的更新参数结合起来<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Vector&lt;double&gt; occupancy_;</span><br><span class="line">Matrix&lt;double&gt; mean_accumulator_;</span><br><span class="line">Matrix&lt;double&gt; variance_accumulator_;</span><br></pre></td></tr></table></figure><br>以上三个变量的对应关系如下：</p>
 <script type="math/tex; mode=display">
-\mathcal{O}_m = \sum_{n = 0}^NE_{H_n^m} \\
-\mathcal{M}_m(M \times D) = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \\
-\mathcal{V}_m(M \times D) = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \cdot X_n</script><p>以上过程量$\mathcal{O}, \mathcal{M}, \mathcal{V} $在<code>gmm-acc-stats-ali</code>中完成积累，在<code>gmm-est</code>中完成更新。<br>结合EM算法中更新公式，可以得到：</p>
+\begin{aligned}
+\mathcal{O}_m & = \sum_{n = 0}^NE_{H_n^m} \\
+\mathcal{M}_m(M \times D) & = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \\
+\mathcal{V}_m(M \times D) & = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \cdot X_n
+\end{aligned}</script><p>以上过程量$\mathcal{O}, \mathcal{M}, \mathcal{V} $在<code>gmm-acc-stats-ali</code>中完成积累，在<code>gmm-est</code>中完成更新。<br>结合EM算法中更新公式，可以得到：</p>
 <script type="math/tex; mode=display">
-c_m = \frac{\mathcal{O}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
-\boldsymbol{\mu}_m = \frac{\mathcal{M}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
-\boldsymbol{\varSigma}_m = \frac{\mathcal{V}_m}{\sum_{m = 0}^M \mathcal{O}_m} - \boldsymbol{\mu}_m^2</script><p>kaldi中这部分还进行了GMM高斯数的自动调整，即merge和split操作。</p>
+\begin{aligned}
+c_m & = \frac{\mathcal{O}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
+\boldsymbol{\mu}_m & = \frac{\mathcal{M}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
+\boldsymbol{\varSigma}_m & = \frac{\mathcal{V}_m}{\sum_{m = 0}^M \mathcal{O}_m} - \boldsymbol{\mu}_m^2
+\end{aligned}</script><p>kaldi中这部分还进行了GMM高斯数的自动调整，即merge和split操作。</p>
 
     </div>
 

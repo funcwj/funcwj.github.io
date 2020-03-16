@@ -4230,8 +4230,8 @@ c_m^{t + 1} = \frac{\sum_{n = 1}^NE_{h_n^m}}{N}</script></li>
 <script type="math/tex; mode=display">P(Y|\Theta) \tag{1}</script><p>的参数估计，可以通过下式得到</p>
 <script type="math/tex; mode=display">
 \begin{align}
-\Theta_{MLE} & = \underset{\Theta}{argmax}L(\Theta) \notag \\
-& = \underset{\Theta}{argmax}\prod_YP(Y|\Theta) \tag{2}
+\Theta_{MLE} & = \underset{\Theta}{\arg \max}L(\Theta) \notag \\
+& = \underset{\Theta}{\arg \max}\prod_YP(Y|\Theta) \tag{2}
 \end{align}</script><p>但是在观测不全面的情况下，比如只观测到了训练数据$Y$，为了优化$(1)$中的目标，还需要知道一些隐变量$X$，否则无法进行全面的估计。对于完全数据$(X, Y)$</p>
 <script type="math/tex; mode=display">P(X,Y|\Theta) = P(X|Y,\Theta) \cdot P(Y|\Theta) \tag{3}</script><p>上面已经提到，我们的目标是优化$(1)$，则</p>
 <script type="math/tex; mode=display">\log P(Y|\Theta) = \log P(X,Y|\Theta) - \log P(X|Y,\Theta) \tag{4}</script><p>如果我们现在已知分布参数$\Theta^t$，用它计算$P(Y|\Theta)$在$X$上条件分布的期望</p>
@@ -4267,14 +4267,9 @@ H(\Theta,\Theta^t) = \sum_x \log P(X|Y,\Theta) \cdot P(X|Y,\Theta^t)</script><h3
     <title>Kaldi中的GMM模型</title>
     <url>/2017/05/28/kaldi-gmm/</url>
     <content><![CDATA[<p>这部分主要记录的是GMM在kaldi中的实现。<br><a id="more"></a></p>
-<p>kaldi中关于高斯混合模型的表示，更新，主要用到下面这四个类，之间的关系如下：</p>
-<script type="math/tex; mode=display">
-\require{AMScd}
-\begin{CD}
-    \text{DiagGMM} @>\text{update by}>> \text{AccumDiagGmm} \\
-    @V{* \to 1}VV @VV{* \to 1}V \\
-    \text{AmDiagGMM} @>>\text{update by}> \text{AccumAmDiagGmm} 
-\end{CD}</script><p>具体表述为：</p>
+<p>Kaldi中关于高斯混合模型的表示，更新，主要用到下面这四个类，之间的关系如下：</p>
+<p><img src="http://www.funcwj.cn/images/kaldi-gmm.png", width="400"></p>
+<p>具体表述为：</p>
 <ol>
 <li><code>DiagGMM</code>表示一个GMM模型，<code>AmDiagGMM</code>存储了一个GMM声学模型中的所有GMM，也就是pdf</li>
 <li><code>AccumDiagGmm</code>用来对一个GMM模型进行参数更新，<code>AccumAmDiagGmm</code>中存储了一个<code>AccumDiagGmm</code>向量，可以对整个声学模型进行更新</li>
@@ -4286,8 +4281,10 @@ H(\Theta,\Theta^t) = \sum_x \log P(X|Y,\Theta) \cdot P(X|Y,\Theta^t)</script><h3
 <script type="math/tex; mode=display">
 \log{c_m} - \frac{1}{2}(D\log{2\pi}+\log{\boldsymbol{|\varSigma}_m|}) + \frac{1}{2}(\boldsymbol{x}-\boldsymbol{\mu}_m)^T\boldsymbol{\varSigma}_m^{-1}(\boldsymbol{x}-\boldsymbol{\mu}_m)</script><p>对于原先的指数部分，展开：</p>
 <script type="math/tex; mode=display">
-\exp = \frac{1}{2}(\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} + \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m) \\
-= \frac{1}{2}\boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m + \frac{1}{2}\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x}</script><p>DiagGMM中<code>gconst_</code>，<code>weights_</code>，<code>inv_vars_</code>，<code>means_invvars_</code>依次存放的值如下：</p>
+\begin{aligned}
+\exp & = \frac{1}{2}(\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} + \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m) \\
+& = \frac{1}{2}\boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m + \frac{1}{2}\boldsymbol{x}^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x} - \boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{x}
+\end{aligned}</script><p>DiagGMM中<code>gconst_</code>，<code>weights_</code>，<code>inv_vars_</code>，<code>means_invvars_</code>依次存放的值如下：</p>
 <script type="math/tex; mode=display">
 \log{c_m} - \frac{1}{2}(D\log{2\pi}+\log{\boldsymbol{|\varSigma}_m|}-\boldsymbol{\mu}_m^T\boldsymbol{\varSigma}_m^{-1}\boldsymbol{\mu}_m) \\
 c_m \\
@@ -4302,23 +4299,26 @@ E_{H_n^m} = \frac{c_m \cdot \mathcal{N(\boldsymbol{x}_n;\boldsymbol{\mu}_m, \bol
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Real&gt;</span><br><span class="line">Real VectorBase&lt;Real&gt;::ApplySoftMax() &#123;</span><br><span class="line">  Real <span class="built_in">max</span> = <span class="keyword">this</span>-&gt;Max(), sum = <span class="number">0.0</span>;</span><br><span class="line">  <span class="keyword">for</span> (MatrixIndexT i = <span class="number">0</span>; i &lt; dim_; i++) &#123;</span><br><span class="line">    sum += (data_[i] = Exp(data_[i] - <span class="built_in">max</span>));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">this</span>-&gt;Scale(<span class="number">1.0</span> / sum);</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">max</span> + Log(sum);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>这个函数的功能如下：</p>
 <script type="math/tex; mode=display">
-\{P_m\} \leftarrow \{e^{P_m - P_{max}}\} \\
-\text{sum} \; \leftarrow \sum_{m = 0}^MP_m=\frac{1}{e^{P_{max}}}\sum_{m = 0}^Me^{P_m} \\
-\{P_m\} \leftarrow \{\frac{P_m}{\text{sum}}\} = \{\frac{e^{P_{max}}}{\sum_{m = 0}^Me^{P_m}} \cdot \frac{e^{P_m}}{e^{P_{max}}}\} = \{\frac{e^{P_m}}{\sum_{m = 0}^Me^{P_m}}\} \\
-\text{return} \; \log\sum_{m = 0}^Me^{P_m}</script><p>由于实际参与运算的${P_m}$实际上都是取过log的，所以，<code>ApplySoftMax</code>完成了${P_m} \to {P_m / P}$映射功能，表示如下：</p>
+\begin{aligned}
+\{P_m\} & \leftarrow \{e^{P_m - P_{max}}\} \\
+\text{sum} & \leftarrow \sum_{m = 0}^MP_m=\frac{1}{e^{P_{max}}}\sum_{m = 0}^Me^{P_m} \\
+\{P_m\} & \leftarrow \{\frac{P_m}{\text{sum}}\} = \{\frac{e^{P_{max}}}{\sum_{m = 0}^Me^{P_m}} \cdot \frac{e^{P_m}}{e^{P_{max}}}\} = \{\frac{e^{P_m}}{\sum_{m = 0}^Me^{P_m}}\} \\
+\text{return} & \; \log\sum_{m = 0}^Me^{P_m}
+\end{aligned}</script><p>由于实际参与运算的${P_m}$实际上都是取过log的，所以，<code>ApplySoftMax</code>完成了${P_m} \to {P_m / P}$映射功能，表示如下：</p>
 <script type="math/tex; mode=display">
-\require{AMScd}
-\begin{CD}
-      \{\log P_m\} @>\text{softmax}>> \{E_{H_n^m}\}
-\end{CD}</script><p>下面把AccumDiagGmm中的三个变量和EM算法中的更新参数结合起来<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Vector&lt;double&gt; occupancy_;</span><br><span class="line">Matrix&lt;double&gt; mean_accumulator_;</span><br><span class="line">Matrix&lt;double&gt; variance_accumulator_;</span><br></pre></td></tr></table></figure><br>以上三个变量的对应关系如下：</p>
+\{\log P_m\} \xrightarrow{\text{softmax}} \{E_{H_n^m}\}</script><p>下面把AccumDiagGmm中的三个变量和EM算法中的更新参数结合起来<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Vector&lt;double&gt; occupancy_;</span><br><span class="line">Matrix&lt;double&gt; mean_accumulator_;</span><br><span class="line">Matrix&lt;double&gt; variance_accumulator_;</span><br></pre></td></tr></table></figure><br>以上三个变量的对应关系如下：</p>
 <script type="math/tex; mode=display">
-\mathcal{O}_m = \sum_{n = 0}^NE_{H_n^m} \\
-\mathcal{M}_m(M \times D) = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \\
-\mathcal{V}_m(M \times D) = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \cdot X_n</script><p>以上过程量$\mathcal{O}, \mathcal{M}, \mathcal{V} $在<code>gmm-acc-stats-ali</code>中完成积累，在<code>gmm-est</code>中完成更新。<br>结合EM算法中更新公式，可以得到：</p>
+\begin{aligned}
+\mathcal{O}_m & = \sum_{n = 0}^NE_{H_n^m} \\
+\mathcal{M}_m(M \times D) & = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \\
+\mathcal{V}_m(M \times D) & = \sum_{n = 0}^NE_{H_n^m} \cdot X_n \cdot X_n
+\end{aligned}</script><p>以上过程量$\mathcal{O}, \mathcal{M}, \mathcal{V} $在<code>gmm-acc-stats-ali</code>中完成积累，在<code>gmm-est</code>中完成更新。<br>结合EM算法中更新公式，可以得到：</p>
 <script type="math/tex; mode=display">
-c_m = \frac{\mathcal{O}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
-\boldsymbol{\mu}_m = \frac{\mathcal{M}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
-\boldsymbol{\varSigma}_m = \frac{\mathcal{V}_m}{\sum_{m = 0}^M \mathcal{O}_m} - \boldsymbol{\mu}_m^2</script><p>kaldi中这部分还进行了GMM高斯数的自动调整，即merge和split操作。</p>
+\begin{aligned}
+c_m & = \frac{\mathcal{O}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
+\boldsymbol{\mu}_m & = \frac{\mathcal{M}_m}{\sum_{m = 0}^M \mathcal{O}_m} \\
+\boldsymbol{\varSigma}_m & = \frac{\mathcal{V}_m}{\sum_{m = 0}^M \mathcal{O}_m} - \boldsymbol{\mu}_m^2
+\end{aligned}</script><p>kaldi中这部分还进行了GMM高斯数的自动调整，即merge和split操作。</p>
 ]]></content>
       <categories>
         <category>ASR</category>
