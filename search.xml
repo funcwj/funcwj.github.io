@@ -2806,64 +2806,6 @@ p(\mathbf{w}|\mathcal{X}) = \frac{p(\mathcal{X} | \mathbf{w})p(\mathbf{w})}{p(\m
       </tags>
   </entry>
   <entry>
-    <title>全连接神经网络的BP推导</title>
-    <url>/2017/07/24/BP-for-dense/</url>
-    <content><![CDATA[<p>全连接神经网络是最简单的一种深度神经网络模型，网络的输出仅仅和当前的输入有关。多层的全连接网络由单层网络通过简单的线性堆叠而成，即前一层的输出是后一层的输入。一般而言，每一层可视为仿射变换层和激活层耦合而成，其中激活层通过激活函数向系统中引入非线性分量，从而使得多层的全连接网络在训练充分的情况下具有强大的数据拟合能力。也就是说，全连接神经网络完成的是向量在空间和空间之间的一种映射功能，这种映射过程称为网络的前向传递。网络的参数更新通过反向传播（Back Propagation）算法进行，这是一种基于梯度下降的训练算法。</p>
-<a id="more"></a>
-<p>在神经网络中（不仅仅是全连接神经网络），节点表征单个数据，一层网络含有多个数据节点，构成一个向量，网络输出用输出层表示，网络输入用输入层表示，输入层和输出层之间称为隐层，每一层均可对输入进行一次仿射变换和一次非线性变换。节点和节点之前具有全连接结构，连接权重构成变换矩阵。每个节点上存在偏置。下面对前向传递和反向传播过程进行数学推导。</p>
-<h3 id="前向传递"><a href="#前向传递" class="headerlink" title="前向传递"></a>前向传递</h3><p>上文已经提到，前向传递过程是完成空间映射的过程，定义网络输入，输出分别为$\boldsymbol{x}, \boldsymbol{y}$，对于有$n$层隐层的前馈网络，隐层输入，输出，变换矩阵，偏置向量为$(\boldsymbol{i}_i, \boldsymbol{o}_i, \boldsymbol{W}_i, \boldsymbol{b}_i) (1 \leqslant i \leqslant n)$，其中$\boldsymbol{x} = \boldsymbol{i}_1$，根据定义：</p>
-<script type="math/tex; mode=display">
-    \boldsymbol{i}_{i + 1} = \boldsymbol{o}_{i} (1 \leqslant i \leqslant n - 1)</script><p>对于隐层，激活函数为$\theta$，前向传递表示为：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-    \boldsymbol{z}_i &= \boldsymbol{W_i} \boldsymbol{i_i} + \boldsymbol{b_i} \notag \\
-    \boldsymbol{o}_i &= \theta(\boldsymbol{z}_i) \notag
-\end{align}</script><p>对于输出层，激活函数为$f$，前向传递表示为：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-    \boldsymbol{z}_o &= \boldsymbol{W_o} \boldsymbol{o_n} + \boldsymbol{b_o} \notag \\
-    \boldsymbol{y} &= f(\boldsymbol{z}_o) \notag
-\end{align}</script><h3 id="反向传播"><a href="#反向传播" class="headerlink" title="反向传播"></a>反向传播</h3><p>在一般的回归，分类任务中，网络训练是监督学习的过程，也就是说，需要提前对训练数据进行标注，定义对于输入$\boldsymbol{x}$的标注数据为$\boldsymbol{l}$，在此之上，定义误差函数$\mathcal{L}(\boldsymbol{y}, \boldsymbol{l})$ ，对于回归任务，一般定义为均方误差（Mean Squared Error, MSE）：</p>
-<script type="math/tex; mode=display">
-    \mathcal{L}(\boldsymbol{y}, \boldsymbol{l}) = (\boldsymbol{y} - \boldsymbol{l})^2 / 2</script><p>反向传播的原理是，在给定输入，根据当前模型计算出输入之后，在误差函数之上，对网络的偏置和权置进行逐层求导，计算更新量，之后根据制定的更新法则进行参数更新，以此反复迭代，直至网络收敛。</p>
-<p>根据损失函数，对输出层偏置和权置求导：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-    \frac{\partial\mathcal{L}}{\partial \boldsymbol{b}_o} &= \frac{\partial\mathcal{L}}{\partial \boldsymbol{y}} \frac{\partial \boldsymbol{y}}{\partial \boldsymbol{z}_o} \frac{\partial \boldsymbol{z}_o}{\partial \boldsymbol{b}_o} = (\boldsymbol{y} - \boldsymbol{l}) \cdot f'(\boldsymbol{z}_o) \notag \\
-    \frac{\partial\mathcal{L}}{\partial \boldsymbol{W}_o} &= \frac{\partial\mathcal{L}}{\partial \boldsymbol{y}} \frac{\partial \boldsymbol{y}}{\partial \boldsymbol{z}_o} \frac{\partial \boldsymbol{z}_o}{\partial \boldsymbol{W}_o} = (\boldsymbol{y} - \boldsymbol{l}) \cdot f'(\boldsymbol{z}_o) \cdot \boldsymbol{o}_n \notag
-\end{align}</script><p>为了推导隐层参数的更新公式，定义：</p>
-<script type="math/tex; mode=display">
-    \boldsymbol{e}_i = \frac{\partial\mathcal{L}}{\partial \boldsymbol{z_i}}</script><p>则：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-    \boldsymbol{e}_{i - 1} &= \frac{\partial\mathcal{L}}{\partial \boldsymbol{z}_{i - 1}} = \frac{\partial\mathcal{L}}{\partial \boldsymbol{z}_i} \frac{\partial \boldsymbol{z}_i}{\partial \boldsymbol{z}_{i - 1}} \notag \\
-    & = \boldsymbol{e}_i \cdot \frac{\partial \boldsymbol{z}_i}{\partial \boldsymbol{o}_{i - 1}} \frac{\partial \boldsymbol{o}_{i - 1}}{\partial \boldsymbol{z}_{i - 1}} \notag \\
-    & = \boldsymbol{e}_i \cdot \boldsymbol{W}_i^T \cdot \theta'(\boldsymbol{z}_{i - 1}) \notag
-\end{align}</script><p>由此，可以得到隐层参数的梯度：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-    \frac{\partial\mathcal{L}}{\partial \boldsymbol{b}_i} &= \frac{\partial\mathcal{L}}{\partial \boldsymbol{z}_i} \frac{\partial \boldsymbol{z}_i}{\partial \boldsymbol{b}_i} =  \boldsymbol{e}_{i + 1} \cdot \boldsymbol{W}_{i + 1}^T \cdot \theta'(\boldsymbol{z}_i) \notag \\
-    \frac{\partial\mathcal{L}}{\partial \boldsymbol{W}_i} &= \frac{\partial\mathcal{L}}{\partial \boldsymbol{z}_i} \frac{\partial \boldsymbol{z}_i}{\partial \boldsymbol{W}_i} = \boldsymbol{e}_{i + 1} \cdot \boldsymbol{W}_{i + 1}^T \cdot \theta'(\boldsymbol{z}_i) \cdot \boldsymbol{o}_{i - 1} \notag
-\end{align}</script><p>在学习率为$\eta$时，可以按照以下规则更新参数：</p>
-<script type="math/tex; mode=display">
-\begin{align}
-\boldsymbol{b}_i &= \boldsymbol{b}_i - \eta \cdot \frac{\partial\mathcal{L}}{\partial \boldsymbol{b}_i} \notag \\
-\boldsymbol{W}_i &= \boldsymbol{W}_i - \eta \cdot \frac{\partial\mathcal{L}}{\partial \boldsymbol{W}_i} \notag
-\end{align}</script><p>实际在训练中执行的梯度下降过程和上述推导会有所不同。上述的参数更新过程只是针对一对训练样例进行的（称为随机梯度下降法），由此产生的问题如下：</p>
-<ol>
-<li>由于误差不是在整体数据集上定义的，那么产生的梯度就可能不是指向全局最优的方向，因而对噪声数据较为敏感，网络收敛情况较差。</li>
-<li>对于大批的训练数据，可能在一轮（遍历一次数据集）尚未结束时，网络已经达到收敛状态，无法充分利用训练数据。</li>
-</ol>
-<p>考虑到如果载入全部数据进行参数更新会带来内存消耗过大，计算效率过低等问题，目前一般使用min-batch梯度下降法作为折中方案，即一次从数据集中取出min-batch个样例进行误差计算，参数更新。</p>
-]]></content>
-      <categories>
-        <category>DL</category>
-      </categories>
-      <tags>
-        <tag>BP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>在安卓上使用Kaldi进行模型开发</title>
     <url>/2017/07/20/link-kaldi-on-android/</url>
     <content><![CDATA[<p>为什么有这个想法，因为自己有过体验，当初做的第一个语音增强的demo，傻乎乎的自己实现特征提取，自己实现网络前向，于是就需要将kaldi的网络参数转写成方便自己程序读取的格式，还需要不断对比自己实现的特征结果和HTK的结果是否一致，这期间花费的时间个人觉得已经远远的超出做demo本身的意义，最主要的是，由于当初实现的代码仅仅是针对当初的需求，而一旦后期的特征配置或者网络结构发生变化，之前的工作就要重复一次，如此低效率的事情我个人是不想重复做的。</p>
