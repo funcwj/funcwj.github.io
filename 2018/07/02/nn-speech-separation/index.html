@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/upit-experiments.png">
 <meta property="article:published_time" content="2018-07-02T14:05:53.000Z">
-<meta property="article:modified_time" content="2020-02-27T19:02:41.464Z">
+<meta property="article:modified_time" content="2020-03-23T16:08:05.024Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="BSS">
 <meta property="article:tag" content="uPIT">
@@ -397,8 +397,10 @@
 <p>DPCL这块我没有调过多的配置，目前存在的问题是batch训练的时候，效果会比逐句训练差不少（average SDR-impr 只能在8.5这样子），后面有空还要check一下问题所在。</p>
 <h3 id="Utterance-Level-PIT"><a href="#Utterance-Level-PIT" class="headerlink" title="Utterance Level PIT"></a>Utterance Level PIT</h3><p>PIT采取的方案就硬怼，既然pair方式有$N!$种，那就直接遍历一遍，把最小的当loss，强制让网络学习align过程和对应的mask。它最早提出的时候，loss定义在帧级别（frame level），但是因为不能保证不同时刻网络的mask和speaker的对应关系保持一致，因此需要加一个speaker tracking的后处理过程（本身论文并没有提出speaker tracking的算法，直接和target比算的oracle结果）。uPIT的u表示utterance level，loss定义在整个句子上，用RNN建模：</p>
 <script type="math/tex; mode=display">
-\mathcal{J}_{\text{psm}} = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \odot \cos \left( \angle \mathbf{X}_s - \angle \mathbf{X}_{\phi(s)} \right) \right \Vert_F^2 \\
-\mathcal{J}_{\text{iam}} = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \right \Vert_F^2</script><p>$\mathcal{P}$表示$S$个speaker的排列方案。把上述定义成为permutate loss。</p>
+\begin{aligned}
+\mathcal{J}_{\text{psm}} & = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \odot \cos \left( \angle \mathbf{X}_s - \angle \mathbf{X}_{\phi(s)} \right) \right \Vert_F^2 \\
+\mathcal{J}_{\text{iam}} & = \arg \min_{\phi \in \mathcal{P}} \sum_s \left \Vert \mathbf{M}_s \odot |\mathbf{X}_s| - |\mathbf{X}_{\phi(s)} | \right \Vert_F^2
+\end{aligned}</script><p>$\mathcal{P}$表示$S$个speaker的排列方案。把上述定义成为permutate loss。</p>
 <p>uPIT遇到的坑主要是batch情况下，permutate loss的计算。如果N个句子同时训练，permutate loss是每个句子的permutate loss之和。我第一次实现写成了batch的permutate loss，训练不收敛。除此之外，其他过程也都顺风顺水。代码可以参见<a href="https://github.com/funcwj/uPIT-for-speech-separation" target="_blank" rel="noopener">uPIT-for-speech-separation</a>。</p>
 <p>uPIT调了几组参数，主要是dropout，weight decay，mask类型，激活函数，输入特征等等，到目前为止总结实验结果如下：</p>
 <p><img src="http://www.funcwj.cn/images/upit-experiments.png" alt=""></p>

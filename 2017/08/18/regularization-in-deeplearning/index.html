@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://www.funcwj.cn/images/dropout-illustration.png">
 <meta property="article:published_time" content="2017-08-18T03:12:30.000Z">
-<meta property="article:modified_time" content="2020-02-19T17:53:02.648Z">
+<meta property="article:modified_time" content="2020-03-23T16:10:59.074Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="Regularization">
 <meta name="twitter:card" content="summary">
@@ -247,7 +247,7 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>4.4k</span>
+              <span>4.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -272,19 +272,23 @@
 <p><img src="http://www.funcwj.cn/images/dropout-illustration.png" width="500"></p>
 <p>如果要等效模型平均，Dropout网络的前向过程（推断）必须具有average的功能。一般的隐层节点的dropout/采样概率$\mathbf{r}_l^i$服从伯努利分布，推断过程进行如下：</p>
 <script type="math/tex; mode=display">
-\widehat{\mathbf{x}}_l = \mathbf{r}_l * \mathbf{x}_l \\
-\mathbf{x}_{l + 1} = f(\mathbf{W}_l \widehat{\mathbf{x}}_l + \mathbf{b}_l)</script><p>在DeepLearning Book里面提到了正则化的Bagging方法（多模型结果的加权平均），Dropout可以理解为指数级别集成网络的Bagging方法。</p>
+\begin{aligned}
+\widehat{\mathbf{x}}_l & = \mathbf{r}_l * \mathbf{x}_l \\
+\mathbf{x}_{l + 1} &= f(\mathbf{W}_l \widehat{\mathbf{x}}_l + \mathbf{b}_l)
+\end{aligned}</script><p>在DeepLearning Book里面提到了正则化的Bagging方法（多模型结果的加权平均），Dropout可以理解为指数级别集成网络的Bagging方法。</p>
 <h3 id="参数正则"><a href="#参数正则" class="headerlink" title="参数正则"></a>参数正则</h3><p>参数正则这里包括$L^1$（promote sparsity）和$L^2$（weight decay）正则，虽然这两个概念经常见到，但是我却在相当长的一段时间内没有去理解其背后的原理。看到DeepLearning Book就顺便和Dropout在一起总结一下了。</p>
 <p>参数正则是指对原目标函数$J$加上一个参数相关的惩罚项$\ell$：</p>
 <script type="math/tex; mode=display">
 J'(\mathbf{w}) = J(\mathbf{w}) + \alpha \ell(\mathbf{w})</script><p>梯度更新变化为：</p>
 <script type="math/tex; mode=display">
-\mathbf{w}' = \mathbf{w} - \eta \nabla_w J'(\mathbf{w}) \\
-= \mathbf{w} - \eta \nabla_w J(\mathbf{w}) - \eta \alpha  \nabla_w\ell(\mathbf{w})</script><p>一般的正则项只针对网络中的权值（和偏置无关），系数$\alpha$控制惩罚项作用大小。$L^1$和$L^2$正则的$\ell$定义如下：</p>
+\begin{aligned}
+\mathbf{w}' & = \mathbf{w} - \eta \nabla_w J'(\mathbf{w}) \\
+& = \mathbf{w} - \eta \nabla_w J(\mathbf{w}) - \eta \alpha  \nabla_w\ell(\mathbf{w})
+\end{aligned}</script><p>一般的正则项只针对网络中的权值（和偏置无关），系数$\alpha$控制惩罚项作用大小。$L^1$和$L^2$正则的$\ell$定义如下：</p>
 <script type="math/tex; mode=display">
 \ell(\mathbf{w}) = 
 \begin{cases}
-\Vert \mathbf{w} \Vert_1 = \sum_i \vert w_i \vert & \text{for}\; L^1\\
+\Vert \mathbf{w} \Vert_1 = \sum_i \vert w_i \vert & \text{for}\; L^1 \\
 \Vert \mathbf{w} \Vert_2^2 = \mathbf{w}^\top \mathbf{w} &
 \text{for}\; L^2
 \end{cases}</script><p>带入$\mathbf{w}’$：</p>
@@ -310,20 +314,26 @@ J'(\mathbf{w}) = J(\mathbf{w}) + \alpha \ell(\mathbf{w})</script><p>梯度更新
 \mathbf{y}_d = \gamma_d\widehat{\mathbf{x}}_d + \beta_d</script><p>其中$\gamma_d, \beta_d$是需要学习的参数。</p>
 <p>在SGD框架中，使用一个mini-batch内的数据来预估$E[\mathbf{x}_d]$和$V[\mathbf{x}_d]$，定义batch-size为$m$，那么BN层的变换可以表示为$\text{BN}_{\gamma, \beta}(\mathbf{x}, \mathbf{y})$：</p>
 <script type="math/tex; mode=display">
-\mu_{\mathcal{B}} = E[\mathbf{x}_{1\cdots m}] \\
-\sigma^2_{\mathcal{B}} = V[\mathbf{x}_{1\cdots m}] \\
-\widehat{\mathbf{x}}_i = \text{Norm}(\mathbf{x}; \mu_{\mathcal{B}}, \sigma^2_{\mathcal{B}}) \\
-\mathbf{y}_i = \gamma \widehat{\mathbf{x}}_i + \beta</script><p>训练阶段，已知$\frac{\partial \ell}{\partial \mathbf{y}_i}$，需要计算出$\frac{\partial \ell}{\partial \gamma}, \frac{\partial \ell}{\partial \beta}, \frac{\partial \ell}{\partial \mathbf{x}_i}$（用于BP传递梯度到前一层）：</p>
+\begin{aligned}
+\mu_{\mathcal{B}} & = E[\mathbf{x}_{1\cdots m}] \\
+\sigma^2_{\mathcal{B}} & = V[\mathbf{x}_{1\cdots m}] \\
+\widehat{\mathbf{x}}_i & = \text{Norm}(\mathbf{x}; \mu_{\mathcal{B}}, \sigma^2_{\mathcal{B}}) \\
+\mathbf{y}_i & = \gamma \widehat{\mathbf{x}}_i + \beta
+\end{aligned}</script><p>训练阶段，已知$\frac{\partial \ell}{\partial \mathbf{y}_i}$，需要计算出$\frac{\partial \ell}{\partial \gamma}, \frac{\partial \ell}{\partial \beta}, \frac{\partial \ell}{\partial \mathbf{x}_i}$（用于BP传递梯度到前一层）：</p>
 <script type="math/tex; mode=display">
-\frac{\partial \ell}{\partial \gamma} = \sum_{i = 1}^m \frac{\partial \ell}{\partial \mathbf{y}_i} \widehat{\mathbf{x}}_i \\
-\frac{\partial \ell}{\partial \beta} = \sum_{i = 1}^m \frac{\partial \ell}{\partial \mathbf{y}_i} \\
-\frac{\partial \ell}{\partial \mathbf{x}_i} =
-\frac{\partial \ell}{\partial \widehat{\mathbf{x}}_i} \frac{\partial \widehat{\mathbf{x}}_i}{\partial \mathbf{x}_i} + \frac{\partial \ell}{\partial \sigma_{\mathcal{B}}^2}\frac{\partial \sigma_{\mathcal{B}}^2}{\partial \mathbf{x}_i} + \frac{\partial \ell}{\partial \mu_{\mathcal{B}}} \frac{\partial \mu_{\mathcal{B}}}{\partial \mathbf{x}_i}\\
-= \frac{\partial \ell}{\partial \widehat{\mathbf{x}}_i} \frac{1}{\sqrt{\sigma_{\mathcal{B}}^2 + \epsilon}} + \frac{\partial \ell}{\partial \sigma_{\mathcal{B}}^2} \frac{2(\mathbf{x}_i - \mu_{\mathcal{B}})}{m}+ \frac{\partial \ell}{\partial \mu_{\mathcal{B}}} \frac{1}{m}</script><p>在训练阶段，参数的更新是依赖当前的batch的，但是单纯的使用模型的时候，必须使得当前输入的结果仅仅依赖当前输入，因此需要解决BN变换中的均值方差估计问题。</p>
+\begin{aligned}
+\frac{\partial \ell}{\partial \gamma} & = \sum_{i = 1}^m \frac{\partial \ell}{\partial \mathbf{y}_i} \widehat{\mathbf{x}}_i \\
+\frac{\partial \ell}{\partial \beta} & = \sum_{i = 1}^m \frac{\partial \ell}{\partial \mathbf{y}_i} \\
+\frac{\partial \ell}{\partial \mathbf{x}_i} & =
+\frac{\partial \ell}{\partial \widehat{\mathbf{x}}_i} \frac{\partial \widehat{\mathbf{x}}_i}{\partial \mathbf{x}_i} + \frac{\partial \ell}{\partial \sigma_{\mathcal{B}}^2}\frac{\partial \sigma_{\mathcal{B}}^2}{\partial \mathbf{x}_i} + \frac{\partial \ell}{\partial \mu_{\mathcal{B}}} \frac{\partial \mu_{\mathcal{B}}}{\partial \mathbf{x}_i} \\
+& = \frac{\partial \ell}{\partial \widehat{\mathbf{x}}_i} \frac{1}{\sqrt{\sigma_{\mathcal{B}}^2 + \epsilon}} + \frac{\partial \ell}{\partial \sigma_{\mathcal{B}}^2} \frac{2(\mathbf{x}_i - \mu_{\mathcal{B}})}{m}+ \frac{\partial \ell}{\partial \mu_{\mathcal{B}}} \frac{1}{m}
+\end{aligned}</script><p>在训练阶段，参数的更新是依赖当前的batch的，但是单纯的使用模型的时候，必须使得当前输入的结果仅仅依赖当前输入，因此需要解决BN变换中的均值方差估计问题。</p>
 <p>BN层的均值方差可以通过对若干个mini-batch处理结果的平均得到：</p>
 <script type="math/tex; mode=display">
-E[\mathbf{x}] = E_{\mathcal{B}}[\mu_{\mathcal{B}}] \\
-V[\mathbf{x}] = \frac{m}{m - 1}E_{\mathcal{B}}[\sigma^2_{\mathcal{B}}]</script><p>对于输入$\mathbf{x}$，使用训练好的参数$\gamma, \beta$和估计好的均值方差，BN层的整体变换可以表示为：</p>
+\begin{aligned}
+E[\mathbf{x}] & = E_{\mathcal{B}}[\mu_{\mathcal{B}}] \\
+V[\mathbf{x}] & = \frac{m}{m - 1}E_{\mathcal{B}}[\sigma^2_{\mathcal{B}}]
+\end{aligned}</script><p>对于输入$\mathbf{x}$，使用训练好的参数$\gamma, \beta$和估计好的均值方差，BN层的整体变换可以表示为：</p>
 <script type="math/tex; mode=display">
 \mathbf{y} = \gamma \cdot \frac{\mathbf{x} - E[\mathbf{x}]}{\sqrt{V[\mathbf{x}] + \epsilon}} + \beta</script><h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><ul>
 <li>Dropout: A Simple Way to Prevent Neural Networks from Overfitting</li>
