@@ -22,20 +22,21 @@
     var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="Convolutional Operations (语音任务中关于卷积操作的一些妙用和技巧) Update Hexo &amp; Next （站点更新记录） Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法） TF-mask &amp; Spectral Gain (噪声抑制算法中的Gain)">
+  <meta name="description" content="今天来总结一下在我过去的一些任务上用到的一些一维卷积技巧，主要是depthwise和transposed conv1d。之所以写一篇文章是觉得存在两方面的好处，其一是可以加深对现代神经网络架构中卷积操作逻辑的理解，二是能提升编码和运算上的效率，让代码本身更加简洁。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="后续文章列表">
-<meta property="og:url" content="https://www.funcwj.cn/2020/03/20/coming-next/index.html">
+<meta property="og:title" content="Conv1D Operations">
+<meta property="og:url" content="https://www.funcwj.cn/2020/04/10/conv1d-ops/index.html">
 <meta property="og:site_name" content="WJ&#39;s site">
-<meta property="og:description" content="Convolutional Operations (语音任务中关于卷积操作的一些妙用和技巧) Update Hexo &amp; Next （站点更新记录） Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法） TF-mask &amp; Spectral Gain (噪声抑制算法中的Gain)">
+<meta property="og:description" content="今天来总结一下在我过去的一些任务上用到的一些一维卷积技巧，主要是depthwise和transposed conv1d。之所以写一篇文章是觉得存在两方面的好处，其一是可以加深对现代神经网络架构中卷积操作逻辑的理解，二是能提升编码和运算上的效率，让代码本身更加简洁。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-03-20T10:09:31.000Z">
-<meta property="article:modified_time" content="2020-04-27T15:30:25.342Z">
+<meta property="article:published_time" content="2020-04-10T13:49:32.000Z">
+<meta property="article:modified_time" content="2020-05-01T13:58:06.498Z">
 <meta property="article:author" content="WJ">
-<meta property="article:tag" content="Speech">
+<meta property="article:tag" content="Code">
+<meta property="article:tag" content="STFT">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://www.funcwj.cn/2020/03/20/coming-next/">
+<link rel="canonical" href="https://www.funcwj.cn/2020/04/10/conv1d-ops/">
 
 
 <script id="page-configurations">
@@ -47,7 +48,7 @@
   };
 </script>
 
-  <title>后续文章列表 | WJ's site</title>
+  <title>Conv1D Operations | WJ's site</title>
   
 
 
@@ -134,7 +135,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">82</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">83</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -201,7 +202,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2020/03/20/coming-next/">
+    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2020/04/10/conv1d-ops/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/avatar.JPG">
@@ -214,14 +215,10 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          后续文章列表
+          Conv1D Operations
         </h1>
 
         <div class="post-meta">
-          
-              <i class="fa fa-thumb-tack"></i>
-              <font>置顶</font>
-              <span class="post-meta-divider">|</span>
           
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -229,7 +226,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2020-03-20 18:09:31" itemprop="dateCreated datePublished" datetime="2020-03-20T18:09:31+08:00">2020-03-20</time>
+              <time title="创建时间：2020-04-10 21:49:32" itemprop="dateCreated datePublished" datetime="2020-04-10T21:49:32+08:00">2020-04-10</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -237,8 +234,8 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E9%9A%8F%E7%AC%94/" itemprop="url" rel="index">
-                    <span itemprop="name">随笔</span>
+                  <a href="/categories/Engineering/" itemprop="url" rel="index">
+                    <span itemprop="name">Engineering</span>
                   </a>
                 </span>
             </span>
@@ -249,14 +246,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>157</span>
+              <span>6.6k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>6 分钟</span>
             </span>
 
         </div>
@@ -268,12 +265,59 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <ul>
-<li>Convolutional Operations (语音任务中关于卷积操作的一些妙用和技巧)</li>
-<li>Update Hexo &amp; Next （站点更新记录）</li>
-<li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
-<li>TF-mask &amp; Spectral Gain (噪声抑制算法中的Gain)</li>
-</ul>
+        <p>今天来总结一下在我过去的一些任务上用到的一些一维卷积技巧，主要是depthwise和transposed conv1d。之所以写一篇文章是觉得存在两方面的好处，其一是可以加深对现代神经网络架构中卷积操作逻辑的理解，二是能提升编码和运算上的效率，让代码本身更加简洁。</p>
+<a id="more"></a>
+<h2 id="FSMN-amp-Beamformer"><a href="#FSMN-amp-Beamformer" class="headerlink" title="FSMN &amp; Beamformer"></a>FSMN &amp; Beamformer</h2><p>FSMN之前简单的写过一篇文章做介绍，是Shiliang Zhang在2016年提出的一种无反馈结构的，可以用于长序列建模的网络类型，类似的还有TCN（TDNN的延伸）等等。在第$\ell$层，$t$时刻的输出$\mathbf{h}_{t, \ell}$由如下运算产生：</p>
+<script type="math/tex; mode=display">
+\mathbf{h}_{t, \ell} = f(\mathbf{W}_{\ell} \mathbf{h}_{t, \ell - 1} + \tilde{\mathbf{W}}_{\ell} \tilde{\mathbf{h}}_{t, \ell - 1} + \mathbf{b}) \tag{1}</script><p>其中$\tilde{\mathbf{h}}_{t, \ell - 1}$被称为memory blocks，用于建模上下文信息，在vectorized版本中，表示成如下加权的形式：</p>
+<script type="math/tex; mode=display">
+\tilde{\mathbf{h}}_{t, \ell - 1} = \sum_{c = 0}^{C} \mathbf{a}_{c, \ell - 1} \odot \mathbf{h}_{t + c - N_l - 1, \ell - 1} \tag{2}</script><p>其中$C = N_r + N_l + 1，N_l, N_r$分别表示左右context的长度。此式的计算可以理解为一个depthwise的一维卷积过程，其中卷积核的大小为$C$，步长为1（原始版本不做下采样）， 输出通道数为$D$，其中$D$表示$\mathbf{a}_{i, \ell - 1}$和$\mathbf{h}_{i, \ell - 1}$的维度。代码上下面的定义进行卷积：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># definition</span></span><br><span class="line">ctx_conv = nn.Conv1d(memory_size,</span><br><span class="line">                     memory_size,</span><br><span class="line">                     kernel_size=ctx_size,</span><br><span class="line">                     dilation=dilation,</span><br><span class="line">                     groups=project_size,</span><br><span class="line">                     padding=(ctx_size - <span class="number">1</span>) // <span class="number">2</span>,</span><br><span class="line">                     bias=<span class="literal">False</span>)</span><br><span class="line"><span class="comment"># call</span></span><br><span class="line"><span class="comment"># h: batch x num_frames x memory_size</span></span><br><span class="line"><span class="comment"># m: batch x num_frames x memory_size</span></span><br><span class="line">m = self.ctx_conv(h)</span><br></pre></td></tr></table></figure>
+<p>depthwise conv1d的一个非常常见的应用就是用于替代一组线性层，代码上看起来显得更加简洁，比如multi-head attention，beamformer和这里的FSMN中，都可以加以运用。pytorch的api里面，选取groups的值（通常等于输入通道数）来隔绝输入的通道之间的信息交换（分组进行卷积操作并输出到对应的通道中）即可。</p>
+<p>还有一点需要注意的是，虽然结果（数学）上是完全等价的，但是逻辑上， conv1d的操作视角不是以时间为单元（也就是语音帧），而是通道，对应特征的维度。比如在上面的<code>ctx_conv</code>层中，卷积核$\mathbf{K} \in \mathbf{R}^{C \times D}$在$c$个通道上学到的结果对应为$\mathbf{k}_c = [a_{c, i}, \cdots, a_{c, N_r + N_l}]$，跨越时间而通道固定。</p>
+<p>拓展一下可以用于实现一组（固定）波束形成器。信号上我们一般这样定义一个指向为$\theta$的波束形成器，即</p>
+<script type="math/tex; mode=display">
+s_{t,f}^\theta = \mathbf{w}_{\theta, f}^H \mathbf{y}_{t,f} \tag{3}</script><p>其中$\mathbf{w}_{\theta, f}, \mathbf{y}_{t,f} = [y_{0,t,f}, \cdots, y_{M - 1,t,f}] \in \mathbf{C}^{M}$，$M$为通道数。从上式可以看出，beamformer的权重在每个频率上是独立的，因此可以用depthwise conv1d进行实现，加上操作在复数域，再用两个conv1d定义一层复数卷积即可。式$(3)$可用下面的卷积层进行计算，需要注意的是，由于每一帧的操作逻辑相同，因此需要将输入的时间维度和batch的维度（通常也就是第一维）合并：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># definition</span></span><br><span class="line">beamformer = ComplexConv1d(num_bins,</span><br><span class="line">                           num_bins,</span><br><span class="line">                           num_channels,</span><br><span class="line">                           groups=num_bins,</span><br><span class="line">                           padding=<span class="number">0</span>,</span><br><span class="line">                           bias=<span class="literal">False</span>)</span><br><span class="line"><span class="comment"># call</span></span><br><span class="line"><span class="comment"># x: batch*num_frames x num_bins x num_channels, complex tensor</span></span><br><span class="line"><span class="comment"># beam: batch*num_frames x num_bins x 1, complex tensor</span></span><br><span class="line">beam = beamformer(x)</span><br></pre></td></tr></table></figure>
+<p>如果是$\Theta$个波束形成器，只需要将输出通道数调整为$\Theta \times F$即可，对应的输出则为<code>batch*num_frames x num_beams*num_bins x 1</code>。</p>
+<p>最后小结一下，如果想用depthwise conv1d去做一些运算的简化或者实现，需要在原表达式中找到通道维度上的线性变换操作，并且满足一定的独立性要求。合适的使用可以将原本看起来比较复杂的表达式（加和，点乘，线性变换等等）用一个卷积操作完成，代码上精炼很多。</p>
+<h2 id="i-STFT"><a href="#i-STFT" class="headerlink" title="(i)STFT"></a>(i)STFT</h2><p>本部分说一下用（转置） conv1d做(i)STFT的逻辑，虽然很早之前就在用了，但是实现上的细节以及背后的原理存在有一些需要解释的地方。信号上的(i)STFT分别对应分帧，加窗，DFT以及iDFT，加窗，重叠相加（Overlap and Add，OLA）的过程，其中分帧和OLA可以借用conv1d和transposed conv1d来进行，同时将卷积核初始化为DFT变换矩阵和窗函数的乘积，以合并加窗和(i)DFT的逻辑。</p>
+<p>用$\mathbf{K}_{\text{(i)DFT}} \in \mathbf{C}^{N \ \times N}$表示(i)DFT变换矩阵，满足如下正交关系：</p>
+<script type="math/tex; mode=display">
+\mathbf{K}_{\text{DFT}}^H \mathbf{K}_{\text{iDFT}} = I \tag{4}</script><p>一般的，为了满足这个条件，有两种可以选择的初始化方法，分别为：</p>
+<script type="math/tex; mode=display">
+\begin{cases}
+\mathbf{K}_{\text{DFT}} = \mathbf{W}/\sqrt{N}, \mathbf{K}_{\text{iDFT}} = \mathbf{W}^H/\sqrt{N} \\
+\mathbf{K}_{\text{DFT}} = \mathbf{W}, \mathbf{K}_{\text{iDFT}} = \mathbf{W}^H/N
+\end{cases} \tag{5}</script><p>其中$\mathbf{W}$表示单位矩阵的DFT变换结果，即$\mathcal{F}(\mathbf{I})$，$N$为FFT bins的个数。第一种中，正逆变换矩阵为酉矩阵，第二种一般是我们写(i)FFT的逻辑，对iFFT的结果需要除一个$N$，相当于在变换矩阵上加一个同等的系数。语音信号为实信号，所以STFT拿到的实部和虚部可看成是卷积核的实部和虚部单独作用的结果，表示为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{Y}^R &= \text{conv}_{\text{1D}} \left(\mathbf{x}, \mathbf{K}_{\text{DFT}}^R \odot \mathbf{w}, S\right) \notag \\
+\mathbf{Y}^I &= \text{conv}_{\text{1D}} \left(\mathbf{x}, \mathbf{K}_{\text{DFT}}^I \odot \mathbf{w}, S \right)  \notag
+\end{align} \tag{6}</script><p>其中$\mathbf{x}$为语音信号序列，$\mathbf{w}$表示STFT的分析窗，$S$为帧移。合并成一个卷积操作后即：</p>
+<script type="math/tex; mode=display">
+\text{STFT}(\mathbf{x}) = [\mathbf{Y}^R; \mathbf{Y}^I]^T = \text{conv}_{\text{1D}} \left(\mathbf{x}, \left[\mathbf{K}_{\text{DFT}}^R; \mathbf{K}_{\text{DFT}}^I \right]^T \odot \mathbf{w}, S\right) \tag{7}</script><p>$\mathbf{K} = [\mathbf{K}_{\text{DFT}}^R; \mathbf{K}_{\text{DFT}}^I]^T \in \mathbf{R}^{2N \times N}$。Pytorch中可以对应的初始化为（实际需要考虑窗长和FFT bins数不同的情况）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">init_kernel</span><span class="params">(frame_len,</span></span></span><br><span class="line"><span class="function"><span class="params">                frame_hop,</span></span></span><br><span class="line"><span class="function"><span class="params">                window,</span></span></span><br><span class="line"><span class="function"><span class="params">                round_pow_of_two=True,</span></span></span><br><span class="line"><span class="function"><span class="params">                normalized=False,</span></span></span><br><span class="line"><span class="function"><span class="params">                inverse=False)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    Return STFT kernels</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="comment"># FFT points</span></span><br><span class="line">    B = <span class="number">2</span>**math.ceil(math.log2(frame_len)) <span class="keyword">if</span> round_pow_of_two <span class="keyword">else</span> frame_len</span><br><span class="line">    <span class="keyword">if</span> normalized:</span><br><span class="line">        <span class="comment"># make K^H * K = I</span></span><br><span class="line">        S = B**<span class="number">0.5</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        S = <span class="number">1</span></span><br><span class="line">    I = th.stack([th.eye(B), th.zeros(B, B)], dim=<span class="number">-1</span>)</span><br><span class="line">    <span class="comment"># W x B x 2</span></span><br><span class="line">    K = th.fft(I / S, <span class="number">1</span>)[:frame_len]</span><br><span class="line">    <span class="keyword">if</span> inverse <span class="keyword">and</span> <span class="keyword">not</span> normalized:</span><br><span class="line">        <span class="comment"># to make K^H * K = I</span></span><br><span class="line">        K = K / B</span><br><span class="line">    <span class="comment"># 2 x B x W</span></span><br><span class="line">    K = th.transpose(K, <span class="number">0</span>, <span class="number">2</span>) * window</span><br><span class="line">    <span class="comment"># 2B x 1 x W</span></span><br><span class="line">    K = th.reshape(K, (B * <span class="number">2</span>, <span class="number">1</span>, frame_len))</span><br><span class="line">    <span class="keyword">return</span> K</span><br></pre></td></tr></table></figure>
+<p>需要对上面的代码做几点解释。第一，为什么要卷积核选择成全DFT的结果而不是rFFT的结果？因为如果只是用于一般声学特征的提取，取<code>K = th.rfft(th.eye(B) / S, 1)[:frame_len]</code>即可。这是考虑到，在做iSTFT的时候我们需要一个全DFT的核。第二，为什么没有给<code>K</code>取逆和共轭。不取逆是因为DFT的矩阵本身是酉矩阵，共轭转置就是自身的逆，因此，在inverse的情况下，返回的卷积核跟实际iDFT使用的其实只差了一个共轭而已，至于这个共轭为何不取，下面的文章会进行解释。</p>
+<p>在<code>init_kernel</code>的初始化kernel作用下，返回的STFT结果是一个full FFT的形式，对于一般声学特征的提取，取前$N / 2 + 1$部分就行。若将$[\mathbf{Y}^R; \mathbf{Y}^I]^T $变换到时域，使用一维转置卷积表示为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{x}' & = \text{deconv}_{\text{1D}}([\mathbf{Y}^R; \mathbf{Y}^I]^T, \left[\mathbf{K}_{\text{DFT}}^R; \mathbf{K}_{\text{DFT}}^I \right]^T \odot \mathbf{w}, S) \notag \\
+& = \text{deconv}_{\text{1D}}(\mathbf{Y}^R, \mathbf{K}_{\text{DFT}}^R \odot \mathbf{w}, S) + \text{deconv}_{\text{1D}}(\mathbf{Y}^I, \mathbf{K}_{\text{DFT}}^I \odot \mathbf{w}, S) \notag
+\end{align} \tag{8}</script><p>这么做背后的原理有二，其一是iSTFT中，对于每一帧，我们实际只使用iDCT变换的实部，根据复数运算$(a + bi)(c + di) = (ac - bd) + (ad + bc)i$，只需要保留$ac - bd$的实部即可。第二问题就是，$(8)$式中连接实部结果和虚部结果的符号是加号，结果依然正确，如何解释？。因为我们实际使用的卷积核是没有取共轭的结果，所以真实的结果应该是$(a + bi)(c - di) = (ac + bd) + (ad - bc)i$中的$ac + bd$，负号变成加号，和$(8)$式子的结果一致。分析之后，可以简单验证一下一帧变换的结果：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">B = <span class="number">8</span></span><br><span class="line">th.random.manual_seed(<span class="number">666</span>)</span><br><span class="line">w = init_window(<span class="string">"rect"</span>, B)</span><br><span class="line">W = init_kernel(B, B // <span class="number">2</span>, w, normalized=<span class="literal">True</span>)</span><br><span class="line">x = th.rand(<span class="number">1</span>, <span class="number">1</span>, B * <span class="number">2</span>)</span><br><span class="line">x[..., B:] = <span class="number">0</span></span><br><span class="line">p = tf.conv1d(x, W, stride=B, padding=<span class="number">0</span>)</span><br><span class="line">y = tf.conv_transpose1d(p, W, stride=B, padding=<span class="number">0</span>)</span><br><span class="line">print(<span class="string">f"x = <span class="subst">&#123;x.squeeze()&#125;</span>"</span>)</span><br><span class="line">print(<span class="string">f"y = <span class="subst">&#123;y.squeeze()&#125;</span>"</span>)</span><br><span class="line">print(<span class="string">f"error: <span class="subst">&#123;th.sum(x - y).item():f&#125;</span>"</span>)</span><br></pre></td></tr></table></figure>
+<p>验证输出</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">x = tensor([0.3119, 0.2701, 0.1118, 0.1012, 0.1877, 0.0181, 0.3317, 0.0846, 0.0000,</span><br><span class="line">        0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000])</span><br><span class="line">y = tensor([0.3119, 0.2701, 0.1118, 0.1012, 0.1877, 0.0181, 0.3317, 0.0846, 0.0000,</span><br><span class="line">        0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000])</span><br><span class="line">error: 0.000000</span><br></pre></td></tr></table></figure>
+<p>如果不清楚一维转置卷积的逻辑的同学可以写几个toy验证一下overlap and add的结果，这样就能理解到本部分的一些符号表达了。网上有一些关于通用转置卷积的分析，不过理解起来有些麻烦，在一维条件下，从这个角度切入就清晰很多。 最后关于iSTFT的实现还有几个细节问题，解释如下：</p>
+<ol>
+<li><p>在做iSTFT的时候，如果输入为onesided的STFT结果（即前$N / 2 + 1$个），需要先padding到$N$个，之后参与到转置卷积中去。具体的逻辑就是根据DFT结果的对称性，实部关于$N / 2 + 1$对称，实部共轭对称。</p>
+</li>
+<li><p>主流的iSTFT会在时域的信号上加一个根据窗函数计算的归一化系数，用于保证变换前后的幅度一致（以及解决窗本身的一些正交性问题），比如<a href="https://github.com/librosa/librosa/blob/6f93e1f2d06af95078195b4e1ecee3ea5843a7e2/librosa/core/spectrum.py#L377" target="_blank" rel="noopener">librosa</a>里面的，和<a href="https://github.com/pytorch/audio/blob/2ebbbf511fb1e6c47b59fd32ad7e66023fa0dff1/torchaudio/functional.py#L171" target="_blank" rel="noopener">torchaudio</a>里面的，逻辑就是对窗函数的能量也做一个OLA的过程，因此同样可以用转置卷积得到：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">win = th.repeat_interleave(window[<span class="literal">None</span>, ..., <span class="literal">None</span>],</span><br><span class="line">                           packed.shape[<span class="number">-1</span>],</span><br><span class="line">                           dim=<span class="number">-1</span>)</span><br><span class="line"><span class="comment"># W x 1 x W</span></span><br><span class="line">I = th.eye(window.shape[<span class="number">0</span>], device=win.device)[:, <span class="literal">None</span>]</span><br><span class="line"><span class="comment"># 1 x 1 x T</span></span><br><span class="line">norm = tf.conv_transpose1d(win**<span class="number">2</span>, I, stride=frame_hop, padding=<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>全部分的code由于篇幅我没有放在文章中，按照本文的解释是可以完整无误的写出来的，之后可以测几个音频样例，算一下误差验证算法逻辑。</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>最后小结一下吧。这部分内容其实是过去几年经常用到的conv1d操作，乘着最近在做ASR的repo，便来小结一下，关于(i)STFT那部分花了一些时间去理解背后的逻辑和设计问题，早期网上有一些版本的实现，但是个人觉得多少有些问题，比如操作上有偏差或者冗余等等。类似的操作在实际编码中个人觉得还是需要注意的，因为知道每种操作背后的逻辑之后，可以辅助的产生一些高效的编码，一定程度上也可以节省工程或者实验的时间。</p>
 
     </div>
 
@@ -289,7 +333,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="https://www.funcwj.cn/2020/03/20/coming-next/" title="后续文章列表">https://www.funcwj.cn/2020/03/20/coming-next/</a>
+    <a href="https://www.funcwj.cn/2020/04/10/conv1d-ops/" title="Conv1D Operations">https://www.funcwj.cn/2020/04/10/conv1d-ops/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -299,6 +343,11 @@
 
 
       <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/Code/" rel="tag"><i class="fa fa-tag"></i> Code</a>
+              <a href="/tags/STFT/" rel="tag"><i class="fa fa-tag"></i> STFT</a>
+          </div>
 
         
 
@@ -306,12 +355,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/02/15/frp-ssh/" rel="prev" title="frp代理访问学校服务器">
-      <i class="fa fa-chevron-left"></i> frp代理访问学校服务器
+    <a href="/2020/03/20/setk-in-2019/" rel="prev" title="SETK in 2019">
+      <i class="fa fa-chevron-left"></i> SETK in 2019
     </a></div>
       <div class="post-nav-item">
-    <a href="/2020/03/20/setk-in-2019/" rel="next" title="SETK in 2019">
-      SETK in 2019 <i class="fa fa-chevron-right"></i>
+    <a href="/2020/04/11/coming-next/" rel="next" title="后续文章列表">
+      后续文章列表 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -372,6 +421,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#FSMN-amp-Beamformer"><span class="nav-number">1.</span> <span class="nav-text">FSMN &amp; Beamformer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#i-STFT"><span class="nav-number">2.</span> <span class="nav-text">(i)STFT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">3.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -387,7 +437,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">82</span>
+          <span class="site-state-item-count">83</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -561,12 +611,12 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">356k</span>
+    <span title="站点总字数">362k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">5:23</span>
+    <span title="站点阅读时长">5:29</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>
