@@ -1,12 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>INTO WPE</title>
+    <url>/2020/06/05/into-wpe/</url>
+    <content><![CDATA[<p>WPE作为经典的去混算法，在20世纪初由日本NTT的研究人员提出，并在之后被陆续发展，近些年随着声学前端研究热度的提升，远场语音识别需求的增加以及各类测评竞赛的举办，WPE在工业界和学术界得到了广泛的应用。Google在为Google Home做多通道声学建模的一系列工作中，也包含了WPE在online下对声学模型的优化工作。目前关于WPE有两个方向的工作已经陆续完善，一是信号上做joint WPE和beamforming，separation的工作，这个在WPE提出之后就已经有学者开始了研究，二是和deep learning 相结合，使用神经网络估计WPE step中依赖的统计量，之后做去混或者和后续其他模块联合训练 ，比如增强分离模型，声学模型等等。本篇文章打算先梳理一下WPE相关的一些知识，之后谈目前STOA的DNN support WPE的思路。</p>
+<a id="more"></a>
+<h2 id="Preliminary"><a href="#Preliminary" class="headerlink" title="Preliminary"></a>Preliminary</h2><p>本站点之前有不少文章已经介绍了远场下的信号模型，主要是针对增强和分离场景。去混任务我们需要从另一个角度分解麦克风接受到的信号：即三部分的叠加，直达声，early reverberation和late reverberation（实际操作也可看成两部分，即early和late reverberation）。early &amp; late reverberation部分的信号可以理解为声源信号和RIR的early/late part卷积产生，考虑单通道，单声源，无噪声下，写成：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{y} & = \mathbf{x} * (\mathbf{r}_{\text{early}} + \mathbf{r}_{\text{late}}) = \mathbf{x} * \mathbf{r}_{\text{early}} + \mathbf{x} * \mathbf{r}_{\text{late}} \notag \\
+& = \mathbf{y}_{\text{early}} + \mathbf{y}_{\text{late}} \notag
+\end{align} \tag{1}</script><p>其中$\mathbf{x},\mathbf{r}$分别表示声源信号和RIR，同时有$\mathbf{r} = \mathbf{r}_{\text{early}} + \mathbf{r}_{\text{late}}$。一般的，RIR early和late部分的划分以RIR peak处（即直达声）向后50ms为分界（见下图，选自Springer Handbook of Speech Processing）。WPE的目标是消除接收信号$\mathbf{y}$中的late reverberation $\mathbf{y}_\text{late}$部分，即以$\mathbf{y}_\text{early}$为最终期望信号。</p>
+<p><img src="http://www.funcwj.cn/images/early-reverberation.png" width="400"></p>
+<p>这里再解释两个概念，一个是RT60（RT表示混响时间，有些地方喜欢用T60），通常我们用它来描述混响强度，在RIR生成的时候用到。它描述的是使原始信号能量衰减60dB所经历的时间，值越大表示混响越强。第二个是Sabine公式，描述房间墙面反射系数和RT60之间的关系：</p>
+<script type="math/tex; mode=display">
+\text{RT}_{60} = \frac{0.161V}{S \cdot \alpha} \tag{2}</script><p>$S, V$分别表示房间的表面积和体积，$\alpha$为房间表面的吸收系数（和反射系数$\beta$的关系为$\alpha^2+\beta^2=1$）。simulate RIR的时候，经常用它计算由RT60到$\alpha/\beta$之间的转换。</p>
+<h2 id="Derivation"><a href="#Derivation" class="headerlink" title="Derivation"></a>Derivation</h2><p>先来看一下WPE算法是如何实现去混的。目前主要的引用文章为[1,2]，[1]中分别讨论了时域和频域的实现。考虑当前我们大多选用频域算法，因此本文也在频域讨论它的实现。令麦克风个数为$M$，WPE是希望估计出一组阶数为$K$，可用于预测late reverberation的滤波系数$\mathbf{G}_f = [\mathbf{G}_{f, 0}, \cdots, \mathbf{G}_{f, K - 1}]^\top \in \mathbb{C}^{MK \times M}$，再通过相消的形式拿到$\mathbf{y}_\text{early}$在频域的估计：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}'_{\text{early}, t, f} \in \mathbb{C}^{M \times 1} = \mathbf{y}_{t, f} - \mathbf{y}'_{\text{late}, t, f} =  \mathbf{y}_{t, f} - \sum_k \mathbf{G}_{f,k}^H \mathbf{y}_{t - \Delta - k} \tag{3}</script><p>其中</p>
+<script type="math/tex; mode=display">
+\mathbf{G}_{f, k} = 
+\begin{bmatrix}
+g_{f,k}^{0,0} & \cdots & g_{f,k}^{0,M - 1} \\
+g_{f,k}^{1,0} & \cdots & g_{f,k}^{1,M - 1}\\
+\vdots & \ddots & \vdots \\
+g_{f,k}^{M -1,0} & \cdots & g_{f,k}^{M - 1,M - 1}
+\end{bmatrix} \in \mathbb{C}^{M \times M} \tag{4}</script><p>为了方便计算，$\mathbf{y}’_{\text{late},t,f}$可写成如下紧凑的形式：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}'_{\text{late}, t, f} = \sum_k \mathbf{G}_{f,k}^H \mathbf{y}_{t - \Delta - k} = \mathbf{G}_f^H \overline{\mathbf{y}_{t - \Delta, f}} \tag{4}</script><p>其中$\overline{\mathbf{y}_{t - \Delta, f}}\in \mathbb{C}^{MK \times 1}$，展开为：</p>
+<script type="math/tex; mode=display">
+\bar{\mathbf{y}}_{t - \Delta, f} = [\mathbf{y}_{t - \Delta}^\top, \cdots, \mathbf{y}_{t - \Delta - K + 1}^\top]^\top \tag{5}</script><p>略微不同于论文[1]中的符号表达，每次单独预测一个通道，重复$M$次，上述过程一次将所有通道的预测输出计算出来，这个过程两者是严格等价的，不过后者更加简洁和通用，因此采用这种方式（即和[2]保持一致）。如果按照[1]中的规则，则$\mathbf{G}_f$退化为$\mathbb{C}^{1 \times M}$的向量，$\bar{\mathbf{y}}_{t - \Delta, f}$退化为$\mathbb{C}^{K \times 1}$的向量，增加通道维度的下脚标，写为：</p>
+<script type="math/tex; mode=display">
+y'_{\text{early}, t, f, m} = y_{t, f, m} - \mathbf{G}_{f,m}^H \overline{\mathbf{y}_{t - \Delta, f}} \tag{6}</script><p>知道了怎么去混响的过程，接下来就是如何估计滤波系数$\mathbf{G}_f$的问题了，这也是[1]和[2]的区别所在。</p>
+<h3 id="WPE"><a href="#WPE" class="headerlink" title="WPE"></a>WPE</h3><p>WPE，即论文[1]中，我们假设声源信号$\mathbf{x}$服从零均值的高斯分布，由此式$(1)$中的$\mathbf{y}_\text{early}$同样服从高斯分布，转到频域对应为复高斯分布。建立这样的假设虽然可以比较容易的推出我们现在看到的WPE似然函数的形式，但是在理论层面存在一些弊端，即在噪声和多说话人场景下，$\mathbf{y}_\text{early}$并不一定能满足高斯分布（因为服从高斯分布的随机变量的加和需要在满足独立性的前提下才能是一个高斯分布），所以需要单独分析，这一点也在论文[2]中指出。不过虽然如此，[1]中导出的WPE形式依旧是目前被广泛使用的一种，比如nara_wpe中的实现，这一点会在文章后面说明。</p>
+<p>基于$y’_{\text{early}, t, f, m} \sim \mathcal{N}_c \left(0, \lambda_{t,f,m} \right)$，优化的似然函数定义为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathcal{L}_{f,m} & \approx \sum_t \log p(y'_{\text{early}, t, f, m} | \overline{\mathbf{y}_{t - \Delta, f}} ) \notag  \\
+& = - \sum_t \frac{\left \Vert y'_{\text{early}, t, f, m} - \mathbf{G}_{f,m}^H \overline{\mathbf{y}_{t - \Delta, f}}  \right \Vert_2^2}{\lambda_{t,f,m}^2} - \sum_t \log \lambda_{t,f,m}^2 + \text{const} \notag 
+\end{align} \tag{7}</script><p>由于上式存在两个未知量，$\lambda_{t,f,m}$和$\mathbf{G}_{f,m}$，用EM算法进行迭代求解，更新过程为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\lambda_{t,f,m}^2 & = (y'_{\text{early}, t, f, m})^2 \notag  \\
+\mathbf{G}_{f,m} & = \mathbf{R}_{f,m}^{-1} \mathbf{r}_{f,m} \notag 
+\end{align} \tag{8}</script><p>估计方差的时候为了提升准确性，也会考虑增加上下文$L$：</p>
+<script type="math/tex; mode=display">
+\lambda_{t,f,m}^2 = \sum_{n=-L}^L(y'_{\text{early}, t+n, f, m})^2 / (2L+1) \tag{9}</script><p>$\mathbf{R}_{f,m}/\mathbf{r}_{f,m}$定义为：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{R}_{f,m} &= \sum_t \frac{\overline{\mathbf{y}_{t - \Delta, f, m}} \overline{\mathbf{y}_{t - \Delta, f, m}}^H}{\lambda_{t,f,m}^2} \in \mathbb{C}^{M \times M} \notag  \\
+\mathbf{r}_{f,m} &= \sum_t \frac{\overline{\mathbf{y}_{t - \Delta, f, m}} y'^*_{\text{early}, t, f, m}}{\lambda_{t,f,m}^2} \in \mathbb{C}^{M \times 1} \notag 
+\end{align} \tag{10}</script><p>迭代的时候，初始化$y’_{\text{early}, t, f, m} = y_{t, f, m}$，之后依次按照$(8,10),(6)$的顺序进行迭代即可。</p>
+<h3 id="GWPE"><a href="#GWPE" class="headerlink" title="GWPE"></a>GWPE</h3><p>为了解决WPE中先验假设对单声源和无噪声干扰的依赖，[2]中提出了一种新的优化思路，基于信号的相关性。Dry的语音信号，在时延较大的情况下算自相关系数会趋近于0，但是混响信号则不然。所以GWPE的目标是解相关，即解除每个通道解混信号的时序相关性，使用HF互相关作为代价函数，对多元随机变量$\mathbf{y}’_{\text{early}, t, f} \in \mathbb{C}^{M \times 1}$有：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathcal{L}_f & = \text{HF} \left(\mathbf{y}'_{\text{early}, 0, f}, \cdots, \mathbf{y}'_{\text{early}, T - 1, f} \right) \notag  \\
+& = \frac{1}{T} \sum_t \log \det \left( E(\mathbf{y}'_{\text{early}, t, f} \mathbf{y}'^H_{\text{early}, t, f}) \right) - \text{const} \notag 
+\end{align} \tag{11}</script><p>可以看出，这里并没有对$\mathbf{y}’_{\text{early}, t, f}$本身的分布做任何假设，因此相较于WPE中提出的$\mathcal{N}_c$先验分布，GWPE理论上更加适合在multi-speaker，noisy的环境下做去混。后面就是针对该代价函数提出的辅助函数方法，用于估计滤波系数$\mathbf{G}_f$，这部分在之前的文章中也简单介绍过，这里就简单提一下。辅助函数法中引入了新的中间变量$\mathbf{\Lambda}_{t,f} \in \mathbb{C}^{M \times M}$，定义为：</p>
+<script type="math/tex; mode=display">
+\mathbf{\Lambda}_{t,f} = E \left(\mathbf{y}'_{\text{early}, t, f} \mathbf{y}'^H_{\text{early}, t, f} \right) \tag{12}</script><p>获取估计之后，用于更新$\mathbf{G}_f = \mathbf{R}_{f}^{-1} \mathbf{r}_{f}$，其中：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{R}_{f} &= \sum_t \overline{\mathbf{y}_{t - \Delta, f}} *\mathbf{\Lambda}_{t,f}^{-1} \overline{\mathbf{y}_{t - \Delta, f}}^H \in \mathbb{C}^{MK \times MK} \notag  \\
+\mathbf{r}_{f} &= \sum_t \overline{\mathbf{y}_{t - \Delta, f}} * \mathbf{\Lambda}_{t,f}^{-1} (\mathbf{y}'_{\text{early}, t, f})^H\in \mathbb{C}^{MK \times M} \notag 
+\end{align} \tag{13}</script><p>上式中由于$\overline{\mathbf{y}_{t - \Delta, f}}$和$\mathbf{\Lambda}_{t,f}$大小不匹配，所以$*$符号包含了一些reshape的操作，运算之后的矩阵大小依旧为$MK \times 1$。此时可以发现，式$(12)$和$(9)$在形式上是十分相似的。GWPE论文中指出了四种$\mathbf{\Lambda}_{t,f}$的估计方法，分别为对角矩阵，单位矩阵，全相关矩阵和ICA方法。其中在对角矩阵下，$(13)$和$(10)$式完全等价，此时，$\mathbf{\Lambda}_{t,f}$定义为：</p>
+<script type="math/tex; mode=display">
+\mathbf{\Lambda}_{t,f} = 
+\begin{bmatrix}
+\lambda_{t,f,0} & \cdots & 0 \\
+0 & \ddots & 0 \\
+0 & \cdots & \lambda_{t,f,M-1}
+\end{bmatrix} \tag{14}</script><p>其中$\lambda_{t,f,m}^2 = (y’_{\text{early}, t, f, m})^2$。单位矩阵下，$\mathbf{\Lambda}_{t,f}$对角值均取$\sum<em>m (y’\</em>{\text{early}, t, f, m})^2 / M$，全相关矩阵下和CGMM中类似，增加了一个时不变的全相关矩阵$\mathbf{R}_f$，$\mathbf{\Lambda}_{t,f}$定义为$\lambda_{t,f}\mathbf{R}_f^{-1}$，其中</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\lambda_{t,f} & = \frac{1}{M} (\mathbf{y}'_{\text{early}, t, f})^H \mathbf{R}_f^{-1} \mathbf{y}'_{\text{early}, t, f} \notag  \\
+\mathbf{R}_f & = \frac{1}{T} \sum_t \mathbf{y}'_{\text{early}, t, f} (\mathbf{y}'_{\text{early}, t, f})^H / \lambda_{t,f} \notag 
+\end{align} \tag{15}</script><p>目前Paderborn开源的nara_wpe工具的实现是单位矩阵形式，因此和WPE的逻辑非常类似，核心代码对应着本文中的公式$(6,8,12,13)$。</p>
+<p>上述讨论均是在多通道场景下进行的，单通道时候，$\mathbf{\Lambda}_{t,f}$退化为常数，且：</p>
+<script type="math/tex; mode=display">
+\mathbf{R}_{f} \in \mathbb{C}^{K \times K}, \mathbf{r}_{f} \in \mathbb{C}^{K \times 1}, \overline{\mathbf{y}_{t - \Delta, f}}\in \mathbb{C}^{K \times 1}, \mathbf{G}_f \in \mathbb{C}^{K \times K} \tag{16}</script><h2 id="DNN-Support"><a href="#DNN-Support" class="headerlink" title="DNN Support"></a>DNN Support</h2><p>通过第二部分的讨论可知，WPE中一共只存在两个变量需要估计，一是early reverberation的方差$\lambda_{t,f}$，其次就是用于去混的滤波系数$\mathbf{G}_f$。在信号处理的框架中，每次迭代中依次更新$\lambda_{t,f}$和滤波系数的估计。和NN结合的WPE思路主要是借用神经网络去预测$\lambda_{t,f}$，之后带入公式$(8,13,6)$中跑一个WPE的step得到最终的去混输出。</p>
+<p>$\lambda_{t,f}$的定义可以简单理解为early reverberation的功率谱（幅度谱取平方），目前常用的有两种方式，一是直接预测early reverberation的magnitude（或者功率谱），二是借用TF-mask，做掩蔽得到。不过此时mask的定义和此前文章中增强分离的场景不同，分解信号模型为：</p>
+<script type="math/tex; mode=display">
+\mathbf{y} = \mathbf{x}_\text{early} + \mathbf{x}_\text{late} + \mathbf{n} \tag{17}</script><p>以ratio mask为例，有：</p>
+<script type="math/tex; mode=display">
+\mathbf{M}_\text{IRM} = \frac{|\mathbf{X}_\text{early}|}{|\mathbf{X}_\text{early}| + |\mathbf{X}_\text{late}| + |\mathbf{N}|} \tag{18}</script><p>得到网络输出的估计之后，用$\hat{\mathbf{M}} \odot |\mathbf{Y}|^2$作为$\lambda_{t,f}$带入公式即可。在多通道场景下，如果只估计一个通道的TF-mask，可以带入单位矩阵的形式计算，若对每个通道都进行估计，则可以选取对角矩阵的形式。</p>
+<p>最后还剩下一个疑问，既然NN已经拿到了$\lambda_{t,f}$的估计，为何不直接像增强一样用带噪相位做iSTFT得到去混输出呢？首先需要明确，早期确实有一些文章，就是通过在频域直接预测early reverberation的幅度谱做去混的，但是和增强类似，存在着相位增强的问题，其次是这种掩蔽和回归这种方式带来的distortion相比linear filtering的做法往往很大，这可能带来后续任务，比如增强，分离，识别在性能上的损失。</p>
+<p>打通了NN supported WPE之后，就可以开展很多所谓的joint training或者E2E的工作了，即按照传统信号的pipeline串联三个模型，WPE，Beamforming和ASR。目前将E2E-ASR，NN-WPE和mask-based beamforming联合的工作已经有很多了，这些工作的核心归结于如下三步骤：</p>
+<ol>
+<li>借用NN估计$\lambda_{t,f}$，做WPE step；</li>
+<li>借用NN估计$m_{t,f}$，在1之上做mask-based beamforming；</li>
+<li>在2之上接(E2E-)ASR模型，用ASR的准则优化整个网络。</li>
+</ol>
+<p>插一句：最近也有一些signal的文章做joint WPE &amp; Beamforming，目前计划另起一篇文章单独讨论这块内容。</p>
+<p>小结一下。回头看一下NN结合WPE和Beamforming的工作，共同点均是只用网络去估计原信号框架中难以直接预测的一个统计量，并保留linear filtering的部分，以此完成结合。故我们深挖传统信号算法的目的在于三点，一是挖掘如何进行结合可以最大程度的拿到gain，二是排查问题时，可以快读定位问题模块，给出优先级，三是对候选方案进行优先级排序，排除明显违背原理的思路和方法。WPE在ASR，speaker等任务上经常作为一个黑盒工具被大家使用，作为语音行业的从业者，个人还是建议同行们抽时间看一下算法背后的原理和推导，这样当后续相关的论文或者工作出来时，可以较快的抓住作者的思路，批判性的看待。</p>
+<h2 id="Related-Paper"><a href="#Related-Paper" class="headerlink" title="Related Paper"></a>Related Paper</h2><p>[1] Tomohiro Nakatani, Takuya Yoshioka, Keisuke Kinoshita, Masato Miyoshi, and Biing-Hwang Juang, “Speech dereverberation based on variance-normalized delayed linear prediction,” IEEE Transactions on Audio, Speech, and Language Processing, vol. 18, no. 7, pp. 1717-1731, Sep. 2010.<br>[2] oshioka, Takuya, and Tomohiro Nakatani. “Generalization of multi-channel linear prediction methods for blind MIMO impulse response shortening.” IEEE Transactions on Audio, Speech, and Language Processing 20.10 (2012): 2707-2720.<br>[3]. Kinoshita, Keisuke, et al. “Neural Network-Based Spectrum Estimation for Online WPE Dereverberation.” <em>Interspeech</em>. 2017.<br>[4]. Heymann, Jahn, et al. “Frame-online DNN-WPE dereverberation.” <em>2018 16th International Workshop on Acoustic Signal Enhancement (IWAENC)</em>. IEEE, 2018.<br>[5]. Heymann, Jahn, et al. “Joint optimization of neural network-based WPE dereverberation and acoustic model for robust online ASR.” <em>ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)</em>. IEEE, 2019.<br>[6]. Caroselli, Joe, et al. “Adaptive Multichannel Dereverberation for Automatic Speech Recognition.” <em>Interspeech</em>. 2017.<br>[7]. Drude, Lukas, et al. “Integrating Neural Network Based Beamforming and Weighted Prediction Error Dereverberation.” <em>Interspeech</em>. 2018.<br>[8]. Drude, Lukas, et al. “NARA-WPE: A Python package for weighted prediction error dereverberation in Numpy and Tensorflow for online and offline processing.” <em>Speech Communication; 13th ITG-Symposium</em>. VDE, 2018.</p>
+]]></content>
+      <categories>
+        <category>Microphone Array Processing</category>
+      </categories>
+      <tags>
+        <tag>WPE</tag>
+        <tag>Dereverberation</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>后续文章列表</title>
     <url>/2020/04/11/coming-next/</url>
     <content><![CDATA[<ul>
 <li>Update Hexo &amp; Next （站点更新记录）</li>
 <li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
 <li>TF-mask &amp; Spectral Gain (噪声抑制算法中的Gain)</li>
+<li>Unsupervised Training of FE （前端的一些无监督训练方法）</li>
 </ul>
 ]]></content>
       <categories>
