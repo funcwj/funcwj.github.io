@@ -1,6 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Development of APS</title>
+    <url>/2020/11/28/dev-of-aps/</url>
+    <content><![CDATA[<p>在过去的接近两年时间内，我断断续续的在维护着一个我自己称之为APS的项目。本篇文章用来记录一下其背后的开发历程和相关感悟。</p>
+<p>2019年三四月的时候，我在腾讯的实习即将结束，一方面是出于找补遗憾，另一方面是有实验室的需求，我着手做了一些E2E ASR的实验。这里花一点笔墨解释一下遗憾的源由。从2017年下半年开始，我的主研究方向（就是手头工作）逐渐的过渡到前端方面，后端声学模型就只是停留在使用kaldi训练hybrid的模型和看一些paper上。而在此之前，E2E ASR这条线上我只成功的做过CTC的相关实验，attention的一些方法，在做过一些调研（可以参考之前的文章）之后（受限于当时的编码能力和认知程度），完成编码过后的我并没有得到正常的结果，遗憾因此产生（也算是给自己留了一个坑吧）。经过一年多的学习和实践的锻炼之后，到了2019年初这个时间点，我觉得自己在各方面能力有了一些进步（我又可以了），所以是时候开始填上ASR这个小缺憾了，便开始了最初的编码。</p>
+<a id="more"></a>
+<p>由于有了维护setk（之前写过文章谈过这个toolkit）这个工具包的经验，我当时有了比较宏大的愿景，希望在毕业前做一些能对自己有所交代的工作，给自己心理安慰证明一下没有虚度光阴，其中就包括产生四个方面的相对规范，独立维护的工具：1）前端信号处理（setk已经维护一年多时间了）；2）hybrid声学模型；3）E2E声学模型；4）前端增强/分离模型。所以APS的最初编码是为3做准备，当时的名字还叫seq2seq-asr，4的开发起始时间稍落后于3，叫做torch-separator，此后这两者的维护和更新是相对独立，同时进行的。2020的4月，我做了一次比较大规模的代码重构，合并了seq2seq-asr和torch-separator，并重新命名为aps，取-asr的a加上(plus的p)-separator的s。 比较尴尬的是2，由于e2e火起来之后，学术和工业界纷纷调转方向，所以2的计划也就被搁置下来了……</p>
+<p>2019年其实github上已经有很多成熟的可以用于进行e2e asr的框架了，比如espnet，fairseq，returnn，lingvo，OpenNMT-py等等。espnet当时的版本个人觉得代码比较臃肿，且有一些设计层面不喜欢的东西，比如对kaldi的依赖，json的数据格式等等，加之自己更希望按照自己想法实现代码并得到正常的结果，所以没有采用（但是它们的结果确实调的不错）。fairseq和OpenNMT-py并不是专门针对speech任务，returnn和lingvo是基于tensorflow的，而我当时倾向于用pytorch。其实returnn是一个对我影响比较大的东西，他们实验室的很多文章都是用这个工具产生的，连续性很强，也有很多设计层面的考虑，我一度觉得判定一个组或者实验室的强弱是需要看看他们的工具链的有无和维护情况的。</p>
+<p>18年前端实验的时候我慢慢产生了一些习惯，一个是waveform in和waveform out（对于asr而言，就是waveform in和word out），即将特征提取，一些必要的后处理（iSTFT）等等操作全部用PyTorch实现，以简化训练，评估的效率和流程。另一个就是配置驱动，模型训练的主要参数交由一个yaml文件进行配置。这一习惯也延续到了早期的seq2seq-asr和torch-separator中：最先提交的代码必然是包括一个独立的特征处理模块的，而训练的入口也必然是接受一个yaml文件作为命令行参数的。asr考虑到一些遗留的的特征是kaldi的格式，所以后面也增加了对kaldi格式特征的支持（自己之前写过<a href="https://github.com/funcwj/kaldi-python-io" target="_blank" rel="noopener">kaldi-python-io</a>，所以并不难实现，也没有用其他三方的package）。数据准备方面，我依旧沿用kaldi的.scp格式，每一行是一个key-value对，个人觉得这种格式扩展性很高，很多任务中都可以通用，且准备起来不需要编写代码，跑一行命令就可以产生，IO的接口用kaldi-python-io里面的实现或者拉一个基类继承一下就行。下面分别记录一下今年4月合并成aps之前，seq2seq-asr和torch-separator的维护状态。</p>
+<p>seq2seq-asr的早期代码是在2019.3-2019.6月期间完成的（第一次提交的出结果的repo截图见图一），10月实习结束返校开始继续更新，中间的空挡时间全部腾给了torch-separator。6月之前只是实现了rnn的encoder和decoder，常用的三种attention机制（dot，context，location），解码的beam search没有做vectorized，实现起来容易但是效率相对低下。waveform的输入下特征默认用fbank，不支持自定义配置，dataloader可支持kaldi格式特征。训练器（Trainer）和objective function是绑定的，统一用CE。期间被一个训练不收敛的问题困扰了蛮久，一气之下删了代码重新实现，然后就一切正常了，感慨bug有时候就是这么神奇。10月返校之后到次年的3月（2020.3），着手做了一些多通道声学模型的工作，添加了FSMN，TDNN等结构的encoder，multi-head版本的attention和波束的前端，包括常用的TF-mask MVDR，Google &amp; Amazon的固定波束方案和一些自己尝试的设想方法等等。实现了一版vectorized的beam search来加速解码过程（也实现了一版batch的beam search，解码效果略差，目前尚未解决这个问题）。此外还做了一些transformer的工作，decoder就配的vectorized beam search。此时的Trainer添还增添了对RNNT模型，distributed训练（PyTorch的DDP），schedule sampling的支持，但是具体的loss（RNNT &amp; CE）计算还是在其中定义的，并没有独立出去。特征方面则更加完善，支持根据自定义配置产生结果，并增加了拼帧，MFCC，Delta，SpecAugment等操作。数据加载器方面，waveform和kaldi feature的两种也进行了完善，比如distributed的支持，多线程加速等等。添加了RNN &amp; Transformer的语言模型模块，用于做beam search上的shallow fusion。不过当时的代码实现存在问题，没有拿到相应的gain。</p>
+<p><img src="http://www.funcwj.cn/images/aps-first-commit.jpg" width="800"></p>
+<p>2019.5-2019.10期间的我还在实习，主要做分离任务，torch-separator就是在这段时间产生的。特征方面，(i)STFT，IPD，directional feature（DF），fixed beamforming等等被用PyTorch重新实现一边，方便做在线的特征处理。数据加载器上支持离线和在线两种，在线的优势是可以免去data simulation这一步骤，提升我们调整数据相关的超参的效率，关于这一点我在之前文章里面也谈过。不过当时的版本后来被替换了，和现在aps里面的并不相同。模型方面倒是简单，主要是当时比较STOA的TasNet和一些RNN的基线，其实这些代码在18年就已经陆续产生。需要重点说一下的是特征配置和训练器。和asr不同，前端的特征可以有很多种组合方式，比如加IPD和DF，甚至几个说话人的DF。Loss也很多样，时域/频域的，单/多说话人，有/无PIT等等。就连reference也多变，做不做beamforming等等。所以当时的设计是使用额外的类（称为Executor）集中负责特征提取，网络原型的前向（统一在<code>forward()</code>中进行）和对应的loss（调用<code>loss()</code>）计算，开始任务相对少时，代码逻辑还比较清晰，慢慢的当上述需求依次到来时，逻辑就变的十分复杂，代码可读性也变得低下。多卡方面当时用的是data parallel，因为逻辑简单，但是效率低下的问题也很明显。而且配合上述所说的Executor机制，跑前向的时候是多卡，但是loss计算却是单卡，还容易引起OOM的问题。不过遇到这些问题的时候我差不多已经快离职了，所以并没有在当时的torch-separator里面尝试解决。10月返校之后就没有对torch-separator进行太多的更新，只是从其中抽取了一些代码跑一些日常的增强和分离实验。进入2020年，写毕业论文符号化STFT的卷积实现时，发现之前实现的代码不算严谨，在详细的推了一遍原理之后做了更新，这个之后也在一篇文章中进行了总结。</p>
+<p>2020.3月临近毕业，我整理材料和代码的时候发现torch-separator已经有半年没怎么更新，手边asr的repo seq2seq-asr倒是一直被维护，便产生了两者合并的想法。为了让APS更加的通用灵活，核心的调整包括如下几个方面：</p>
+<ol>
+<li>增加<code>transform</code>子package，每个<code>Transform</code>类继承<code>nn.Module</code>，<code>forward()</code>产生各类任务的特征</li>
+<li>增加<code>task</code>子package，每个<code>Task</code>类继承<code>nn.Module</code>，<code>forward()</code>产生<code>Task</code>接收的网络模型对应的loss</li>
+<li>网络模型接受特征模块作为参数，<code>forward()</code>产生网络的输出</li>
+<li>训练器<code>Trainer</code>接受<code>Task</code>类作为参数而不是模型本身</li>
+</ol>
+<p>上述重构的核心是，使用<code>Task</code>类隔绝了网络和<code>Trainer</code>的关系，这样不同的任务：识别，增强，分离，甚至是说话人都可以共享一个训练器，而且由于<code>Task</code>的<code>forward()</code>直接产生loss，即使使用data parallel的时候，loss也是多卡产生之后gather的，效率更高。而<code>Task</code>本身接受模型作为参数，使得我们在有新的task需求的时候，只需要增加一个<code>Task</code>类即可。让<code>Transform</code>作为网络模型的参数之一，其一是可以在推断阶段可以实现waveform in，免去特征提取的繁琐，其二是把具体的特征逻辑控制权交给网络本身，可以通过分解网络实例或者添加参数配置的方式把繁琐的需求分解开。</p>
+<p>重构之后代码的提交频次要高了不少，与之前不同的是，更加侧重了一些工程方面的特性（扩展性，规范化等等），大概整理罗列如下（时间顺序无关）：</p>
+<ol>
+<li>新增<code>trainer</code>子package，将核心的逻辑放到基类中，除了原先的<code>DdpTrainer</code>（单卡和PyTorch DDP的分布式训练）之外，新增<code>HvdTrainer</code>，<code>ApexTrainer</code>两个训练器支持Horovod和Apex的分布式训练实现。为了方便控制PyTorch和Horovod的一些distributed的初始化工作，新增了一个<code>distributed</code>package用于对外提供统一的分布式API接口；</li>
+<li>为前端增强/分离任务新增一系列网络实现，包括时/频域的TasNet，DPRNN，CRN，Phasen，DCUNet，DCCRN，DenseUnet以及对应的各类<code>Task</code>类型，<code>SisnrTask</code>，<code>SnrTask</code>，<code>WaTask</code>，<code>ComplexMappingTask</code>，<code>LinearFreqSaTask</code>，<code>LinearTimeSaTask</code>等等。模型层面默认做了下面的一个规定，即将<code>forward()</code>函数用于训练，<code>infer()</code>函数用于测试。这么做的目的主要是区分开训练和推断时的逻辑，典型的比如频域模型，训练和推断的时候是可以输出频域mask或者增强/分离的时域信号（区别就是是否做iSTFT）的，这么设计是允许模型在训练和推断阶段有着不同的表现，典型的比如训练在频域进行，推断直接产生时域结果。</li>
+<li>为ASR模型部分重写了Transformer部分，包括两种相对位置编码和原始的绝对位置编码版本。transformer这部分代码自己是重构了好几遍的，最早是直接用的PyTorch自带实现，后来因为涉及到做一些拓展和变体才开始的频繁重写。 解码的beam search上增加并验证了shallow fusion的效果。普通encoder部分，之前是为每种encoder写一个网络类型的，比如我用conv1d和conv2d做下采样，后面可以跟RNN或者FSMN做序列建模，除了这个四个网络本身，我还需要写四个encoder对应组合的结果，这种情况下显然欠缺灵活性。 我通过增加一个<code>ConcatEncoder</code>类型，用于组合不同的enoder形成新的encoder来避免冗余的编码；</li>
+<li>增加<code>metric</code>子package用于统一管理计算前端和ASR的评估指标，包括WER，SNR，SiSNR，PESQ，STOI。这一设计也是为了精简代码，早期的代码框架下，我需要为四种前端指标写四个脚本分别统计。统一管理之后，使用一个<code>compute_ss_metric.py</code>就可以同时评估四种客观指标。</li>
+<li>增加<code>examples</code>目录，添加了几个标准数据集上的recipe，目前不算多（主要是wsj0_2mix，aishell_v1，timit，librispeech，chime4等等），因为调模型结果还是比较耗时间的，后期有时间的话应该会继续完善，每个example的配置文件被集中放置在<code>conf</code>目录下。开始添加recipe的目的其实是方便自己做实验和测试，即增加了新的模型或者重构了代码之后，测一下效果等等。当然给别人使用的时候，这也是告诉他人使用方法的一种很直观的方式。</li>
+<li>增加<code>tests</code>目录，用于做单元测试。在APS之前，我写代码的时候会在tests目录下写一些比较随意的测试代码，不太规范。但是其实一个规范标准的项目，测试部分是一个必不可少的模块（否则你很难向别人证明你的代码没有大的问题）。APS里面涉及到不少网络模型，我通常是写一些toy的forward测试来保证网络部分没有逻辑问题，久而久之就落成了现在的测试目录。与之相对应的也配置了一下github workflow（github的一个新的特性），用于在push和提PR的时候做测试和代码格式检查。此外我还配置了pre-commit用于自动格式化提交代码。以前我自己提交代码的话，会将其用yapf格式化之后再进行提交。这种方法一方面有风险，比如文件可能会遗漏，另一方面也不够智能和自动化（可能有其他的更好的方法待探索）； </li>
+<li>增加<code>docs</code>目录，放了一些markdown文档介绍一下使用方法，代码结构等等，不算非常完善；添加<code>docker</code>目录，Dockerfile用于构建适用于APS运行的docker镜像，也提供一个配置Python环境的参考，因为随着维护时间和新特性的增加，依赖也会增多；配置Git LFS管理一些比较大的文件，主要是测试目录下的一些模型checkpoint；</li>
+<li>代码上新添加了Python的type hint用于类型检查，也为方便后续做jit实验，注释我倒是没有采用某种规范，一直用一种我自己看着顺眼的方式写的。还有一点在几周前做了更新，使用装饰器自动注册模块替代原先的硬编码方式，包括各类任务，网络类型，数据加载器，训练器等等。工具的代码量上去了之后，我常常需要为很多class关联一个str类型的名称方便管理，最直观的方式是建一个dict，硬编码起来。这样做的弊端是每新建一个类，都需要找到对应的dict做修改。Python装饰器则可以比较优美的解决这个问题，用<code>@</code>的语法糖装饰一下即可；</li>
+</ol>
+<p>在维护APS的过程中，发现了一些很有意思的现象。首先是从19年初开始，我并不知道我会为它持续的写多久的代码，目前来看，断断续续快两年是远超我的预期的。我经常觉得某个模块，某部分代码已经足够了，却往往在一两周之后就冒出更多的想法。这些想法也很多样，可以是嫌弃之前写的冗余，不规范，可能是突然想加入新的特性或者模型，试试新的方法，也会是嫌弃写的效率低，代码丑。所以我能够从中看到我的成长，另一个维度的成长，也可以收获在单纯工作，研究之外的快乐。比如相比之前的setk，个人觉得APS在很多方面都要规范很多，先前好的习惯和经验在这里也是得到了继承的。 我是学生的时候，很多时候是反对结果论的，我比较在意的是按照自己的理解和想法/认识能做出什么样的实验结果，哪怕不是最好或者赶不上paper的结论。这一习惯在代码累积起来的时候，顺其自然的就产生了整理和规范的想法。 当然这种行事风格有时候效率是比较低的，我会在一些比较小的点上死磕很久，产生质疑，痛苦和郁闷，而如果直接copy别人的代码，这一切都可以避免，顺顺当当的趟过去。此外像花在重构代码，项目周边等这些看起来没有新增功能的功夫上的时间也是不少的。我肯定能从一些方面找出这样做的意义好处之类的话，但是我心里知道，这只是的一个小的方面，更多的其实就是四个字：乐在其中。悲伤的时候我会写，开心的时候我也会写，会有高频度贡献代码的时候，也有撂在一边的时候，当时间跨度变大，你发现你敲下的代码会像宠物一样，慢慢长大，从幼稚变得成熟，从柔弱变得强壮。现在的repo目录如下图所示：</p>
+<p><img src="http://www.funcwj.cn/images/current-aps.jpg" width="800"></p>
+<p>回到这个工具本身，我觉得它还是存在着很多可以完善和扩充的地方，比如ASR方面可以有增加对hybrid声学模型训练的支持，甚至是往后用上dan正在做的k2，优化beam search算法（提升解码效率），增加encoder/decoder类型以及更多的STOA的模型实现，multi-talker &amp; streaming ASR等等。分离和增强上主要有增加一些无监督的训练方法和STOA模型验证，其余的如添加对speaker任务的相关代码，大量的实验调参，增加公开数据集上的结果，扩充数据加载器的类型，支持TorchScript的模型导出等等都是比较显而易见的。后期重构成APS之后我基本就把它的维护当成是一个比较长久的事情在做了，所以自己也不太着急，上面这些单列的点就能让自己做很久了。考虑到我自己对不感兴趣的事情常常不会太上心，所以也一直没有邀他人参与进来。希望自己后面能够合理的支配时间，多为它增加些新的feature吧。</p>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+      <tags>
+        <tag>Code</tag>
+        <tag>APS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>INTO WPE</title>
     <url>/2020/06/05/into-wpe/</url>
     <content><![CDATA[<p>WPE作为经典的去混算法，在20世纪初由日本NTT的研究人员提出，并在之后被陆续发展，近些年随着声学前端研究热度的提升，远场语音识别需求的增加以及各类测评竞赛的举办，WPE在工业界和学术界得到了广泛的应用。Google在为Google Home做多通道声学建模的一系列工作中，也包含了WPE在online下对声学模型的优化工作。目前关于WPE有两个方向的工作已经陆续完善，一是信号上做joint WPE和beamforming，separation的工作，这个在WPE提出之后就已经有学者开始了研究，二是和deep learning 相结合，使用神经网络估计WPE step中依赖的统计量，之后做去混或者和后续其他模块联合训练 ，比如增强分离模型，声学模型等等。本篇文章打算先梳理一下WPE相关的一些知识，之后谈目前STOA的DNN support WPE的思路。</p>
