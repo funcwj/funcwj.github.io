@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="最近几年语音的各项任务上也开始用上transformer的模型了，前段时间大家在谈论conformer的时候，我看了一下Transformer-XL里面提出的相对位置编码表示方法。原论文我在开始看的时候感觉符号层面有些混乱，向量和矩阵容易有些分不清，因此自己在后续实现的时候花了一些功夫思考和整理。本篇文章用于记录一下我自己对使用相对位置编码时，self-attention计算的相关分析和理解。 首">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用相对位置编码下MHSA的计算">
+<meta property="og:url" content="https://www.funcwj.cn/2020/11/02/mhsa-relpose-computation/index.html">
+<meta property="og:site_name" content="WJ&#39;s site">
+<meta property="og:description" content="最近几年语音的各项任务上也开始用上transformer的模型了，前段时间大家在谈论conformer的时候，我看了一下Transformer-XL里面提出的相对位置编码表示方法。原论文我在开始看的时候感觉符号层面有些混乱，向量和矩阵容易有些分不清，因此自己在后续实现的时候花了一些功夫思考和整理。本篇文章用于记录一下我自己对使用相对位置编码时，self-attention计算的相关分析和理解。 首">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-11-02T15:52:05.000Z">
+<meta property="article:modified_time" content="2020-12-26T16:00:46.915Z">
+<meta property="article:author" content="WJ">
+<meta property="article:tag" content="Code">
+<meta property="article:tag" content="Transformer">
+<meta property="article:tag" content="MHSA">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://www.funcwj.cn/2020/11/02/mhsa-relpose-computation/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>使用相对位置编码下MHSA的计算 | WJ's site</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?01edb048a0d71e5d0a00ae47bdb0dbe2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's site</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">我只是好奇</p>
+  </div>
+
+  <div class="site-nav-right"></div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>站点首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">85</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">73</span></a>
+
+  </li>
+        <li class="menu-item menu-item-footprint">
+
+    <a href="/footprint/" rel="section"><i class="fa fa-fw fa-map-marker"></i>足迹地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>文章搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2020/11/02/mhsa-relpose-computation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's site">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用相对位置编码下MHSA的计算
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11-02 23:52:05" itemprop="dateCreated datePublished" datetime="2020-11-02T23:52:05+08:00">2020-11-02</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithm/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithm</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近几年语音的各项任务上也开始用上transformer的模型了，前段时间大家在谈论conformer的时候，我看了一下Transformer-XL里面提出的相对位置编码表示方法。原论文我在开始看的时候感觉符号层面有些混乱，向量和矩阵容易有些分不清，因此自己在后续实现的时候花了一些功夫思考和整理。本篇文章用于记录一下我自己对使用相对位置编码时，self-attention计算的相关分析和理解。</p>
+<p>首先做一下符号化，本文统一用大写表示矩阵，小写表示向量，为了简便起见均没有加粗，向量默认遵从列向量规范。query，key，value对应的投影（变换）矩阵定义为$W^Q, W^K, W^V$,通过线性运算（矩阵乘法）得到参与dot attention计算的$Q, K, V$。在self-attention（也就是encoder里面的一般用法）里面，query，key和value值是相同的，这里用$X$统一表示，即：</p>
+<a id="more"></a>
+<script type="math/tex; mode=display">
+Q = XW^Q, K = XW^K, V = XW^V \tag{1}</script><p>其中$X\in \mathbb{R}^{T \times D_m}$,$W^Q, W^K, W^V \in \mathbb{R}^{D_m \times D_k}$，$T$表示序列长度。带入dot attention的计算公式：</p>
+<script type="math/tex; mode=display">
+C = \text{softmax} \left(\frac{Q K^T}{\sqrt{D_k}} \right) V \tag{2}</script><p>得到</p>
+<script type="math/tex; mode=display">
+C = \text{softmax} \left(\frac{XW^Q (XW^K)^T}{\sqrt{D_k}} \right) VW^V \tag{3}</script><p>$(2)$式中，$QK^T \in \mathbb{R}^{T \times T}$，$C \in \mathbb{R}^{T \times D_m}$，用$C$表示此项结果是含有attention context的意思。上面为了符号简便，没有考虑multi-head的情况，不过这个并不影响下文的分析和推理。以前speech里面会把取softmax之后结果称之为alignment或者attention weight，相对位置编码的改动主要也是集中在此。现在单独拿出</p>
+<script type="math/tex; mode=display">
+S = XW^Q (XW^K)^T = XW^Q(W^K)^T X^T \tag{4}</script><p>考虑。使用绝对位置编码时，一般的做法是用学习到的或者固定的位置编码与原始embedding$X$相叠加作为输入，令绝对位置编码矩阵为$P \in \mathbb{R}^{T \times D_m}$。先看一下Transformer-XL中的分析。它是基于用$X = X + P$带入$(4)$式的结果进行分析：</p>
+<script type="math/tex; mode=display">
+S = (X + P)W^Q(W^K)^T (X + P)^T \tag{5}</script><p>这里个人觉得单做分析使用问题不大，实际使用transformer时候，考虑到layernorm和深层网络等因素，理论上并不完全如此（不严格等价），不过不影响本文对使用相对位置编码下计算的分析过程。令$W = W^Q (W^K)^T$， 对$(5)$中的$S$展开有：</p>
+<script type="math/tex; mode=display">
+S = XWX^T + XWP^T + PWX^T + PWP^T \tag{6}</script><p>相对和绝对位置编码的区别在于前者只对相对位置进行考虑，符号化来看，对绝对位置编码矩阵$P$，分解为：</p>
+<script type="math/tex; mode=display">
+P = 
+\begin{bmatrix}
+p_0^T \\
+p_1^T \\
+\cdots \\
+p_{T-1}^T
+\end{bmatrix} \tag{7}</script><p>其中$p_i \in \mathbb{R}^{D_m \times 1}$为列向量。对于相对位置编码矩阵$R$，在帧长为$T$的序列下，一共存在$2T - 1$个相对位置，若不考虑边界约束，则$R \in \mathbb{R}^{2T-1 \times D_m}$：</p>
+<script type="math/tex; mode=display">
+R = 
+\begin{bmatrix}
+r_0^T \\ r_1^T \\ \cdots \\ r_{2T-1}^T
+\end{bmatrix} \text{or}
+\begin{bmatrix}
+r_{-T + 1}^T \\ r_{-T + 2}^T \\ \cdots \\ r_{T-1}^T
+\end{bmatrix}
+\tag{8}</script><p>其中$r_i \in \mathbb{R}^{D_m \times 1}$同样为列向量。考虑边界约束，比如最大半径为$Z$，则$R \in \mathbb{R}^{2Z - 1 \times D_m}$，本文考虑前者进行分析。现在来看，我们是不能直接将$(6)$式中的$P$替换为$R$进行计算的，我把第二项拿出来单独考虑，令$M_p = XWP^T \in \mathbb{R}^{T \times T} $，展开：</p>
+<script type="math/tex; mode=display">
+M_p =
+\begin{bmatrix}
+x_0^T \\ x_1^T \\ \cdots \\ x_{T-1}^T
+\end{bmatrix} 
+W
+\begin{bmatrix}
+p_0 & p_1 & \cdots & p_{T - 1}
+\end{bmatrix} = 
+\begin{bmatrix}
+x_0^T W p_0 & x_0^T W p_1 & \cdots & x_0^T W p_{T - 1} \\
+x_1^T W p_0 & x_1^T W p_1 & \cdots & x_1^T W p_{T - 1} \\
+\vdots & \vdots & \ddots & \vdots \\
+x_{T - 1}^T W p_0 & x_{T - 1}^T W p_1 & \cdots & x_{T - 1}^T W p_{T - 1}
+\end{bmatrix} \tag{9}</script><p>当使用相对位置编码时，我们希望的$M_r \in \mathbb{R}^{T \times T}$计算结果应该是</p>
+<script type="math/tex; mode=display">
+M_r = \begin{bmatrix}
+x_0^T W r_0 & x_0^T W r_1 & x_0^T W r_2 & \cdots & x_0^T W r_{T - 1} \\
+x_1^T W r_{-1} & x_1^T W r_0 & x_1^T W r_1 & \cdots & x_1^T W r_{T - 2} \\
+x_2^T W r_{-2} & x_1^T W r_{-1} & x_1^T W r_0 & \cdots & x_1^T W r_{T - 3} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+x_{T - 1}^T W r_{-T + 1} & x_{T - 1}^T W r_{-T + 2} & x_{T - 1}^T W r_{-T + 3} & \cdots & x_{T - 1}^T W r_0
+\end{bmatrix} \tag{10}</script><p>如果直接替换$P$为$R$，得到的矩阵$\hat{M_r} = XWR^T \in \mathbb{R}^{T \times 2T - 1} $为：</p>
+<script type="math/tex; mode=display">
+\hat{M_r} = \begin{bmatrix}
+x_0^T W r_{-T + 1} & \cdots & x_0^T W r_0 & x_0^T W r_1 & \cdots & x_0^T W r_{T - 1} \\
+x_1^T W r_{-T + 1} & \cdots & x_1^T W r_0 & x_1^T W r_1 & \cdots & x_1^T W r_{T - 1} \\
+x_2^T W r_{-T + 1} & \cdots & x_2^T W r_0 & x_2^T W r_1 & \cdots & x_2^T W r_{T - 1} \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+x_{T - 1}^T W r_{-T + 1} & \cdots & x_{T - 1}^T W r_0 & x_{T - 1}^T W r_1 & \cdots & x_{T - 1}^T W r_{T - 1}
+\end{bmatrix} \tag{11}</script><p>对比$(10)$和$(11)$式中的$M_r$和$\hat{M_r}$不难发现二者之间的关系，即：</p>
+<script type="math/tex; mode=display">
+M_r[i] = \hat{M_r}[i, T - 1 - i:2T - 1 - i] \tag{12}</script><p>因此从计算的角度来说，我们可以先拿到$\hat{M_r}$，再调整得到$M_r$，这也就是Transformer-XL附录B想要说明的东西。不过$(12)$的结论是在不考虑相对位置编码的边界约束下得到的，如果相对半径$Z &lt; T$，则：</p>
+<script type="math/tex; mode=display">
+R = 
+\begin{bmatrix}
+r_0^T \\ r_1^T \\ \cdots \\ r_{2Z-1}^T
+\end{bmatrix} \text{or}
+\begin{bmatrix}
+r_{-Z + 1}^T \\ r_{-Z + 2}^T \\ \cdots \\ r_{Z-1}^T
+\end{bmatrix}
+\tag{13}</script><p>$(10)$式中$M_r \in \mathbb{R}^{T \times T}$改写为</p>
+<script type="math/tex; mode=display">
+M_r = \begin{bmatrix}
+x_0^T W r_0 & x_0^T W r_1 & x_0^T W r_2 & \cdots & x_0^T W r_{Z-2} & x_0^T W r_{Z-1} & \cdots & x_0^T W r_{Z - 1} \\
+x_1^T W r_{-1} & x_1^T W r_0 & x_1^T W r_1 & \cdots & x_1^T W r_{Z-1} & x_1^T W r_{Z-1} & \cdots & x_1^T W r_{Z - 1} \\
+\vdots & \vdots & \vdots & \ddots & \vdots & \vdots & \ddots & \vdots\\
+x_{Z-1}^T W r_{-Z+1} & x_{Z-1}^T W r_{-Z+2} & x_{Z-1}^T W r_{-Z+3} & \cdots & x_{Z-1}^T W r_{Z-1} & x_{Z-1}^T W r_{Z-1} & \cdots & x_{Z-1}^T W r_{Z - 1} \\
+\vdots & \vdots & \vdots & \ddots & \vdots & \vdots & \ddots & \vdots\\
+x_{T - 1}^T W r_{-Z + 1} & x_{T - 1}^T W r_{-Z + 1} & x_{T - 1}^T W r_{-Z + 1} & \cdots & x_{T - 1}^T W r_{Z-1} & x_{T - 1}^T W r_{Z-1} & \cdots & x_{T - 1}^T W r_{Z - 1}
+\end{bmatrix} \tag{14}</script><p>$(11)$式中$\hat{M_r} = XWR^T \in \mathbb{R}^{T \times 2Z - 1} $改写为</p>
+<script type="math/tex; mode=display">
+\hat{M_r} = \begin{bmatrix}
+x_0^T W r_{-Z + 1} & \cdots & x_0^T W r_0 & x_0^T W r_1 & \cdots & x_0^T W r_{Z - 1} \\
+x_1^T W r_{-Z + 1} & \cdots & x_1^T W r_0 & x_1^T W r_1 & \cdots & x_1^T W r_{Z - 1} \\
+x_2^T W r_{-Z + 1} & \cdots & x_2^T W r_0 & x_2^T W r_1 & \cdots & x_2^T W r_{Z - 1} \\
+\vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+x_{T - 1}^T W r_{-Z + 1} & \cdots & x_{T - 1}^T W r_0 & x_{T - 1}^T W r_1 & \cdots & x_{T - 1}^T W r_{Z - 1}
+\end{bmatrix} \tag{15}</script><p>此时二者的关系为：</p>
+<script type="math/tex; mode=display">
+M_r[i, b_i: b_i + Z] = \hat{M_r}[i, Z - 1 - i:2Z - 1 - i] \tag{16}</script><p>其中$b_i = \max(0, i - Z + 1)$，其余位置的值为边界值依次重复扩展。在这种情况下，一种比较方便的方法是生成相对位置编码的时候按照$R \in \mathbb{R}^{2T-1 \times D_m}$的大小进行生成，即：</p>
+<script type="math/tex; mode=display">
+R = 
+\begin{bmatrix}
+r_0^T \\ r_0^T \\ \cdots \\ r_1^T \\ \cdots \\ r_{2Z-2}^T \\ \cdots \\ r_{2T-1}^T \\
+\end{bmatrix} \text{or}
+\begin{bmatrix}
+r_{-Z + 1}^T \\ r_{-Z + 1}^T \\ \cdots \\ r_{-Z + 2}^T \\ \cdots \\ r_{Z-1}^T \\ \cdots \\ r_{2T-1}^T \\
+\end{bmatrix}
+\tag{17}</script><p>这样之后的计算结果结论便和无边界约束的$(12)$保持一致。</p>
+<p>现在再和”Self-Attention with Relative Position Representations”一文中的做法做一下联系。它对$(4)$式的拆解为：</p>
+<script type="math/tex; mode=display">
+S = XW^Q (XW^K + R)^T = QK^T + XW^QR^T \tag{18}</script><p>即只对key部分叠加了相对位置信息。其中对第二项$XW^QR^T$的计算同样可以按照$(17)$和$(12)$的结论进行。由此便将两种使用相对位置编码的self-attention在计算方法和逻辑上得到了统一。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://www.funcwj.cn/2020/11/02/mhsa-relpose-computation/" title="使用相对位置编码下MHSA的计算">https://www.funcwj.cn/2020/11/02/mhsa-relpose-computation/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/Code/" rel="tag"><i class="fa fa-tag"></i> Code</a>
+              <a href="/tags/Transformer/" rel="tag"><i class="fa fa-tag"></i> Transformer</a>
+              <a href="/tags/MHSA/" rel="tag"><i class="fa fa-tag"></i> MHSA</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/05/into-wpe/" rel="prev" title="INTO WPE">
+      <i class="fa fa-chevron-left"></i> INTO WPE
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/28/dev-of-aps/" rel="next" title="Development of APS">
+      Development of APS <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="WJ"
+      src="/uploads/avatar.JPG">
+  <p class="site-author-name" itemprop="name">WJ</p>
+  <div class="site-description" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">85</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">73</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/funcwj" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:funcwj@foxmail.com" title="E-Mail → mailto:funcwj@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.funcwj.cn/" title="Jianwu → https:&#x2F;&#x2F;www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://wangbaiyuan.cn/" title="http:&#x2F;&#x2F;wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://jcf94.com/" title="http:&#x2F;&#x2F;jcf94.com" rel="noopener" target="_blank">jcf94</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://hujian.website/" title="https:&#x2F;&#x2F;hujian.website" rel="noopener" target="_blank">hijkzzz</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://placebokkk.github.io/" title="http:&#x2F;&#x2F;placebokkk.github.io&#x2F;" rel="noopener" target="_blank">Yang Chao</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/xingshansi/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xingshansi&#x2F;" rel="noopener" target="_blank">桂的blog</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http:&#x2F;&#x2F;homes.esat.kuleuven.be&#x2F;~dspuser&#x2F;dasp&#x2F;index.html" rel="noopener" target="_blank">DASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https:&#x2F;&#x2F;ccrma.stanford.edu&#x2F;~jos&#x2F;sasp&#x2F;sasp.html" rel="noopener" target="_blank">SASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https:&#x2F;&#x2F;link.springer.com&#x2F;book&#x2F;10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.audiolabs-erlangen.de/home" title="https:&#x2F;&#x2F;www.audiolabs-erlangen.de&#x2F;home" rel="noopener" target="_blank">AudioLibs</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://arxiv.org/list/eess.AS/recent" title="https:&#x2F;&#x2F;arxiv.org&#x2F;list&#x2F;eess.AS&#x2F;recent" rel="noopener" target="_blank">ASLP Arxiv</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https:&#x2F;&#x2F;signalprocessingsociety.org&#x2F;publications-resources&#x2F;ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https:&#x2F;&#x2F;www.isca-speech.org&#x2F;iscaweb&#x2F;index.php&#x2F;archive&#x2F;online-archive" rel="noopener" target="_blank">ISCA</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https:&#x2F;&#x2F;ai.google&#x2F;research&#x2F;pubs&#x2F;?area&#x3D;SpeechProcessing" rel="noopener" target="_blank">Google</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www-i6.informatik.rwth-aachen.de/" title="http:&#x2F;&#x2F;www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http:&#x2F;&#x2F;www.merl.com&#x2F;publications&#x2F;?ystart&#x3D;1991&amp;yend&#x3D;2019&amp;sa&#x3D;on" rel="noopener" target="_blank">MERL</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https:&#x2F;&#x2F;ei.uni-paderborn.de&#x2F;en&#x2F;nt&#x2F;research-mission&#x2F;publications&#x2F;" rel="noopener" target="_blank">Paderborn</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http:&#x2F;&#x2F;bio-asplab.citi.sinica.edu.tw&#x2F;p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http:&#x2F;&#x2F;www.kecl.ntt.co.jp&#x2F;english&#x2F;index.html" rel="noopener" target="_blank">NTT-CSL</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.irisa.fr/metiss/ozerov/" title="http:&#x2F;&#x2F;www.irisa.fr&#x2F;metiss&#x2F;ozerov&#x2F;" rel="noopener" target="_blank">Alexey Ozerov</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://israelcohen.com/" title="https:&#x2F;&#x2F;israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.eng.biu.ac.il/gannot/" title="http:&#x2F;&#x2F;www.eng.biu.ac.il&#x2F;gannot&#x2F;" rel="noopener" target="_blank">Sharon Gannot</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.danielpovey.com/" title="http:&#x2F;&#x2F;www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http:&#x2F;&#x2F;web.cse.ohio-state.edu&#x2F;~wang.77&#x2F;pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;shinjiwatanabe&#x2F;publications" rel="noopener" target="_blank">Shinji Watanabe</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/site/dongyu888/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;dongyu888&#x2F;" rel="noopener" target="_blank">Dong Yu</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https:&#x2F;&#x2F;www.citi.sinica.edu.tw&#x2F;pages&#x2F;yu.tsao&#x2F;publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/site/tsainath/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;tsainath&#x2F;" rel="noopener" target="_blank">Tara N.</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.jonathanleroux.org/" title="http:&#x2F;&#x2F;www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https:&#x2F;&#x2F;speechlab.sjtu.edu.cn&#x2F;members&#x2F;yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https:&#x2F;&#x2F;www.microsoft.com&#x2F;en-us&#x2F;research&#x2F;people&#x2F;tayoshio&#x2F;" rel="noopener" target="_blank">Takuya Yoshioka</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https:&#x2F;&#x2F;scholar.google.com&#x2F;citations?user&#x3D;QG8aWfIAAAAJ&amp;hl&#x3D;zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/view/xuyong/home" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;xuyong&#x2F;home" rel="noopener" target="_blank">Yong Xu</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http:&#x2F;&#x2F;staff.ustc.edu.cn&#x2F;~jundu&#x2F;Publications.html" rel="noopener" target="_blank">Jun Du</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">381k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">5:47</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
