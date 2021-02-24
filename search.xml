@@ -1,6 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>后续文章列表</title>
+    <url>/2021/02/21/coming-next/</url>
+    <content><![CDATA[<ul>
+<li>Update Hexo &amp; Next （站点更新记录）</li>
+<li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
+<li>TF-mask &amp; Spectral Gain (噪声抑制算法中的Gain)</li>
+<li>Unsupervised Training of FE （前端的一些无监督训练方法）</li>
+<li>Play with Beam Search (beam search的一些话题)</li>
+</ul>
+]]></content>
+      <categories>
+        <category>随笔</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Operations on Hermitian Matrix</title>
+    <url>/2021/02/04/det-inv-eig-on-hermitian-matrix/</url>
+    <content><![CDATA[<p>本篇文章拖了一段时间，说一下几个常见的复矩阵操作问题。在传统的信号处理方法中，频域是定义在复数域（$\mathbb{C}$）中的，所以我们经常会在算法中看到复数矩阵上的诸如求逆，求行列式，特征值分解等操作，比如adaptive beamforming（求逆，特征值），WPE（求逆）和CGMM（求逆，行列式）等等。最近几年，基于NN的前后端联合建模这块大家做的比较多，多通道上要结合自适应波束，WPE，或者使用一些最大似然估计的无监督损失函数，就需要将上述操作包络到网络中参与训练。因此如何在仅支持实数操作的DL框架（比如PyTorch）中进行这些复矩阵操作且保证梯度可传就成为了一个首先要被解决的问题。</p>
+<a id="more"></a>
+<p>目前最直观和方便的思路就是通过实数矩阵得到复矩阵操作的等价结果，像一些常见的加减乘除操作计算起来都十分直接。本篇文章主要说一下求逆，特征值，行列式这三个略微复杂的计算方法。一般情况下，我们进行这些操作的复矩阵对象为埃尔米特矩阵（满足共轭对称），因此可以充分利用此矩阵的相关性质简化计算。令埃尔米特矩阵$H \in \mathbb{C}^{N \times N}$，讨论如下：</p>
+<h3 id="求逆"><a href="#求逆" class="headerlink" title="求逆"></a>求逆</h3><p>假设$H$存在可逆矩阵$P$，根据定义有：</p>
+<script type="math/tex; mode=display">
+(Hr + jH_i) * (P_r + j P_i) = I \to \begin{cases}
+H_r * P_r - H_i * P_i = I \\
+H_i * P_r + H_r * P_i = 0
+\end{cases} \tag{1}</script><p>据此构建出的实矩阵$\bar{H}, \bar{P} \in \mathbb{R}^{2N \times 2N}$：</p>
+<script type="math/tex; mode=display">
+\bar{H} = 
+\begin{bmatrix}
+H_r & -H_i \\
+H_i & H_r
+\end{bmatrix}, \quad
+\bar{P} = 
+\begin{bmatrix}
+P_r & -P_i \\
+P_i & P_r
+\end{bmatrix} \tag{2}</script><p>同样满足$\bar{H}*\bar{P} = I$：</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}
+H_r & -H_i \\
+H_i & H_r
+\end{bmatrix} * 
+\begin{bmatrix}
+P_r & -P_i \\
+P_i & P_r
+\end{bmatrix} = 
+\begin{bmatrix}
+H_r * P_r - H_i * P_i & -H_r * P_i - H_i * P_r \\
+H_i * P_r + H_r * P_i & - H_i * P_i + H_r * P_r 
+\end{bmatrix} = 
+\begin{bmatrix}
+I & 0 \\
+0 & I
+\end{bmatrix} \tag{3}</script><p>即如果$H$可逆，那么其逆矩阵的实部和虚部可由其拓展实矩阵$\bar{H}$的逆$\bar{P} = \bar{H}^{-1}$求出。在PyTorch框架上，只需要调用一次对$\bar{H}$的求逆即可。</p>
+<h3 id="特征值-amp-行列式"><a href="#特征值-amp-行列式" class="headerlink" title="特征值 &amp; 行列式"></a>特征值 &amp; 行列式</h3><p>根据埃尔米特矩阵的性质，其特征值都为实数，加之前端算法中处理的相关矩阵一般都要求其可逆，因此$H$也满足正定性，即特征值为正。前端的一些算法中其实对特征值这个概念没有直接的需求，波束里面多用的是特征向量，但是有些情况下我们需要求解$H$矩阵的行列式的值，什么情况下呢，比如我们要优化cacgmm的目标函数：</p>
+<script type="math/tex; mode=display">
+p(\mathbf{y}_{tf}|\mathbf{R}_f) = \frac{(M-1)!}{2\pi^M \det \mathbf{R}_f} \frac{1}{(\mathbf{y}_{tf}^H\mathbf{R}_f^{-1}\mathbf{y}_{tf})^M} \tag{4}</script><p>$\mathbf{R}_f^{-1}$项我们已经解决，剩下$\det \mathbf{R}_f$待解。根据行列式等于特征值的乘积的性质可将行列式的计算转化为特征值的求解问题。假设$\lambda$是$H$的一个特征值，$p$是其对应的特征向量，根据定义有：</p>
+<script type="math/tex; mode=display">
+H*p = p * \lambda \to
+\begin{cases}
+H_r * p_r - H_i * p_i = p_r \cdot \lambda \\
+H_i * p_r + H_r * p_i = p_i \cdot \lambda
+\end{cases} \tag{5}</script><p>对于$(2)$中的$\bar{H}$，有：</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}
+H_r & -H_i \\
+H_i & H_r
+\end{bmatrix} * 
+\begin{bmatrix}
+p_r \\
+p_i
+\end{bmatrix} =
+\begin{bmatrix}
+p_r \\
+p_i
+\end{bmatrix} \cdot \lambda \tag{6}</script><p>以及</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}
+H_r & -H_i \\
+H_i & H_r
+\end{bmatrix} * 
+\begin{bmatrix}
+-p_i \\
+p_r
+\end{bmatrix} =
+\begin{bmatrix}
+-p_i \\
+p_r
+\end{bmatrix} \cdot \lambda \tag{7}</script><p>即$\lambda$是$\bar{H}$的二重特征值，其对应的两个特征向量为$[p_r, p_i]$和$[-p_i, p_r]$。如果只是想求行列式，那么可以暂且不关心特征值和特征向量的对应关系，得到$N$个非重特征值$\lambda_{0 \cdots N - 1}$之后，由：</p>
+<script type="math/tex; mode=display">
+\det H = \prod_{i = 0}^{N - 1} \lambda_i \tag{8}</script><p>得到行列式的值即可。</p>
+<h3 id="特征向量"><a href="#特征向量" class="headerlink" title="特征向量"></a>特征向量</h3><p>如果想进一步得到特征向量的表示，需要看一下其和特征值之间的对应关系。将$(6)(7)$式合并写成矩阵形式：</p>
+<script type="math/tex; mode=display">
+\bar{H} * \bar{P} = \bar{P} * \bar{\Lambda} = \begin{bmatrix}
+H_r & -H_i \\
+H_i & H_r
+\end{bmatrix} * 
+\begin{bmatrix}
+P_r & -P_i \\
+P_i & P_r
+\end{bmatrix} =
+\begin{bmatrix}
+P_r & -P_i \\
+P_i & P_r
+\end{bmatrix} * 
+\begin{bmatrix}
+\Lambda & 0 \\
+0 & \Lambda
+\end{bmatrix}
+\tag{9}</script><p>其中$\Lambda = \text{diag}(\lambda_0, \cdots, \lambda_{N - 1})$。在numpy和pytorch的<code>eig</code>函数得到的特征值默认将重值放在一起，因此需要对应的把$(9)$式改写成</p>
+<script type="math/tex; mode=display">
+\bar{H} * \bar{P}' = \bar{P}' * \bar{\Lambda}' \tag{10}</script><p>其中</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\bar{P}'  & = \begin{bmatrix}
+p_{r, 0} & -p_{i, 0} & \cdots & p_{r, N- 1} & -p_{i, N - 1} \\
+p_{i, 0} & p_{r, 0} &  \cdots & p_{i, N -1} & p_{r, N - 1}
+\end{bmatrix} \\
+\bar{\Lambda}' & = \text{diag}(\lambda_0, \lambda_0， \cdots, \lambda_{N - 1}， \lambda_{N - 1})
+\end{align} \tag{11}</script><p>不过由于存在重根，因此$\bar{P}’$矩阵中的第$i <em> N$列和$i </em> N + 1$列即使发生交换，$(10)$式也同样成立，这样就带来了实部，虚部和正负号上的混淆。我暂时还没有找到一种确定性的方法能够完全匹配复矩阵下的特征向量计算结果，所以也就没有将特征向量的计算纳入到神经网络的优化中去。后续如果发现好的方案继续在此更新。</p>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>最后可以在numpy上简单写个测试程序验证一下上述结果</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># wujian@2020</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> torch <span class="keyword">as</span> th</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">random_cmat</span><span class="params">(N)</span>:</span></span><br><span class="line">    R = np.random.rand(N, N)</span><br><span class="line">    I = np.random.rand(N, N)</span><br><span class="line">    M = R + I * <span class="number">1j</span></span><br><span class="line">    M = <span class="number">0.5</span> * (M + M.T.conj())</span><br><span class="line">    eig_val, eig_vec = np.linalg.eigh(M)</span><br><span class="line">    eig_val[eig_val &lt; <span class="number">0.0001</span>] = <span class="number">0.0001</span></span><br><span class="line">    M = eig_vec @ np.diag(eig_val) @ eig_vec.T.conj()</span><br><span class="line">    <span class="keyword">return</span> M</span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pack_cmat</span><span class="params">(cmat)</span>:</span></span><br><span class="line">    n = cmat.shape[<span class="number">0</span>]</span><br><span class="line">    rmat = np.zeros([n * <span class="number">2</span>, n * <span class="number">2</span>])</span><br><span class="line">    rmat[:n, :n] = cmat.real</span><br><span class="line">    rmat[:n, n:] = -cmat.imag</span><br><span class="line">    rmat[n:, :n] = cmat.imag</span><br><span class="line">    rmat[n:, n:] = cmat.real</span><br><span class="line">    <span class="keyword">return</span> rmat</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_cplx_inv</span><span class="params">()</span>:</span></span><br><span class="line">    M = random_cmat(<span class="number">4</span>)</span><br><span class="line">    M_inv = np.linalg.inv(M)</span><br><span class="line">    N = pack_cmat(M)</span><br><span class="line">    N_inv_fake = np.linalg.inv(N)</span><br><span class="line">    N_inv = np.zeros_like(M)</span><br><span class="line">    N_inv.real = N_inv_fake[:<span class="number">4</span>, :<span class="number">4</span>]</span><br><span class="line">    N_inv.imag = N_inv_fake[<span class="number">4</span>:, :<span class="number">4</span>]</span><br><span class="line">    <span class="keyword">assert</span> np.allclose(M_inv, N_inv)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_cplx_eig</span><span class="params">()</span>:</span></span><br><span class="line">    M = random_cmat(<span class="number">4</span>)</span><br><span class="line">    cplx_eig_val, _ = np.linalg.eigh(M, UPLO=<span class="string">"U"</span>)</span><br><span class="line">    cplx_det = np.linalg.det(M).real</span><br><span class="line">    N = pack_cmat(M)</span><br><span class="line">    real_eig_val, _ = np.linalg.eigh(N, UPLO=<span class="string">"U"</span>)</span><br><span class="line">    real_eig_val = real_eig_val[::<span class="number">2</span>]</span><br><span class="line">    real_det = np.cumprod(real_eig_val)[<span class="number">-1</span>]</span><br><span class="line">    <span class="keyword">assert</span> np.allclose(cplx_eig_val, real_eig_val)</span><br><span class="line">	<span class="keyword">assert</span> np.allclose(cplx_det, real_det)</span><br><span class="line">    </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    test_cplx_inv()</span><br><span class="line">    test_cplx_eig()</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Algorithm</category>
+      </categories>
+      <tags>
+        <tag>CACGMM</tag>
+        <tag>Hermitian</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Development of APS</title>
     <url>/2020/11/28/dev-of-aps/</url>
     <content><![CDATA[<p>在过去的接近两年时间内，我断断续续的在维护着一个我自己称之为APS的项目。本篇文章用来记录一下其背后的开发历程和相关感悟。</p>
@@ -263,20 +394,6 @@ y'_{\text{early}, t, f, m} = y_{t, f, m} - \mathbf{G}_{f,m}^H \overline{\mathbf{
         <tag>WPE</tag>
         <tag>Dereverberation</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>后续文章列表</title>
-    <url>/2020/04/11/coming-next/</url>
-    <content><![CDATA[<ul>
-<li>Update Hexo &amp; Next （站点更新记录）</li>
-<li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
-<li>TF-mask &amp; Spectral Gain (噪声抑制算法中的Gain)</li>
-<li>Unsupervised Training of FE （前端的一些无监督训练方法）</li>
-</ul>
-]]></content>
-      <categories>
-        <category>随笔</category>
-      </categories>
   </entry>
   <entry>
     <title>Conv1D Operations</title>
