@@ -4,7 +4,6 @@
     <title>后续文章列表</title>
     <url>/2021/02/21/coming-next/</url>
     <content><![CDATA[<ul>
-<li>Update Hexo &amp; Next （站点更新记录）</li>
 <li>Permutation Alignment Algorithm （BSS空间聚类算法的后处理对齐算法）</li>
 <li>TF-mask &amp; Spectral Gain (噪声抑制算法中的Gain)</li>
 <li>Unsupervised Training of FE （前端的一些无监督训练方法）</li>
