@@ -30,7 +30,7 @@
 <meta property="og:description" content="本篇文章拖了一段时间，说一下几个常见的复矩阵操作问题。在传统的信号处理方法中，频域是定义在复数域（$\mathbb{C}$）中的，所以我们经常会在算法中看到复数矩阵上的诸如求逆，求行列式，特征值分解等操作，比如adaptive beamforming（求逆，特征值），WPE（求逆）和CGMM（求逆，行列式）等等。最近几年，基于NN的前后端联合建模这块大家做的比较多，多通道上要结合自适应波束，WPE">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-02-04T11:09:47.000Z">
-<meta property="article:modified_time" content="2021-02-24T11:17:14.279Z">
+<meta property="article:modified_time" content="2021-03-10T17:21:42.723Z">
 <meta property="article:author" content="WJ">
 <meta property="article:tag" content="CACGMM">
 <meta property="article:tag" content="Hermitian">
@@ -135,7 +135,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">86</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">87</span></a>
 
   </li>
         <li class="menu-item menu-item-categories">
@@ -145,7 +145,7 @@
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">74</span></a>
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">75</span></a>
 
   </li>
         <li class="menu-item menu-item-footprint">
@@ -367,7 +367,7 @@ p_{r, 0} & -p_{i, 0} & \cdots & p_{r, N- 1} & -p_{i, N - 1} \\
 p_{i, 0} & p_{r, 0} &  \cdots & p_{i, N -1} & p_{r, N - 1}
 \end{bmatrix} \\
 \bar{\Lambda}' & = \text{diag}(\lambda_0, \lambda_0， \cdots, \lambda_{N - 1}， \lambda_{N - 1})
-\end{align} \tag{11}</script><p>不过由于存在重根，因此$\bar{P}’$矩阵中的第$i <em> N$列和$i </em> N + 1$列即使发生交换，$(10)$式也同样成立，这样就带来了实部，虚部和正负号上的混淆。我暂时还没有找到一种确定性的方法能够完全匹配复矩阵下的特征向量计算结果，所以也就没有将特征向量的计算纳入到神经网络的优化中去。后续如果发现好的方案继续在此更新。</p>
+\end{align} \tag{11}</script><p>不过由于存在重根，因此$\bar{P}’$矩阵中的第$i \times N$列和$i \times N + 1$列即使发生交换，$(10)$式也同样成立，这样就带来了实部，虚部和正负号上的混淆。我暂时还没有找到一种确定性的方法能够完全匹配复矩阵下的特征向量计算结果，所以也就没有将特征向量的计算纳入到神经网络的优化中去。后续如果发现好的方案继续在此更新。</p>
 <h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>最后可以在numpy上简单写个测试程序验证一下上述结果</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># wujian@2020</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> torch <span class="keyword">as</span> th</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">random_cmat</span><span class="params">(N)</span>:</span></span><br><span class="line">    R = np.random.rand(N, N)</span><br><span class="line">    I = np.random.rand(N, N)</span><br><span class="line">    M = R + I * <span class="number">1j</span></span><br><span class="line">    M = <span class="number">0.5</span> * (M + M.T.conj())</span><br><span class="line">    eig_val, eig_vec = np.linalg.eigh(M)</span><br><span class="line">    eig_val[eig_val &lt; <span class="number">0.0001</span>] = <span class="number">0.0001</span></span><br><span class="line">    M = eig_vec @ np.diag(eig_val) @ eig_vec.T.conj()</span><br><span class="line">    <span class="keyword">return</span> M</span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pack_cmat</span><span class="params">(cmat)</span>:</span></span><br><span class="line">    n = cmat.shape[<span class="number">0</span>]</span><br><span class="line">    rmat = np.zeros([n * <span class="number">2</span>, n * <span class="number">2</span>])</span><br><span class="line">    rmat[:n, :n] = cmat.real</span><br><span class="line">    rmat[:n, n:] = -cmat.imag</span><br><span class="line">    rmat[n:, :n] = cmat.imag</span><br><span class="line">    rmat[n:, n:] = cmat.real</span><br><span class="line">    <span class="keyword">return</span> rmat</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_cplx_inv</span><span class="params">()</span>:</span></span><br><span class="line">    M = random_cmat(<span class="number">4</span>)</span><br><span class="line">    M_inv = np.linalg.inv(M)</span><br><span class="line">    N = pack_cmat(M)</span><br><span class="line">    N_inv_fake = np.linalg.inv(N)</span><br><span class="line">    N_inv = np.zeros_like(M)</span><br><span class="line">    N_inv.real = N_inv_fake[:<span class="number">4</span>, :<span class="number">4</span>]</span><br><span class="line">    N_inv.imag = N_inv_fake[<span class="number">4</span>:, :<span class="number">4</span>]</span><br><span class="line">    <span class="keyword">assert</span> np.allclose(M_inv, N_inv)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test_cplx_eig</span><span class="params">()</span>:</span></span><br><span class="line">    M = random_cmat(<span class="number">4</span>)</span><br><span class="line">    cplx_eig_val, _ = np.linalg.eigh(M, UPLO=<span class="string">"U"</span>)</span><br><span class="line">    cplx_det = np.linalg.det(M).real</span><br><span class="line">    N = pack_cmat(M)</span><br><span class="line">    real_eig_val, _ = np.linalg.eigh(N, UPLO=<span class="string">"U"</span>)</span><br><span class="line">    real_eig_val = real_eig_val[::<span class="number">2</span>]</span><br><span class="line">    real_det = np.cumprod(real_eig_val)[<span class="number">-1</span>]</span><br><span class="line">    <span class="keyword">assert</span> np.allclose(cplx_eig_val, real_eig_val)</span><br><span class="line">	<span class="keyword">assert</span> np.allclose(cplx_det, real_det)</span><br><span class="line">    </span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    test_cplx_inv()</span><br><span class="line">    test_cplx_eig()</span><br></pre></td></tr></table></figure>
     </div>
@@ -410,7 +410,7 @@ p_{i, 0} & p_{r, 0} &  \cdots & p_{i, N -1} & p_{r, N - 1}
       <i class="fa fa-chevron-left"></i> Development of APS
     </a></div>
       <div class="post-nav-item">
-    <a href="/2021/02/21/coming-next/" rel="next" title="后续文章列表">
+    <a href="/2021/03/07/coming-next/" rel="next" title="后续文章列表">
       后续文章列表 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
@@ -488,7 +488,7 @@ p_{i, 0} & p_{r, 0} &  \cdots & p_{i, N -1} & p_{r, N - 1}
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">86</span>
+          <span class="site-state-item-count">87</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -501,7 +501,7 @@ p_{i, 0} & p_{r, 0} &  \cdots & p_{i, N -1} & p_{r, N - 1}
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">74</span>
+        <span class="site-state-item-count">75</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -662,12 +662,12 @@ p_{i, 0} & p_{r, 0} &  \cdots & p_{i, N -1} & p_{r, N - 1}
     <span class="post-meta-item-icon">
       <i class="fa fa-area-chart"></i>
     </span>
-    <span title="站点总字数">385k</span>
+    <span title="站点总字数">395k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">5:50</span>
+    <span title="站点阅读时长">5:59</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
   </div>

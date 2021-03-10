@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="硕士毕业之前看到了一些关于语音分离上进行无监督训练的文章，觉得很有意思，想在本篇文章中小结一下。语音前端的包含的诸多任务，比如增强，分离，去混，去回声等等，核心都在于解决如何从观测信号中生成目标信号这一问题。传统算法会根据不同的声学场景下进行数学建模，产生信号模型，之后引入一些假设先验进行求解。Deep Learning兴起之后，方法论逐渐变成了从人为生成的大量成对数据中使用网络直接进行信号生成或">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unsupervised Training in Speech Separation Task">
+<meta property="og:url" content="https://www.funcwj.cn/2020/08/11/unsuper-training-ss/index.html">
+<meta property="og:site_name" content="WJ&#39;s site">
+<meta property="og:description" content="硕士毕业之前看到了一些关于语音分离上进行无监督训练的文章，觉得很有意思，想在本篇文章中小结一下。语音前端的包含的诸多任务，比如增强，分离，去混，去回声等等，核心都在于解决如何从观测信号中生成目标信号这一问题。传统算法会根据不同的声学场景下进行数学建模，产生信号模型，之后引入一些假设先验进行求解。Deep Learning兴起之后，方法论逐渐变成了从人为生成的大量成对数据中使用网络直接进行信号生成或">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.funcwj.cn/images/bss-frequency-permutation.jpg">
+<meta property="article:published_time" content="2020-08-11T03:09:03.000Z">
+<meta property="article:modified_time" content="2021-03-10T17:30:14.326Z">
+<meta property="article:author" content="WJ">
+<meta property="article:tag" content="CACGMM">
+<meta property="article:tag" content="Unsupervised">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.funcwj.cn/images/bss-frequency-permutation.jpg">
+
+<link rel="canonical" href="https://www.funcwj.cn/2020/08/11/unsuper-training-ss/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Unsupervised Training in Speech Separation Task | WJ's site</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?01edb048a0d71e5d0a00ae47bdb0dbe2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's site</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">我只是好奇</p>
+  </div>
+
+  <div class="site-nav-right"></div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>站点首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">87</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">75</span></a>
+
+  </li>
+        <li class="menu-item menu-item-footprint">
+
+    <a href="/footprint/" rel="section"><i class="fa fa-fw fa-map-marker"></i>足迹地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>文章搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2020/08/11/unsuper-training-ss/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's site">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unsupervised Training in Speech Separation Task
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-11 11:09:03" itemprop="dateCreated datePublished" datetime="2020-08-11T11:09:03+08:00">2020-08-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Speech-Separation/" itemprop="url" rel="index">
+                    <span itemprop="name">Speech Separation</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>硕士毕业之前看到了一些关于语音分离上进行无监督训练的文章，觉得很有意思，想在本篇文章中小结一下。语音前端的包含的诸多任务，比如增强，分离，去混，去回声等等，核心都在于解决如何从观测信号中生成目标信号这一问题。传统算法会根据不同的声学场景下进行数学建模，产生信号模型，之后引入一些假设先验进行求解。Deep Learning兴起之后，方法论逐渐变成了从人为生成的大量成对数据中使用网络直接进行信号生成或者中间变量的估计，比如mask等等。在此之下，了解求解问题对应的信号模型的另一个作用就是指导我们生成匹配的成对数据，用于网络训练，这一过程也叫数据模拟（data simulation）。人为的数据生成有至少两个显而易见的优势，一是理论上无穷的训练样本，二是可以拿到ground truth的参考信号（否则无法进行网络训练这一监督学习的过程）。而相对应的，也会遗留下一个所谓data mismatch的问题，即产品中模型需要在实录环境下工作，而训练阶段网络仅仅只见到了人工模拟的数据。对于语音前端中的诸多问题，我们很难从实录的信号中获取信号模型里对应的目标信号（这里不同于ASR的抄本，无法做人工标记），比如增强任务中的降噪语音，分离任务中的单说话人，去混任务中的early part等等。因此理论上如果能缓解数据层面的mismatch，是有希望继续提升前端模型在实际场景中的表现的。</p>
+<a id="more"></a>
+<h3 id="Methods"><a href="#Methods" class="headerlink" title="Methods"></a>Methods</h3><p>上面写了一些文字，主要也是想引入unsupervised training这个主题。之所以网络难以使用real data进行训练或者优化，核心在于我们拿不到训练所需的参考信号或者标签。反过来思考，如果可以想办法从中获取到一些可用的参考信号/标签，那么就可以克服这个问题。如何从实录信号中获取这些信息呢？</p>
+<p>一个非常直接的思路，用传统的信号方法获取！本站点前面有一些文章介绍了一些单，多通道的增强和分离算法，虽然效果上不及目前基于网络的模型，但是无监督这一性质却比较吸引人，且这些算法大多不存在所谓的data mismatch问题（这里解释一步，mismatch还是存在的，比如算法基于的信号模型和实际信号的产生过程存在mismatch）。参考文献部分列举的[1-5]全部是沿着这种思路，大的区分即在于使用的无监督算法不同。到这里其实做过ASR的同学对这个过程应该感到熟悉，因为它十分类似于GMM-DNN的hybrid模型。ASR的hybrid模型训练，依赖GMM模型对齐产生的状态级别（state level）序列，而在分离任务中，我们也可以借助无监督算法（比如空间聚类算法家族）产生一个初始的伪标签（文献中多称为pseudo targets）指导下一步的网络训练。</p>
+<p>下面简单概括和评论一下文章[1-5]，感兴趣的同学可以详细看一下论文。[1-5]全部使用的是多通道的无监督算法产生初始标签，这是在意料之中，因为只有在多通道下才有可供分辨的空间信息加以利用，背后的原理我在前面的相关文章中已经多次解释了。拿到初始伪标签之后，由于数据本身是多通道的，因此我们可以选择去训练单或者多通道的网络模型。文章[1-3]是基于Deep Clustering的思路，无监督算法主要用于生成binary mask标签。文章[1]使用的是cacgmm算法，将预先处理得到的ratio mask转换为binary mask后训练单通道的DPCL模型。在作者的测试集上（WSJ multi-channel simulation数据集），这种方法训练的模型配合MVDR波束得到的WER已经可以媲美使用oracle标签的结果。[2]的信号模型十分简单，只考虑了信号衰减和时间延迟，使用K-means算法对双通道数据的NPD（normalized phase difference）特征进行聚类产生的binary mask训练DPCL模型。这个思路和[1]十分类似，这里不做过多介绍，但是个人的一个看法是，如果考虑噪声和混响存在的情况，仅仅依赖K-means算法对NPD的聚类结果大概率是不靠谱的:(。[3]是MERL发的一篇文章，聚类算法采用的是如下过程，先对双通道的语音提取cosIPD和sinIPD特征，之后进行PCA降维，最后使用GMM进行聚类，利用贝叶斯公式计算出每个GMM成分的后验作为soft mask然后转换成DPCL需要的binary mask标签。不同于[1,2]的是，其在训练阶段使用了weighted版本的DPCL代价函数，引入的weight矩阵主要用于解决聚类算法产生的标签存在的不可靠问题，对于不可靠的标签赋予较弱的权重。从实验的结论上看，单纯依靠伪标签训练的单通道DPCL模型要比使用oracle的模型在SDR上有6个DB的差距。不过由于在实验结论中，其采用的无监督算法在双通道上可以产生比伪标签训练的单通道DPCL好的结果（差距1dB+），因此个人觉得如果增加多通道的DPCL模型，是可以拿到一个更好的结果的（不过由于这篇文章强调的是要bootstrap单通道模型，所以并没有增加这一实验）。</p>
+<p>比较有意思的是较早的几篇文章均是在DPCL上做unsupervised training的相关实验，个人觉得原因有二：一是DPCL是最早提出的用于解决语音分离问题的基于深度学习的方法，因此比较具有代表性。其二是DPCL依赖的标签是类别标签（等效为binary mask），对于无监督算法而言，其不可避免的会产生不可靠的预测，因此量化成binary的结果可以提升伪标签的可靠性的。</p>
+<p>[4-5]是同一个单位的文章，采用的是基于LGM（local gaussian modeling）模型的BSS算法，并使用KLD代价函数优化网络。网络端主要预测不同成分的TF mask，然后计算对应的相关矩阵，BSS端则依赖EM算法产生，最后用KLD去优化两者在LGM模型中产生的概率分布，使得网络端向BSS端靠近。[5]相对于[4]的改进在于使用了Mentoring-Reverse Mentoring的技巧提升BSS算法产生的伪标签质量。[4]中，使用LGM模型指导一次网络训练即结束，而在Mentoring-Reverse Mentoring中，会反复的将前一步指导训练的网络放到LGM之前再次生成伪标签指导下一轮训练，迭代下去。[4,5]均指出，其提出的方法要比[1]中的，使用cacgmm直接生成binary或者ratio的mask训练DPCL或者PIT的网络结果要好。虽然这两篇文章使用的训练数据量非常有限（仅仅1k），但是就方法本身还是有一些借鉴意义，即从distribution的角度去考虑设计代价函数优化网络，而非使用mask标签。</p>
+<p>[6]是我自己非常欣赏的一篇文章，不得不感叹Paderborn在盲源分离空间聚类家族的理解之深入。和[1-5]使用伪标签指导网络的思路不同，[6]提出直接使用cacgmm的对数似然函数作为代价函数优化网络，下面介绍一下具体如何操作。首先回顾一下CACGMM对观测向量$\mathbf{z}_{tf} = \mathbf{y}_{tf} / \Vert \mathbf{y}_{tf} \Vert$的建模：</p>
+<script type="math/tex; mode=display">
+p(\mathbf{z}_{tf}) = \sum_k \pi_{kf} p(\mathbf{z}_{tf} | \mathbf{B}_{kf}) \tag{1}</script><p>其中$K$表示高斯分量的个数，如果建模噪声分量的话，一般$K = C + 1$，$C$是说话人个数。依据CACG分布，有</p>
+<script type="math/tex; mode=display">
+p(\mathbf{z}_{tf} | \mathbf{B}_{kf}) = \frac{(M - 1)!}{2 \pi^{M} \det \mathbf{B}_{kf}} \frac{1}{(\mathbf{z}_{tf}^H \mathbf{B}_{kf}^{-1} \mathbf{z}_{tf})^M} \tag{2}</script><p>高斯成分$k$的后验概率</p>
+<script type="math/tex; mode=display">
+\gamma_{ktf} = \frac{p(\mathbf{z}_{tf} | \mathbf{B}_{kf})}{\sum_k \pi_{kf} p(\mathbf{z}_{tf} | \mathbf{B}_{kf})} \tag{3}</script><p>作为对应分量（说话人或者噪声）的mask估计。空间聚类算法均在EM框架下依次迭代得到分布参数，$(3)$作为M步，E步估计$\mathbf{B}_{kf}$和$\pi_{kf}$如下：</p>
+<script type="math/tex; mode=display">
+\begin{align}
+\mathbf{B}_{kf} & = D \sum_t \gamma_{ktf} \frac{\mathbf{z}_{tf} \mathbf{z}_{tf}^H}{\mathbf{z}_{tf}^H \mathbf{B}_{kf}^{-1} \mathbf{z}_{tf}} / \sum_t \gamma_{ktf} \\
+\pi_{kf} & = \frac{1}{T} \sum_t \gamma_{ktf} \\
+\end{align} \tag{4}</script><p>正常情况下，经过E步和M步的迭代，式$(1)$中的似然值会递增，将所有TF-bin的似然值累加得到累计的似然值（下式取了对数）也会递增：</p>
+<script type="math/tex; mode=display">
+\mathcal{L} = \sum_{t,f} \log \sum_k \pi_{kf} p(\mathbf{z}_{tf} | \mathbf{B}_{kf}) \tag{5}</script><p>因此这背后有一个比较直观的逻辑，既然EM算法是通过E步和M步的迭代优化$(5)$式，为什么不可以直接使用$(5)$式作为代价函数对网络进优化呢？从实现的角度来说，$(5)$式仅依赖分布参数$\mathbf{B}_{kf}$和$\pi_{kf}$。如果我们使用网络估计出初始的$\gamma_{ktf}$（也就是mask），那么通过E步得到分布参数之后便可以计算出对数似然进行反向传播更新网络权重。实际上这就是文章[6]的提出的核心方法（虽然还提出了两个函数变体，但是和上述思路不冲突）。在理解完这背后的逻辑之后，我第一时间在CHiME4数据集上尝试了复现，也得到了理想的mask估计。实验过程中有几个问题强调如下：</p>
+<ol>
+<li>实际在$(4)$式中计算$\mathbf{B}_{kf}$的时候，将$\mathbf{z}_{tf}^H \mathbf{B}_{kf}^{-1} \mathbf{z}_{tf}$视为单位矩阵$\mathbf{I}$，和在MVDR这些波束中的相关矩阵估计方法保持一致。</li>
+<li>原始论文使用的配置为$K = 2$，对应speech和noise，实际中我使用$K = 1$（$\gamma_{1,tf}$使用$1 - \gamma_{0, tf}$代替）也可以拿到正常的结果，且训练过程不需要进行permutation的对齐。</li>
+<li>对数似然计算的时候，涉及到复数矩阵的行列式和逆的求解，我在这篇文章中介绍过解法<a href="https://www.funcwj.cn/2021/02/04/det-inv-eig-on-hermitian-matrix/#more">link</a>。</li>
+<li>做推断的时候，$\gamma_{0,tf}$和$\gamma_{1,tf}$是乱序的，所以需要在频率轴上做permutation的对齐。</li>
+</ol>
+<p>个人欣赏文章[6]提出的方法是因为这配得上真正意义上的无监督训练，理想状态下，只需要获取大量的实录数据就可以直接进行网络训练。美中不足在于，如果在用于训练数据上CACGMM算法本身不能拿到正常的效果，那么将其用于网络训练一般也会失效，这就要求数据本身的空间区分性要好一些，在一些比较极端的情况下，比如收音设备距离生源较远，有较强的方向噪声等等，CACGMM本身聚类的结果也会有问题。所以建议感兴趣的同学在开始训练前，先从训练集挑个子集，验证一下CACGMM的效果再进行尝试。从工程的角度，个人觉得可以这种方法可以用于fine tune模型，比如当模型存在比较明显的数据不匹配现象时，可以收集一批数据对该网络进行微调等等。</p>
+<h3 id="Permutation-Alignment"><a href="#Permutation-Alignment" class="headerlink" title="Permutation Alignment"></a>Permutation Alignment</h3><p>前面的一些文章在介绍空间聚类算法的时候都会提到频率轴上的permutation问题。这主要是由于聚类算法本身的属性导致的。空间聚类算法在每个频率（子带）上是独立的进行EM迭代的，即每个频率独立的维护它自己的分布参数，这就有可能导致这样的情况，在频率$f_0$的子带上（假设$K = 2$），$\gamma_{0,tf}$和$\gamma_{1,tf}$对应spk0和spk1的mask，但是在频率$f_1$的子带上，$\gamma_{0,tf}$和$\gamma_{1,tf}$对应的是spk1和spk0。这个问题在EM过程中不影响似然函数的计算，但是当我们进行后续处理，比如做波束的时候，就需要对全频带的mask进行一次调整，把spk0和spk1的mask调整到一起。理论上，如果频率分辨率为$F$，那么所有可能的组合为$K^F$个，因此，无法采用暴力的方式求解最佳的调整组合，需要设计专门的算法进行。下图[7]可以比较形象的看出permutation alignment的必要性，左边是对齐之前的结果，看起来杂乱无章，基本看不出语谱的轮廓，经过对齐算法处理之后得到右图，清晰了很多。</p>
+<p><img src="https://www.funcwj.cn/images/bss-frequency-permutation.jpg" width="500"></p>
+<p>目前公开算法中采用比较多的是Paderborn的实现，原始代码托管在github上pb_bss项目中，但是略微混乱，我看完逻辑之后整理如下，方便大家快速的理解一下整体算法。对于频域$T \times F$的mask矩阵，算法不是直接作用于全部频带，二是从中间某个频带开始，依次向高频和低频拓展，这样做在我个人看来可能是出于高频的空间混叠现象比较严重，而低频比较容易受噪声干扰两个因素，造成聚类效果不佳。<code>supported_plan</code>中的三元组<code>iter_num, beg_freq, end_freq</code>表示当前频率范围进行调整的迭代次数和起止的频率下标。每个频带$[f_\text{beg}, f_\text{end}]$内，算法进行如下操作：</p>
+<ol>
+<li>计算该频带内的mask均值向量$\mathbf{c}_k$</li>
+<li>对该频带内的每个频率上，计算掩码$\mathbf{m}_{k,f}$和$\mathbf{c}_k$的cos距离，按照permutation组合相加，记录最优的组合方式并交换对应的掩码$\mathbf{m}_{k,f}$</li>
+<li>对step2迭代<code>iter_num</code>次</li>
+</ol>
+<p>处理完所有罗列的频带$[f_{\text{beg}}, f_{\text{end}}]$之后算法停止。所以整体看下来，算法谈不上复杂，甚至有些看起来像工程的trick，就我自己的实践而言，大部分情况下都可以把permutation问题解决掉。还有一点需要注意的是，由于一般的语音在高频的能量比较弱，所以即使高频出现了一些混乱，结合波束之后产生的影响也未必很大，故而我们基本可以放心的使用该算法解决所谓置换问题。那么这个置换问题能不能采用其他方法解决呢，答案是可以的。最常见的方法就是通过给定一个有偏的初始化替代随机初始化方法，避免EM朝着随机的收敛方向进行，感兴趣的同学可以自行学习一下Paderborn如何使用所谓的GSS（guide source separation，在初始化上做工作避免了permutation，从而将聚类的结果和speaker对应了起来）方法在CHiME数据集上拿到SOTA的结果。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> scipy.optimize <span class="keyword">import</span> linear_sum_assignment</span><br><span class="line"></span><br><span class="line">supported_plan = &#123;</span><br><span class="line">    <span class="number">257</span>: [[<span class="number">20</span>, <span class="number">70</span>, <span class="number">170</span>], [<span class="number">2</span>, <span class="number">90</span>, <span class="number">190</span>], [<span class="number">2</span>, <span class="number">50</span>, <span class="number">150</span>], [<span class="number">2</span>, <span class="number">110</span>, <span class="number">210</span>],</span><br><span class="line">          [<span class="number">2</span>, <span class="number">30</span>, <span class="number">130</span>], [<span class="number">2</span>, <span class="number">130</span>, <span class="number">230</span>], [<span class="number">2</span>, <span class="number">0</span>, <span class="number">110</span>], [<span class="number">2</span>, <span class="number">150</span>, <span class="number">257</span>]],</span><br><span class="line">    <span class="number">513</span>: [[<span class="number">20</span>, <span class="number">100</span>, <span class="number">200</span>], [<span class="number">2</span>, <span class="number">120</span>, <span class="number">220</span>], [<span class="number">2</span>, <span class="number">80</span>, <span class="number">180</span>], [<span class="number">2</span>, <span class="number">140</span>, <span class="number">240</span>],</span><br><span class="line">          [<span class="number">2</span>, <span class="number">60</span>, <span class="number">160</span>], [<span class="number">2</span>, <span class="number">160</span>, <span class="number">260</span>], [<span class="number">2</span>, <span class="number">40</span>, <span class="number">140</span>], [<span class="number">2</span>, <span class="number">180</span>, <span class="number">280</span>], [<span class="number">2</span>, <span class="number">0</span>, <span class="number">120</span>],</span><br><span class="line">          [<span class="number">2</span>, <span class="number">200</span>, <span class="number">300</span>], [<span class="number">2</span>, <span class="number">220</span>, <span class="number">320</span>], [<span class="number">2</span>, <span class="number">240</span>, <span class="number">340</span>], [<span class="number">2</span>, <span class="number">260</span>, <span class="number">360</span>],</span><br><span class="line">          [<span class="number">2</span>, <span class="number">280</span>, <span class="number">380</span>], [<span class="number">2</span>, <span class="number">300</span>, <span class="number">400</span>], [<span class="number">2</span>, <span class="number">320</span>, <span class="number">420</span>], [<span class="number">2</span>, <span class="number">340</span>, <span class="number">440</span>],</span><br><span class="line">          [<span class="number">2</span>, <span class="number">360</span>, <span class="number">460</span>], [<span class="number">2</span>, <span class="number">380</span>, <span class="number">480</span>], [<span class="number">2</span>, <span class="number">400</span>, <span class="number">513</span>]]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">norm_observation</span><span class="params">(mat: np.ndarray,</span></span></span><br><span class="line"><span class="function"><span class="params">                     axis: int = <span class="number">-1</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">                     eps: float = <span class="number">1.0e-6</span>)</span> -&gt; np.ndarray:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    L2 normalization for observation vectors</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    denorm = np.linalg.norm(mat, axis=axis, keepdims=<span class="literal">True</span>)</span><br><span class="line">    denorm = np.maximum(denorm, eps)</span><br><span class="line">    <span class="keyword">return</span> mat / denorm</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">permu_aligner</span><span class="params">(masks: np.ndarray, transpose: bool = False)</span> -&gt; np.ndarray:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    Solve permutation problems for clustering based mask algorithm</span></span><br><span class="line"><span class="string">    Reference: "https://github.com/fgnt/pb_bss/tree/master/pb_bss"</span></span><br><span class="line"><span class="string">    Args:</span></span><br><span class="line"><span class="string">        masks: K x T x F</span></span><br><span class="line"><span class="string">    Return:</span></span><br><span class="line"><span class="string">        aligned_masks: K x T x F</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="keyword">if</span> masks.ndim != <span class="number">3</span>:</span><br><span class="line">        <span class="keyword">raise</span> RuntimeError(<span class="string">"Expect 3D TF-masks, K x T x F or K x F x T"</span>)</span><br><span class="line">    <span class="keyword">if</span> transpose:</span><br><span class="line">        masks = np.transpose(masks, (<span class="number">0</span>, <span class="number">2</span>, <span class="number">1</span>))</span><br><span class="line">    K, _, F = masks.shape</span><br><span class="line">    <span class="comment"># normalized masks, for cos distance, K x T x F</span></span><br><span class="line">    feature = norm_observation(masks, axis=<span class="number">1</span>)</span><br><span class="line">    <span class="comment"># K x F</span></span><br><span class="line">    mapping = np.stack([np.ones(F, dtype=np.int) * k <span class="keyword">for</span> k <span class="keyword">in</span> range(K)])</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> F <span class="keyword">not</span> <span class="keyword">in</span> supported_plan:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">f"Unsupported num_bins: <span class="subst">&#123;F&#125;</span>"</span>)</span><br><span class="line">    <span class="keyword">for</span> itr, beg, end <span class="keyword">in</span> supported_plan[F]:</span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> range(itr):</span><br><span class="line">            <span class="comment"># normalized centroid, K x T</span></span><br><span class="line">            centroid = np.mean(feature[..., beg:end], axis=<span class="number">-1</span>)</span><br><span class="line">            centroid = norm_observation(centroid, axis=<span class="number">-1</span>)</span><br><span class="line">            go_on = <span class="literal">False</span></span><br><span class="line">            <span class="keyword">for</span> f <span class="keyword">in</span> range(beg, end):</span><br><span class="line">                <span class="comment"># K x K</span></span><br><span class="line">                score = centroid @ norm_observation(feature[..., f], axis=<span class="number">-1</span>).T</span><br><span class="line">                <span class="comment"># derive permutation based on score matrix</span></span><br><span class="line">                index, permu = linear_sum_assignment(score, maximize=<span class="literal">True</span>)</span><br><span class="line">                <span class="comment"># not ordered</span></span><br><span class="line">                <span class="keyword">if</span> np.sum(permu != index) != <span class="number">0</span>:</span><br><span class="line">                    feature[..., f] = feature[permu, :, f]</span><br><span class="line">                    mapping[..., f] = mapping[permu, f]</span><br><span class="line">                    go_on = <span class="literal">True</span></span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> go_on:</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">    <span class="comment"># K x T x F</span></span><br><span class="line">    permu_masks = np.zeros_like(masks)</span><br><span class="line">    <span class="keyword">for</span> f <span class="keyword">in</span> range(F):</span><br><span class="line">        permu_masks[..., f] = masks[mapping[..., f], :, f]</span><br><span class="line">    <span class="keyword">return</span> permu_masks</span><br></pre></td></tr></table></figure>
+<p>这个算法其实是自己一直想花写笔墨介绍的，毕竟它和空间聚类算法高度绑定，在很多场景下都需要使用，这次结合着unsupervised training的主题就一起介绍了。第二小结介绍的六篇文章，个人比较推荐的是出自Paderborn的1和6，算是两种思路（伪标签和无监督代价函数）的代表，其中6的思路十分独特，个人觉得具备一定的应用前景，感兴趣的读者可以结合手头的需求进行尝试。</p>
+<p>其实解决前端模型data mismatch还是有一些其他思路的，比如结合其他任务做联合训练（ASR，Speaker-ID等等）。对于ASR而言，前后端联合建模的优势我在前面的multi-channel AM一文中也谈到了，这里可以从另一个角度谈一下。信号层面我们虽然拿不到ground truth，但是对于其他任务是可以借助人工标记的，因此这种和其他任务做联合训练的思路其实也是一种用out of domain的标签克服in domain的标签缺失问题的方案，只是在这种情况下，前端生成的信号就未必是我们通常期待的了，因后端任务而异。</p>
+<p>感觉最近前端的话题写的多了，后面还是得多更点ASR的文章，不然都快让人忽略我其实是个做识别的boy…</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. Drude L, Hasenklever D, Haeb-Umbach R. Unsupervised training of a deep clustering model for multichannel blind source separation[C]//ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2019: 695-699.<br>[2]. Tzinis E, Venkataramani S, Smaragdis P. Unsupervised deep clustering for source separation: Direct learning from mixtures using spatial information[C]//ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2019: 81-85.<br>[3]. Seetharaman P, Wichern G, Le Roux J, et al. Bootstrapping single-channel source separation via unsupervised spatial clustering on stereo mixtures[C]//ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2019: 356-360.<br>[4]. Togami M, Masuyama Y, Komatsu T, et al. Unsupervised Training for Deep Speech Source Separation with Kullback-Leibler Divergence Based Probabilistic Loss Function[C]//ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2020: 56-60.<br>[5]. Nakagome Y, Togami M, Ogawa T, et al. Mentoring-Reverse Mentoring for Unsupervised Multi-channel Speech Source Separation[J]. Proc. Interspeech 2020, 2020: 86-90.<br>[6]. Drude L, Heymann J, Haeb-Umbach R. Unsupervised training of neural mask-based beamforming[J]. arXiv preprint arXiv:1904.01578, 2019.<br>[7]. Sawada H, Araki S, Makino S. Underdetermined convolutive blind source separation via frequency bin-wise clustering and permutation alignment[J]. IEEE Transactions on Audio, Speech, and Language Processing, 2011, 19(3): 516-527.</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://www.funcwj.cn/2020/08/11/unsuper-training-ss/" title="Unsupervised Training in Speech Separation Task">https://www.funcwj.cn/2020/08/11/unsuper-training-ss/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/CACGMM/" rel="tag"><i class="fa fa-tag"></i> CACGMM</a>
+              <a href="/tags/Unsupervised/" rel="tag"><i class="fa fa-tag"></i> Unsupervised</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/05/into-wpe/" rel="prev" title="INTO WPE">
+      <i class="fa fa-chevron-left"></i> INTO WPE
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/02/mhsa-relpose-computation/" rel="next" title="使用相对位置编码下MHSA的计算">
+      使用相对位置编码下MHSA的计算 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Methods"><span class="nav-number">1.</span> <span class="nav-text">Methods</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Permutation-Alignment"><span class="nav-number">2.</span> <span class="nav-text">Permutation Alignment</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">3.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="WJ"
+      src="/uploads/avatar.JPG">
+  <p class="site-author-name" itemprop="name">WJ</p>
+  <div class="site-description" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">87</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">75</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/funcwj" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:funcwj@foxmail.com" title="E-Mail → mailto:funcwj@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.funcwj.cn/" title="Jianwu → https:&#x2F;&#x2F;www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://wangbaiyuan.cn/" title="http:&#x2F;&#x2F;wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://jcf94.com/" title="http:&#x2F;&#x2F;jcf94.com" rel="noopener" target="_blank">jcf94</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://hujian.website/" title="https:&#x2F;&#x2F;hujian.website" rel="noopener" target="_blank">hijkzzz</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://placebokkk.github.io/" title="http:&#x2F;&#x2F;placebokkk.github.io&#x2F;" rel="noopener" target="_blank">Yang Chao</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/xingshansi/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xingshansi&#x2F;" rel="noopener" target="_blank">桂的blog</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http:&#x2F;&#x2F;homes.esat.kuleuven.be&#x2F;~dspuser&#x2F;dasp&#x2F;index.html" rel="noopener" target="_blank">DASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https:&#x2F;&#x2F;ccrma.stanford.edu&#x2F;~jos&#x2F;sasp&#x2F;sasp.html" rel="noopener" target="_blank">SASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https:&#x2F;&#x2F;link.springer.com&#x2F;book&#x2F;10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.audiolabs-erlangen.de/home" title="https:&#x2F;&#x2F;www.audiolabs-erlangen.de&#x2F;home" rel="noopener" target="_blank">AudioLibs</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://arxiv.org/list/eess.AS/recent" title="https:&#x2F;&#x2F;arxiv.org&#x2F;list&#x2F;eess.AS&#x2F;recent" rel="noopener" target="_blank">ASLP Arxiv</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https:&#x2F;&#x2F;signalprocessingsociety.org&#x2F;publications-resources&#x2F;ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https:&#x2F;&#x2F;www.isca-speech.org&#x2F;iscaweb&#x2F;index.php&#x2F;archive&#x2F;online-archive" rel="noopener" target="_blank">ISCA</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https:&#x2F;&#x2F;ai.google&#x2F;research&#x2F;pubs&#x2F;?area&#x3D;SpeechProcessing" rel="noopener" target="_blank">Google</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www-i6.informatik.rwth-aachen.de/" title="http:&#x2F;&#x2F;www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http:&#x2F;&#x2F;www.merl.com&#x2F;publications&#x2F;?ystart&#x3D;1991&amp;yend&#x3D;2019&amp;sa&#x3D;on" rel="noopener" target="_blank">MERL</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https:&#x2F;&#x2F;ei.uni-paderborn.de&#x2F;en&#x2F;nt&#x2F;research-mission&#x2F;publications&#x2F;" rel="noopener" target="_blank">Paderborn</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http:&#x2F;&#x2F;bio-asplab.citi.sinica.edu.tw&#x2F;p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http:&#x2F;&#x2F;www.kecl.ntt.co.jp&#x2F;english&#x2F;index.html" rel="noopener" target="_blank">NTT-CSL</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.irisa.fr/metiss/ozerov/" title="http:&#x2F;&#x2F;www.irisa.fr&#x2F;metiss&#x2F;ozerov&#x2F;" rel="noopener" target="_blank">Alexey Ozerov</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://israelcohen.com/" title="https:&#x2F;&#x2F;israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.eng.biu.ac.il/gannot/" title="http:&#x2F;&#x2F;www.eng.biu.ac.il&#x2F;gannot&#x2F;" rel="noopener" target="_blank">Sharon Gannot</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.danielpovey.com/" title="http:&#x2F;&#x2F;www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http:&#x2F;&#x2F;web.cse.ohio-state.edu&#x2F;~wang.77&#x2F;pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;shinjiwatanabe&#x2F;publications" rel="noopener" target="_blank">Shinji Watanabe</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/site/dongyu888/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;dongyu888&#x2F;" rel="noopener" target="_blank">Dong Yu</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https:&#x2F;&#x2F;www.citi.sinica.edu.tw&#x2F;pages&#x2F;yu.tsao&#x2F;publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/site/tsainath/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;tsainath&#x2F;" rel="noopener" target="_blank">Tara N.</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.jonathanleroux.org/" title="http:&#x2F;&#x2F;www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https:&#x2F;&#x2F;speechlab.sjtu.edu.cn&#x2F;members&#x2F;yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https:&#x2F;&#x2F;www.microsoft.com&#x2F;en-us&#x2F;research&#x2F;people&#x2F;tayoshio&#x2F;" rel="noopener" target="_blank">Takuya Yoshioka</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https:&#x2F;&#x2F;scholar.google.com&#x2F;citations?user&#x3D;QG8aWfIAAAAJ&amp;hl&#x3D;zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/view/xuyong/home" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;xuyong&#x2F;home" rel="noopener" target="_blank">Yong Xu</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http:&#x2F;&#x2F;staff.ustc.edu.cn&#x2F;~jundu&#x2F;Publications.html" rel="noopener" target="_blank">Jun Du</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">395k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">5:59</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
