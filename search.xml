@@ -790,12 +790,12 @@ s_{t,f}^\theta = \mathbf{w}_{\theta, f}^H \mathbf{y}_{t,f} \tag{3}</script><p>�
 <h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1] Y. Wang, D. Wang. Boosting Classification Based Speech Separation Using Temporal Dynamics[C]. Thirteenth Annual Conference of the International Speech Communication Association, 2012.<br>[2] Y. Wang, D. Wang. Cocktail Party Processing via Structured Prediction[C]. Advances in Neural Information Processing Systems, 2012:224–232.<br>[3] Y. Wang, D. Wang. Towards Scaling up Classification-based Speech Separation[J]. IEEE Transactions on Audio, Speech, and Language Processing, 2013, 21(7):1381–1390.<br>[4] Y. Xu, J. Du, L.-R. Dai, et al. An Experimental Study on Speech Enhancement Based on Deep Neural Networks[J]. IEEE Signal processing letters, 2013, 21(1):65–68.<br>[5] Y. Xu, J. Du, L.-R. Dai, et al. A Regression Approach to Speech Enhancement Based on Deep Neural Networks[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2014, 23(1):7–19.<br>[6] A. Narayanan, D. Wang. Ideal Ratio Mask Estimation Using Deep Neural Networks for Robust Speech Recognition[C]. 2013 IEEE International Conference on Acoustics, Speech and Signal Processing, 2013:7092–7096.<br>[7] Y. Wang, A. Narayanan, D. Wang. On Training Targets for Supervised Speech Separation[J]. IEEE/ACM transactions on audio, speech, and language processing, 2014, 22(12):1849–1858.<br>[8] H. Erdogan, J. R. Hershey, S. Watanabe, et al. Phase-sensitive and Recognition-boosted Speech Separation Using Deep Recurrent Neural Networks[C]. 2015 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2015:708–712.<br>[9] D. S. Williamson, Y. Wang, D. Wang. Complex Ratio Masking for Monaural Speech Separation[J]. IEEE/ACM transactions on audio, speech, and language processing, 2015, 24(3):483–492.<br>[10] H.-S. Choi, J.-H. Kim, J. Huh, et al. Phase-aware Speech Enhancement with Deep Complex U-net[J]. arXiv preprint arXiv:1903.03107, 2019.<br>[11] Y. Wang, D. Wang. A Deep Neural Network for Time-domain Signal Reconstruction[C]. 2015 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2015:4390–4394.<br>[12] S. Pascual, A. Bonafonte, J. Serra. Segan: Speech Enhancement Generative Adversarial Network[J]. arXiv preprint arXiv:1703.09452, 2017.<br>[13] D. Rethage, J. Pons, X. Serra. A Wavenet for Speech Denoising[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:50695073.<br>[14] S.-W. Fu, T.-W. Wang, Y. Tsao, et al. End-to-end Waveform Utterance Enhancement for Direct Evaluation Metrics Optimization by Fully Convolutional Neural Networks[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2018, 26(9):1570–1584.<br>[15] Pandey A. and Wang D.L. (2019): A new framework for CNN-based speech enhancement in the time domain. IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 27, pp. 1179-1188.<br>[16] P.-S. Huang, M. Kim, M. Hasegawa-Johnson, et al. Deep Learning for Monaural Speech Separation[C]. 2014 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2014:1562–1566.<br>[17] J. Du, Y. Tu, Y. Xu, et al. Speech Separation of a Target Speaker Based on Deep Neural Networks[C]. 2014 12th International Conference on Signal Processing (ICSP), 2014:473–477.<br>[18] J. R. Hershey, Z. Chen, J. Le Roux, et al. Deep Clustering: Discriminative Embeddings for Segmentation and Separation[C]. 2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2016:31–35.<br>[19] D. Yu, M. Kolbæk, Z.-H. Tan, et al. Permutation Invariant Training of Deep Models for Speaker-independent Multi-talker Speech Separation[C]. 2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2017:241–245.<br>[20] M. Kolbæk, D. Yu, Z.-H. Tan, et al. Multitalker Speech Separation with Utterancelevel Permutation Invariant Training of Deep Recurrent Neural Networks[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(10):1901–1913.<br>[21] Z. Chen, Y. Luo, N. Mesgarani. Deep Attractor Network for Single-microphone Speaker Separation[C]. 2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2017:246–250.<br>[22] Y. Luo, Z. Chen, N. Mesgarani. Speaker-independent Speech Separation with Deep Attractor Network[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2018, 26(4):787–796.<br>[23] Z.-Q. Wang, J. Le Roux, J. R. Hershey. Alternative Objective Functions for Deep Clustering[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:686–690.<br>[24] Z.-Q. Wang, J. L. Roux, D. Wang, et al. End-to-end Speech Separation with Unfolded Iterative Phase Reconstruction[J]. arXiv preprint arXiv:1804.10204, 2018.<br>[25] Y. Luo, N. Mesgarani. Tasnet: Time-domain Audio Separation Network for Real-time, Single-channel Speech Separation[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:696–700.<br>[26] J. Le Roux, S. Wisdom, H. Erdogan, et al. Sdr–half-baked Or Well Done?[C]. ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2019:626–630.<br>[27] Y. Luo, N. Mesgarani. Conv-tasnet: Surpassing Ideal Time–frequency Magnitude Masking for Speech Separation[J]. IEEE/ACM transactions on audio, speech, and language processing, 2019, 27(8):1256–1266.<br>[28] Q. Wang, H. Muckenhirn, K. Wilson, et al. Voicefilter: Targeted Voice Separation by Speaker-conditioned Spectrogram Masking[J]. arXiv preprint arXiv:1810.04826, 2018.<br>[29] K. Žmolíková, M. Delcroix, K. Kinoshita, et al. Speakerbeam: Speaker Aware Neural Network for Target Speaker Extraction in Speech Mixtures[J]. IEEE Journal of Selected Topics in Signal Processing, 2019, 13(4):800–814.<br>[30] Z. Chen, X. Xiao, T. Yoshioka, et al. Multi-channel Overlapped Speech Recognition with Location Guided Speech Extraction Network[C]. 2018 IEEE Spoken Language Technology Workshop (SLT), 2018:558–565.<br>[31] T. Afouras, J. S. Chung, A. Zisserman. The Conversation: Deep Audio-visual Speech Enhancement[J]. arXiv preprint arXiv:1804.04121, 2018.<br>[32] A. Ephrat, I. Mosseri, O. Lang, et al. Looking to Listen at the Cocktail Party: A Speaker-independent Audio-visual Model for Speech Separation[J]. arXiv preprint arXiv:1804.03619, 2018.<br>[33] S. Gannot, E. Vincent, S. Markovich-Golan, et al. A Consolidated Perspective on Multimicrophone Speech Enhancement and Source Separation[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4):692–730.<br>[34] J. Benesty, J. Chen, Y. Huang. Microphone Array Signal Processing[M]. Springer Science &amp; Business Media, 2008.<br>[35] H. Buchner, R. Aichner, W. Kellermann. Trinicon: A Versatile Framework for Multichannel Blind Signal Processing[C]. 2004 IEEE International Conference on Acoustics, Speech, and Signal Processing, 2004, 3:iii–889.<br>[36] H. Sawada, S. Araki, S. Makino. Underdetermined Convolutive Blind Source Separation via Frequency Bin-wise Clustering and Permutation Alignment[J]. IEEE Transactions on Audio, Speech, and Language Processing, 2010, 19(3):516–527.<br>[37] D. H. T. Vu, R. Haeb-Umbach. Blind Speech Separation Employing Directional Statistics in an Expectation Maximization Framework[C]. 2010 IEEE International Conference on Acoustics, Speech and Signal Processing, 2010:241–244.<br>[38] T. Higuchi, N. Ito, S. Araki, et al. Online Mvdr Beamformer Based on Complex Gaussian Mixture Model with Spatial Prior for Noise Robust Asr[J]. IEEE/ACM Transactions on Audio, Speech, and Language Processing, 2017, 25(4):780–793.<br>[39] N. Ito, S. Araki, T. Nakatani. Complex Angular Central Gaussian Mixture Model for Directional Statistics in Mask-based Microphone Array Signal Processing[C]. 2016 24th European Signal Processing Conference (EUSIPCO), 2016:1153–1157.<br>[40] J. Heymann, L. Drude, R. Haeb-Umbach. Neural Network Based Spectral Mask Estimation for Acoustic Beamforming[C]. 2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2016:196–200.<br>[41] L. Drude, D. Hasenklever, R. Haeb-Umbach. Unsupervised Training of a Deep Clustering Model for Multichannel Blind Source Separation[C]. ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2019:695–699.<br>[42] L. Drude, J. Heymann, R. Haeb-Umbach. Unsupervised Training of Neural Mask-based Beamforming[J]. arXiv preprint arXiv:1904.01578, 2019.<br>[43] L. Drude, R. Haeb-Umbach. Tight Integration of Spatial and Spectral Features for Bss with Deep Clustering Embeddings.[C]. Interspeech, 2017:2650–2654.<br>[44] Z.-Q. Wang, J. Le Roux, J. R. Hershey. Multi-channel Deep Clustering: Discriminative Spectral and Spatial Embeddings for Speaker-independent Speech Separation[C]. 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018:1–5.<br>[45] Z.-Q. Wang, D. Wang. Integrating Spectral and Spatial Features for Multi-channel Speaker Separation.[C]. Interspeech, 2018:2718–2722.<br>[46] Z.-Q. Wang, D. Wang. All-neural Multi-channel Speech Enhancement.[C]. Interspeech, 2018:3234–3238.<br>[47] T. Yoshioka, H. Erdogan, Z. Chen, et al. Recognizing Overlapped Speech in Meetings: A Multichannel Separation Approach Using Neural Networks[J]. arXiv preprint arXiv:1810.03655, 2018.<br>[48] T. Yoshioka, Z. Chen, C. Liu, et al. Low-latency Speaker-independent Continuous Speech Separation[C]. ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2019:6980–6984.</p>
 ]]></content>
       <categories>
-        <category>Speech Separation</category>
         <category>Speech Enhancement</category>
+        <category>Speech Separation</category>
       </categories>
       <tags>
-        <tag>Multi-channel</tag>
         <tag>Beamformer</tag>
+        <tag>Multi-channel</tag>
         <tag>uPIT</tag>
         <tag>Mask</tag>
         <tag>GEVD</tag>
@@ -844,8 +844,8 @@ s_t^\theta = \sum_c \mathbf{y}_t * \mathbf{h}_{\theta, c} \tag{3}</script><p>其
       </categories>
       <tags>
         <tag>E2E</tag>
-        <tag>Multi-channel</tag>
         <tag>Beamformer</tag>
+        <tag>Multi-channel</tag>
       </tags>
   </entry>
   <entry>
@@ -1962,8 +1962,8 @@ A(\omega) = \frac{|\mathbf{w}_\theta(\omega)^H\mathbf{d}_\theta(\omega)|^2}{\mat
         <category>Microphone Array Processing</category>
       </categories>
       <tags>
-        <tag>Beam Pattern</tag>
         <tag>Beamformer</tag>
+        <tag>Beam Pattern</tag>
       </tags>
   </entry>
   <entry>
@@ -2483,8 +2483,8 @@ Z(\omega) = \mathbf{h}^H(\omega) \mathbf{y}(\omega) = \mathbf{h}^H(\omega)\mathb
         <category>Microphone Array Processing</category>
       </categories>
       <tags>
-        <tag>Multi-channel</tag>
         <tag>Beamformer</tag>
+        <tag>Multi-channel</tag>
         <tag>GEVD</tag>
         <tag>MVDR</tag>
       </tags>
@@ -3854,8 +3854,8 @@ p(\boldsymbol{l} | \boldsymbol{x}) = \sum_{u = 1}^{|\boldsymbol{l}|} \theta_t(u)
         <category>Algorithm</category>
       </categories>
       <tags>
-        <tag>C/C++</tag>
         <tag>Code</tag>
+        <tag>C/C++</tag>
         <tag>Tree</tag>
       </tags>
   </entry>
@@ -4338,8 +4338,8 @@ L(S) & = \sum_t\left[\log \mathcal{N}(o_t;\mu(S), \Sigma(S))\sum_{s \in S}\gamma
         <category>Engineering</category>
       </categories>
       <tags>
-        <tag>Python</tag>
         <tag>Code</tag>
+        <tag>Python</tag>
         <tag>Spectrogram</tag>
       </tags>
   </entry>
@@ -4787,8 +4787,8 @@ X_{n-k}^*  & = F_{n-k}^* + W_N^{*n-k}G_{n-k}^* \\
         <category>Algorithm</category>
       </categories>
       <tags>
-        <tag>C/C++</tag>
         <tag>Code</tag>
+        <tag>C/C++</tag>
         <tag>FFT</tag>
       </tags>
   </entry>
@@ -4842,8 +4842,8 @@ G_0 & = I(X_0)
         <category>Algorithm</category>
       </categories>
       <tags>
-        <tag>C/C++</tag>
         <tag>Code</tag>
+        <tag>C/C++</tag>
         <tag>FFT</tag>
       </tags>
   </entry>
