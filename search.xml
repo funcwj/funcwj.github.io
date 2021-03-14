@@ -2021,8 +2021,8 @@ A(\omega) = \frac{|\mathbf{w}_\theta(\omega)^H\mathbf{d}_\theta(\omega)|^2}{\mat
         <category>Microphone Array Processing</category>
       </categories>
       <tags>
-        <tag>Beam Pattern</tag>
         <tag>Beamformer</tag>
+        <tag>Beam Pattern</tag>
       </tags>
   </entry>
   <entry>
