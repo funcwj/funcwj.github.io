@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/wujian-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/wujian-16x16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"www.funcwj.cn","root":"/","scheme":"Gemini","version":"7.7.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"mac"},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前面写了一篇文章介绍了一下自己一直在维护的APS项目，完稿的时候我还没有公开代码，这是因为当时发现，我在一些public的数据集上训练的ASR模型和paper里已有的结果存在比较大的gap。ASR部分的代码写的时间是比较早的，不过那时都是在实验室的一些内部数据上做训练和测试，一直没有在Librispeech，WSJ这些集子上看看结果，所以此前并没有意识在这个问题。为了找到根源所在，缩小差距，从去年">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Play with Beam Search">
+<meta property="og:url" content="https://www.funcwj.cn/2021/03/15/beam-search/index.html">
+<meta property="og:site_name" content="WJ&#39;s site">
+<meta property="og:description" content="前面写了一篇文章介绍了一下自己一直在维护的APS项目，完稿的时候我还没有公开代码，这是因为当时发现，我在一些public的数据集上训练的ASR模型和paper里已有的结果存在比较大的gap。ASR部分的代码写的时间是比较早的，不过那时都是在实验室的一些内部数据上做训练和测试，一直没有在Librispeech，WSJ这些集子上看看结果，所以此前并没有意识在这个问题。为了找到根源所在，缩小差距，从去年">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-03-14T16:20:07.000Z">
+<meta property="article:modified_time" content="2021-03-14T16:25:52.838Z">
+<meta property="article:author" content="WJ">
+<meta property="article:tag" content="Code">
+<meta property="article:tag" content="Beam Search">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://www.funcwj.cn/2021/03/15/beam-search/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Play with Beam Search | WJ's site</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?01edb048a0d71e5d0a00ae47bdb0dbe2";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">WJ's site</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">我只是好奇</p>
+  </div>
+
+  <div class="site-nav-right"></div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>站点首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于作者</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>文章归档<span class="badge">88</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>文章分类<span class="badge">9</span></a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>站点标签<span class="badge">76</span></a>
+
+  </li>
+        <li class="menu-item menu-item-footprint">
+
+    <a href="/footprint/" rel="section"><i class="fa fa-fw fa-map-marker"></i>足迹地图</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>文章搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+
+  <a href="https://github.com/funcwj" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.funcwj.cn/2021/03/15/beam-search/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/avatar.JPG">
+      <meta itemprop="name" content="WJ">
+      <meta itemprop="description" content="彷徨乎无为其侧，逍遥乎寝卧其下">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJ's site">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Play with Beam Search
+        </h1>
+
+        <div class="post-meta">
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-03-15 00:20:07" itemprop="dateCreated datePublished" datetime="2021-03-15T00:20:07+08:00">2021-03-15</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/ASR/" itemprop="url" rel="index">
+                    <span itemprop="name">ASR</span>
+                  </a>
+                </span>
+            </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>11k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>前面写了一篇文章介绍了一下自己一直在维护的APS项目，完稿的时候我还没有公开代码，这是因为当时发现，我在一些public的数据集上训练的ASR模型和paper里已有的结果存在比较大的gap。ASR部分的代码写的时间是比较早的，不过那时都是在实验室的一些内部数据上做训练和测试，一直没有在Librispeech，WSJ这些集子上看看结果，所以此前并没有意识在这个问题。为了找到根源所在，缩小差距，从去年年底开始，我陆续花了一些功夫一一核对了问题可能存在的环节，包括特征，模型，解码，评估等等。虽然最后也没有找到什么明显的bug。但是在这个过程中我把自己一度重点怀疑的环节：解码的逻辑翻来覆去check了好几遍，这篇文章就算做个小总结吧。</p>
+<p>正文开始前说几句无关主题的话。由于现在很多做asr的同学都在espnet上做实验，所以带来的一个十分尴尬的问题就是，我遇到的现象常常显得非常小众而他人难以依据他们自己过往的认识和理解（基于espnet）对我的现象和结论给出一些分析。 在这种情况下，我就只能依靠自己去double check自己的逻辑问题，这个显然也不算容易。我常用的方法是，对于某个算法比较确定的认识，我强迫自己用两种不同却等价的方式实现，只要核对结果相同就加以确认；对于不确定的认识，我会写出所有我觉得可能的实现，挑选最好的结果对应的认知和实现方法。不过这都是没有办法的办法了，遇到问题有人能参与积极的讨论还是很有必要的一件事情。</p>
+<p>下面进入主题，APS的github地址在<a href="https://github.com/funcwj/aps" target="_blank" rel="noopener">aps</a>，感兴趣的同学可以尝试用一下，同时也欢迎review代码，提PR或者issue。</p>
+<a id="more"></a>
+<h3 id="Acceleration"><a href="#Acceleration" class="headerlink" title="Acceleration"></a>Acceleration</h3><p>首先声明一下，本文中提到的beam search算法主要针对ASR任务中，基于attention机制的encoder-decoder结构的声学模型的解码，和NLP任务中MT的解码逻辑基本一致，decoder存在自回归逻辑，也称为left-right beam search。在CTC和RNNT的解码中，另有prefix beam search的概念，区别在于过程中我们是否考虑合并相同前缀的路径。CTC和RNNT的建模时blank节点的存在导致不同的前缀序列实际可能对应的是一个相同的解码序列， 因此严谨的做法是在beam search过程中把这些拥有相同解码序列的的beam节点合并掉，否则解码序列会产生冗余（即nbest里面存在相同的序列） 。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">gather_hypos = []</span><br><span class="line">active_nodes = [init_node()]</span><br><span class="line"><span class="comment"># step by step</span></span><br><span class="line"><span class="keyword">for</span> u <span class="keyword">in</span> range(U):</span><br><span class="line">    extention_nodes = []</span><br><span class="line">    <span class="comment"># extend B nodes for each active node</span></span><br><span class="line">    <span class="keyword">for</span> node <span class="keyword">in</span> active_nodes:</span><br><span class="line">        extention_nodes += extend_topk(node)</span><br><span class="line">    <span class="comment"># select top-B nodes for BxB extention_nodes</span></span><br><span class="line">    active_nodes = select_topk(extention_nodes)</span><br><span class="line">    <span class="keyword">for</span> node <span class="keyword">in</span> active_nodes:</span><br><span class="line">        <span class="comment"># get decoding sequence from eos node</span></span><br><span class="line">        <span class="keyword">if</span> is_eos_node(node):</span><br><span class="line">            gather_hypos.append(trace_back(node))</span><br></pre></td></tr></table></figure>
+<p>beam search的逻辑比较简单，假设beam size为$B$，字典大小为$V$，满足$B \leqslant V$，我简单写了一个伪代码如上所示。对于某个step $u$，我们首先对当前活跃的$B$个节点做拓展产生$B \times B$个后续节点，具体做法是：先拿到每个节点的$V$个概率值（总计$B \times V$个），再对保留每个节点的top $B$得到$B \times B$个后续节点。随后对此处$B \times B$个节点取全局的top $B$个节点作为$u + 1$步的活跃节点。$u = 0$的时候采用<code>&lt;sos&gt;</code>节点初始化活跃节点。beam search进行的过程中，当某个活跃节点上产生<code>&lt;eos&gt;</code>符号的时候，从这个节点回溯得到的序列便形成一条解码序列（可称为hypothesis）。这个过程会自顶向下的维护一个多叉树（叉数为$B$），而最直接的写法也十分类似树的层序遍历，在step $u$，写个for循环为每个活跃（父亲）节点拓展，进行$B$次计算（拿到decoder的概率输出进行的相关计算）。这种情况下，处理$U$步一共需要进行$U \times B$次计算。这种的逻辑实现起来十分直观，不容易出错（子节点的计算所需信息可以直接从父节点拿到），但是缺点也很明显，计算次数较多，体验上就是耗时久，速度慢。所以可以看一下如何去优化这一过程，提升实验效率。</p>
+<p>回顾上述算法可以发现，在每个时刻内为活跃节点拓展子节点的操作不存在依赖性，也就是可以并行的，因此可以把这一个时刻内的逻辑：拓展$B \times B$节点和选取top$B$个节点用一次计算完成（增加一个batch维度），这样总体的计算次数被缩小了$B$倍，即$U \times B \to U$。依据这个逻辑，我们甚至可以改写代码[1]，对多个句子同时解码。句子数为$N$时，在时刻$t$将拓展$N \times B \times B$个节点的计算一次完成。这种写法需要注意的是如何维护好父子节点之间的index关系，用于整理形成正确的解码序列。我自己的话额外的维护了一个<code>point</code>变量（具体可以参考源代码），用于指示当前$B$维的活跃节点对应的父节点下标。如果解码的时候考虑LM fusion和CTC score，我们依旧可以根据上面的逻辑并行LM和CTC score的计算，详细的代码可以参考aps的实现，我会在下文单独分析的时候再提一下。</p>
+<p>继续优化的话，可以考虑$U$这个维度，即进行多少个step的beam search。标准情况下，beam search终止的条件是：当step $u$拓展节点取出的top $B$个节点全部是<code>&lt;eos&gt;</code>，即在当前$B$个活跃节点均拓展出了<code>&lt;eos&gt;</code>且它们的概率最大。一般来说我自己的观测，中文上，这种情况比较常见，英文上则比较困难，且随着beam size $B$的调大，越来越难以满足。因此默认情况下beam search还是有可能跑满预设的step最大值$U$。如何自动的work out出$U$这个值，我们可以看一下如下两种做法。一是设置一个关于eos解码序列（本文也称为hypothesis）总数的阈值$H$，如果产生的hypothesis个数超过了这个值，则自动停止。其二是espnet中采用的[2]，如果连续$L$个step里，每个step产生的hypothesis对应的概率值和当前最优的hypothesis的概率值之差超过一个阈值$D$，则自动停止。这两种做法均是基于一个观测，即随着解码步数的增多，产生的hypothesis的概率倾向于越来越小。注意这里只是倾向，不是绝对，因此这些做法实际是有风险丢掉最优解的。做法1的假设是，最优的解码序列最有可能包含在最先的产生的$H$个hypothesis之中。做法2则有点类似WFST解码器的一种减枝方法，当连续$L$步产生的最优hypothesis的概率都足够小于当前已经拿到的最优值时，那么后续也不太可能产生好于当前最优hypothesis的结果。这两种做法基本上都可以自动的决定出$U$的大小，获得不错的加速体验。</p>
+<p>解决了“快”这个问题之后，我们需要进一步的向“好”的目标进发，比较常见的做法是beam search的过程中加入LM的分数，一种代表性的做法被称为shallow fusion，这种情况下解码产生的最优序列从全局的角度来说，被很多paper里面表示为下面的式子：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}_{\text{best}} = \arg \max_{\mathbf{y}} \; \log p_{\text{att}}(\mathbf{y}|\mathbf{x}) + \lambda \cdot \log p_{\text{lm}}(\mathbf{y}) + \gamma \cdot\text{rgl} \tag{1}</script><p>$\lambda$表示语言模型的权重，$\gamma$表示正则项的权重。正则项（很多地方也叫惩罚项）的提出多是解决模型本身，或者加上了LM的分数之后，解码的结果存在一些bias这一现象，下面分两部分讨论。</p>
+<h3 id="Shallow-Fusion"><a href="#Shallow-Fusion" class="headerlink" title="Shallow Fusion"></a>Shallow Fusion</h3><p>从实现的角度而言，shallow fusion改动很小。原版beam search在step $u$产生$B \times V$节点的时候，概率值全部用的是decoder产生的声学概率，即</p>
+<script type="math/tex; mode=display">
+p_u = \log p_{\text{att}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}, \mathbf{x}) \tag{2}</script><p>而shallow fusion中使用</p>
+<script type="math/tex; mode=display">
+p_u = \log p_{\text{att}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}, \mathbf{x}) + \lambda \cdot \log p_{\text{lm}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}) \tag{3}</script><p>替代即可。由于decoder是存在自回归逻辑的，所以$(2)$式中的条件概率同时基于先前的解码序列$\mathbf{y}_{0, \cdots, u-1}$和全部的声学特征$\mathbf{x}$（通过attention机制产生的context传递），因此可以认为$(2)$式的$p_u$并不是纯粹的声学概率，而是融合了一部分LM的信息的，后续有一些文章的idea便是从decoder产生的声学概率中减去一部分LM分数，再和外部LM进行fusion。另外，我也发现了另一种做法的fusion，即$B \times V \to B \times B$节点的过程依旧采用声学得分，在后续筛选$B \times B \to B$的时候再fusion上LM的分数。由于第一阶段的选择没有使用LM，因此过滤掉了一些可能的解码序列，但是也由于AM的约束，一般也不会产生一些十分奇怪的结果。</p>
+<p>$(3)$式中唯一的超参是LM权重$\lambda$，这个值我在早期的实验下得到的结论是最优值常在0.2上下浮动，而espnet中的动辄高于0.5的权重结果显然让我感到比较怪异。整体上说，LM产生的后验在方差上一般是比AM要低的，因此对相同的token，LM产生的log概率往往比AM要低不少， 这一点可以从采用相同的字典训练的LM相比AM在开发集上拥有更高的loss值（对应的预测的token准确率更低）看出。所以如果调大LM的权重，beam search的结果倾向于LM主导，解码的结果必定会更加发散，这就是为什么我认为LM的最优权重理论上应该维持在一个比较低的范围内。</p>
+<p>首先我需要排除的是LM的问题。关于LM的训练我对比过两种训练方式，BPTT和整句训练。前者在训练中会将前一个batch产生的hidden state传递给后一个batch，每个batch的time step固定。这样的好处是训练阶段显存消耗稳定，但是dataloader设计上需要满足前后batch存在上下文关系，否则传递hidden state没有意义。整句训练是将若干句子包装成minibatch进行训练，由于LM的训练语料是变长的，因此长句子下容易出现OOM问题，一般采用动态的batchsize。在RNN结构下，我在Librispeech上发现BPTT训练在fusion中的效果略好。对比之下，采用整句训练的Transformer LM可以得到比BPTT训练的RNNLM好的结果。不过这两种方法产生的LM并没有在LM weight的规律上产生歧义。</p>
+<p>紧接着我开始尝试一些正则方法，包括做score normalization，使用eos threshold [3,4,5]，使用length penalty [6]，coverage penalty [7,8] 等等，但是这些方法主要解决的是因为解码序列过短或者过长导致的插入/删除错误过多的现象。排除上述问题的可能性之后，我把关注点投向espnet自身的解码逻辑上来，并最终认为LM权重的问题根源极大可能在于解码过程中使用的CTC forward score上。当时我的解码逻辑并没有支持CTC score，因此迫不得已在春节前后花了两周多的时间添加了这部分逻辑进行对比。我的理解是，由于fusion的时候同时考虑了CTC score项，那么原来的$(3)$式需要写为：</p>
+<script type="math/tex; mode=display">
+p_u = (1 - \gamma) \cdot \log p_{\text{att}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}, \mathbf{x}) + \gamma \cdot \log p_{\text{ctc}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}, \mathbf{x}) +  \lambda \cdot \log p_{\text{lm}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}) \tag{4}</script><p>把CTC score和原decoder产生的声学分数的加权结果视为新的声学分数（即前两项之和），如果相比原$\log p_{\text{att}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1})$ ，新的声学分数增加了，那么要想维持原先0.2左右的权重，新的权重也就需要适当的调高，因此达到0.5-0.6的范围内是可能的，具体的取决于CTC score值本身的范围和权重$\gamma$的值。最终在debug完支持CTC score的beam search之后，我也拿到了关于$\gamma, \lambda$诸如(0.2, 0.4)，(0.5, 0.5)和(0.4, 0.6)的配置，算是落实了之前的猜想。关于解码过程中CTC score的计算和作用我放在本篇文章的第三部分。</p>
+<p>LM fusion容易产生的一个问题是解码序列存在length bias，倾向于产生较短的句子。在第一节中，我提到随着解码步数的增多，产生的hypothesis的概率倾向于越来越小（log分数为负，越加越小），如果不加任何正则，也就越难被选成one-best。可以设想$U = 3$时产生的hypothesis和$U = 30$产生的hypothesis，后者比前者多累加了27个step的AM和LM分数。在单纯依靠AM的情况下，句子较早结束的情况比较少见，因为在alignment未靠近句子结尾的时候，<code>&lt;eos&gt;</code>分数一般较低（反之更容易出现停不下来，即<code>&lt;eos&gt;</code>分数预测过低），不会被选择到下一个step中去，也就不会产生短的hypothesis。fusion上LM score之后，如果LM过早的给出一个较高的<code>&lt;eos&gt;</code>分数，则会对应的产生一个较短的hypothesis，导致length bias的出现。</p>
+<p>本节结尾介绍两种不同于正则方法的操作，即score normalization和调整eos threshold。前者指最终对产生的所有hypothesis进行排序的时候，将分数除以序列长度，平均下来使得短句子不再具有优势；后者指的是限制<code>&lt;eos&gt;</code>预测的产生，具体的做法是，设置一个阈值$\phi$，当且仅当<code>&lt;eos&gt;</code>的概率高于非<code>&lt;eos&gt;</code>节点中最大概率的$\phi$倍时才允许被选取到下一个beam search step中去。第一种做法我实际尝试中发现，即使用于无LM fusion的情况下，也是可以提升解码one-best的WER（不大，但是有提升），也就是说，单纯依赖AM的解码结果也是存在一定程度的length bias。</p>
+<h3 id="Regularization"><a href="#Regularization" class="headerlink" title="Regularization"></a>Regularization</h3><p>最后一节说一下常用的三种正则方法，分别是length penalty，coverage penalty和CTC penalty。我这里把espnet里面用的joint CTC &amp; attention解码方法也认为是一种正则方式，下文会讨论这样看待的原因。关于正则方法，从实现的角度看，我们在使用的时候需要注意的是，每一个beam search step进行还是最后做hypothesis重新排序的时候进行一次即可。</p>
+<p>最简单的length penalty作用和第二部分结尾提到的score normalization类似，为了解决fusion之后对短句子的length bias问题，对应的$(1)$式改写为：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}_{\text{best}} = \arg \max_{\mathbf{y}} \; \log p_{\text{att}}(\mathbf{y}|\mathbf{x}) + \lambda \cdot \log p_{\text{lm}}(\mathbf{y}) + \gamma \cdot |\mathbf{y}| \tag{5}</script><p>由于在每个beam search step内维护的hypothesis长度是相同的，所以只需要在最后进行重排序的时候加上长度惩罚项即可。长句子的惩罚项较大，故而可以纠正短句子上的length bias。MT里面采用的算法不太一样，比如OpenNMT的实现选用的是：$(5 + |\mathbf{y}|)^{\alpha} / (5 + 1)^{\alpha}$，不过初衷都是类似的。</p>
+<p>coverage penalty也是在MT和ASR中都被使用的正则方法，对应的$(1)$式改写为：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}_{\text{best}} = \arg \max_{\mathbf{y}} \; \log p_{\text{att}}(\mathbf{y}|\mathbf{x}) + \lambda \cdot \log p_{\text{lm}}(\mathbf{y}) + \gamma \cdot \text{cov}(\mathbf{A}_{\mathbf{y}}) \tag{6}</script><p>其中$\mathbf{A}_{\mathbf{y}} \in \R^{T \times U}$表示解码序列$\mathbf{y}$对应的attention权重矩阵。对于coverage惩罚项，我认为可以在每个beam search step都计算一次用于$B \times B \to B$的筛选，因为当前维护的partial hypothesis对应着不同的attention矩阵。但是从实现的角度来说，只在最后一步计算用于重排序更加简单，虽然两者是不等效的。Google的文章[7,8]中可以看到两种计算方式（省掉了下标）：</p>
+<script type="math/tex; mode=display">
+\text{cov}(\mathbf{A}) = 
+\begin{cases}
+\sum_t  (\sum_{u} \mathbf{A}_{t,u} > \tau) \\
+\sum_t \log \min(\sum_u \mathbf{A}_{t,u}, 1.0)
+\end{cases} \tag{7}</script><p>由于attention权重矩阵$\mathbf{A}$是在时间维度过了softmax，因此对于$u \in [0, U - 1]$，满足约束$\sum_t \mathbf{A}_{t, u} \equiv 1$ 。整体看来，coverage计算的是attention权重向量超出某个阈值的总帧数，正常的解码结果权重矩阵是单调的，且在时间轴上的投影的长度会尽可能覆盖掉的活跃的speech的区间，因此满足条件的总帧数多，coverage值较大，而短的解码序列由于结束的过早，满足条件的帧数小。这么看来，coverage penalty实际上描述了一个解码序列对应的alignment的质量的高低，从这个点看，就可以和espnet里面使用的CTC forword score联系起来了。</p>
+<p>不同于coverage penalty基于attention权重矩阵去衡量解码序列的对齐质量高低，espnet使用encoder的CTC分支产生的概率计算出的forward score来描述。对于过短或者过长（比如存在重复识别）的句子，CTC层面的对齐质量很差，得分很低使得这些序列对应的节点在beam search的过程中很快会被淘汰。使用forward score时，$(1)$式写为：</p>
+<script type="math/tex; mode=display">
+\mathbf{y}_{\text{best}} = \arg \max_{\mathbf{y}} \; (1 - \gamma) \cdot \log p_{\text{att}}(\mathbf{y}|\mathbf{x}) + \lambda \cdot \log p_{\text{lm}}(\mathbf{y}) + \gamma \cdot \log p_{\text{ctc}}(\mathbf{y}|\mathbf{x}) \tag{8}</script><p>实现的时候，需要在每个step计算出拓展当前节点贡献的CTC得分（注意时当前节点不是全部序列，因为CTC的分数需要和decoder的AM分数，LM分数在每个step累加），即$(4)$式中的$p_{\text{ctc}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}, \mathbf{x})$，计算方法符号化如下：</p>
+<script type="math/tex; mode=display">
+p_{\text{ctc}}(\mathbf{y}_u|\mathbf{y}_{0, \cdots, u-1}, \mathbf{x}) = p_{\text{forward}}(\mathbf{y}_{0, \cdots, u}|\mathbf{x}) - p_{\text{forward}}(\mathbf{y}_{0, \cdots, u - 1}|\mathbf{x}) \tag{9}</script><p>forward score的计算在时间轴上存在一个循环（动态规划的逻辑），所以该方法虽然鲁棒性较高，但是计算复杂度也很大（参看[2]）。</p>
+<p>深入一些，使用CTC score做LM fusion的时候，fusion的逻辑采用的时我在第二部分第一段介绍的后一种方法。用语言描述就是，先使用AM的分数拓展出$B \times V \to B \times B_{\text{ctc}}$个节点（$B_\text{ctc} = \alpha B, \alpha \geqslant  1$），然后在这$B \times B_{\text{ctc}}$节点上fusion CTC的分数和LM的分数，最后选取出top $B$个几点到下一个step，即$B \times B_{\text{ctc}} \to B$。优化上依旧可以采用第一部分的逻辑，将$B \times B_{\text{ctc}}$个节点的CTC分数计算放在一个batch里面得到，这部分想了解细节的同学可以参看一下aps的源码。当然也可以沿用原始fusion的逻辑，但是计算量增大很多（取决于字典$V$的大小）：需要为$B \times V$个节点计算CTC的分数。解码加上CTC score在一般的数据集上都会带来一些提升（aishell1和librispeech上都是0.几个点），但是不算明显（数据比较标准，集外数据上的提升作用可能会放大），从这点上看也符合正则项带来的效果。</p>
+<p>在分析WER的时候，除了看总体的数值之外，还应该参考一下对应的删除，插入，替换错误。一般而言，替换错误的占比很高，而删除和插入错误的分布大致相等，如果统计下来，出现了明显的高插入错误或者高删除错误，对应的往往是句子过短和句子过长。句子过短可以采用上述的五种方法进行调整（本节的三个正则加上第二节的score normalization和eos threshold），句子过长一般是出现了<code>&lt;eos&gt;</code>预测不出导致的序列循环，停不下来的现象。对于这一问题，上面的方法都很难完美的解决，往往是声学模型本身出了一些问题，可以从调整网络结构的角度尝试办法。</p>
+<h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>本篇文章分三个部分写了一些关于beam search的内容，主要基于自己在过去的一段时间内对解码进行优化和调试的一些经验和感悟。后续我会找时间在标准数据集上整理一些比较理想的结果，可以让读者直观的体会一下LM fusion和正则项对识别结果的提升作用。</p>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><p>[1]. Seki H, Hori T, Watanabe S, et al. Vectorized Beam Search for CTC-Attention-Based Speech Recognition[C]//INTERSPEECH. 2019: 3825-3829.<br>[2]. Watanabe S, Hori T, Kim S, et al. Hybrid CTC/attention architecture for end-to-end speech recognition[J]. IEEE Journal of Selected Topics in Signal Processing, 2017, 11(8): 1240-1253.<br>[3]. Zeyer A, Bahar P, Irie K, et al. A comparison of transformer and lstm encoder decoder models for asr[C]//2019 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU). IEEE, 2019: 8-15.<br>[4]. Irie K, Prabhavalkar R, Kannan A, et al. On the choice of modeling unit for sequence-to-sequence speech recognition[J]. arXiv preprint arXiv:1902.01955, 2019.<br>[5]. Hannun A, Lee A, Xu Q, et al. Sequence-to-sequence speech recognition with time-depth separable convolutions[J]. arXiv preprint arXiv:1904.02619, 2019.<br>[6]. Bahdanau D, Chorowski J, Serdyuk D, et al. End-to-end attention-based large vocabulary speech recognition[C]//2016 IEEE international conference on acoustics, speech and signal processing (ICASSP). IEEE, 2016: 4945-4949.<br>[7]. Chorowski J, Jaitly N. Towards better decoding and language model integration in sequence to sequence models[J]. arXiv preprint arXiv:1612.02695, 2016.<br>[8]. Kannan A, Wu Y, Nguyen P, et al. An analysis of incorporating an external language model into a sequence-to-sequence model[C]//2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 2018: 1-5828.</p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>WJ
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://www.funcwj.cn/2021/03/15/beam-search/" title="Play with Beam Search">https://www.funcwj.cn/2021/03/15/beam-search/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/Code/" rel="tag"><i class="fa fa-tag"></i> Code</a>
+              <a href="/tags/Beam-Search/" rel="tag"><i class="fa fa-tag"></i> Beam Search</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/01/20/det-inv-eig-on-hermitian-matrix/" rel="prev" title="Operations on Hermitian Matrix">
+      <i class="fa fa-chevron-left"></i> Operations on Hermitian Matrix
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/03/15/coming-next/" rel="next" title="后续文章列表">
+      后续文章列表 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Acceleration"><span class="nav-number">1.</span> <span class="nav-text">Acceleration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Shallow-Fusion"><span class="nav-number">2.</span> <span class="nav-text">Shallow Fusion</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Regularization"><span class="nav-number">3.</span> <span class="nav-text">Regularization</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Conclusion"><span class="nav-number">4.</span> <span class="nav-text">Conclusion</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference"><span class="nav-number">5.</span> <span class="nav-text">Reference</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="WJ"
+      src="/uploads/avatar.JPG">
+  <p class="site-author-name" itemprop="name">WJ</p>
+  <div class="site-description" itemprop="description">彷徨乎无为其侧，逍遥乎寝卧其下</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">88</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">76</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/funcwj" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;funcwj" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:funcwj@foxmail.com" title="E-Mail → mailto:funcwj@foxmail.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.zhihu.com/people/jian-fu-16" title="Zhi Hu → https:&#x2F;&#x2F;www.zhihu.com&#x2F;people&#x2F;jian-fu-16" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>Zhi Hu</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.funcwj.cn/" title="Jianwu → https:&#x2F;&#x2F;www.funcwj.cn"><i class="fa fa-fw fa-google"></i>Jianwu</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://wangbaiyuan.cn/" title="http:&#x2F;&#x2F;wangbaiyuan.cn" rel="noopener" target="_blank">极客人</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://jcf94.com/" title="http:&#x2F;&#x2F;jcf94.com" rel="noopener" target="_blank">jcf94</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://hujian.website/" title="https:&#x2F;&#x2F;hujian.website" rel="noopener" target="_blank">hijkzzz</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://placebokkk.github.io/" title="http:&#x2F;&#x2F;placebokkk.github.io&#x2F;" rel="noopener" target="_blank">Yang Chao</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.cnblogs.com/xingshansi/" title="https:&#x2F;&#x2F;www.cnblogs.com&#x2F;xingshansi&#x2F;" rel="noopener" target="_blank">桂的blog</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://homes.esat.kuleuven.be/~dspuser/dasp/index.html" title="http:&#x2F;&#x2F;homes.esat.kuleuven.be&#x2F;~dspuser&#x2F;dasp&#x2F;index.html" rel="noopener" target="_blank">DASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ccrma.stanford.edu/~jos/sasp/sasp.html" title="https:&#x2F;&#x2F;ccrma.stanford.edu&#x2F;~jos&#x2F;sasp&#x2F;sasp.html" rel="noopener" target="_blank">SASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://link.springer.com/book/10.1007%2F978-3-540-78612-2" title="https:&#x2F;&#x2F;link.springer.com&#x2F;book&#x2F;10.1007%2F978-3-540-78612-2" rel="noopener" target="_blank">MASP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.audiolabs-erlangen.de/home" title="https:&#x2F;&#x2F;www.audiolabs-erlangen.de&#x2F;home" rel="noopener" target="_blank">AudioLibs</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://arxiv.org/list/eess.AS/recent" title="https:&#x2F;&#x2F;arxiv.org&#x2F;list&#x2F;eess.AS&#x2F;recent" rel="noopener" target="_blank">ASLP Arxiv</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://signalprocessingsociety.org/publications-resources/ieeeacm-transactions-audio-speech-and-language-processing" title="https:&#x2F;&#x2F;signalprocessingsociety.org&#x2F;publications-resources&#x2F;ieeeacm-transactions-audio-speech-and-language-processing" rel="noopener" target="_blank">IEEE-TASLP</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.isca-speech.org/iscaweb/index.php/archive/online-archive" title="https:&#x2F;&#x2F;www.isca-speech.org&#x2F;iscaweb&#x2F;index.php&#x2F;archive&#x2F;online-archive" rel="noopener" target="_blank">ISCA</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ai.google/research/pubs/?area=SpeechProcessing" title="https:&#x2F;&#x2F;ai.google&#x2F;research&#x2F;pubs&#x2F;?area&#x3D;SpeechProcessing" rel="noopener" target="_blank">Google</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www-i6.informatik.rwth-aachen.de/" title="http:&#x2F;&#x2F;www-i6.informatik.rwth-aachen.de" rel="noopener" target="_blank">RWTH</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.merl.com/publications/?ystart=1991&yend=2019&sa=on" title="http:&#x2F;&#x2F;www.merl.com&#x2F;publications&#x2F;?ystart&#x3D;1991&amp;yend&#x3D;2019&amp;sa&#x3D;on" rel="noopener" target="_blank">MERL</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://ei.uni-paderborn.de/en/nt/research-mission/publications/" title="https:&#x2F;&#x2F;ei.uni-paderborn.de&#x2F;en&#x2F;nt&#x2F;research-mission&#x2F;publications&#x2F;" rel="noopener" target="_blank">Paderborn</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://bio-asplab.citi.sinica.edu.tw/p-conference.html" title="http:&#x2F;&#x2F;bio-asplab.citi.sinica.edu.tw&#x2F;p-conference.html" rel="noopener" target="_blank">ASP-LAB</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.kecl.ntt.co.jp/english/index.html" title="http:&#x2F;&#x2F;www.kecl.ntt.co.jp&#x2F;english&#x2F;index.html" rel="noopener" target="_blank">NTT-CSL</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.irisa.fr/metiss/ozerov/" title="http:&#x2F;&#x2F;www.irisa.fr&#x2F;metiss&#x2F;ozerov&#x2F;" rel="noopener" target="_blank">Alexey Ozerov</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://israelcohen.com/" title="https:&#x2F;&#x2F;israelcohen.com" rel="noopener" target="_blank">Israel Cohen</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.eng.biu.ac.il/gannot/" title="http:&#x2F;&#x2F;www.eng.biu.ac.il&#x2F;gannot&#x2F;" rel="noopener" target="_blank">Sharon Gannot</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.danielpovey.com/" title="http:&#x2F;&#x2F;www.danielpovey.com" rel="noopener" target="_blank">Daniel Povey</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://web.cse.ohio-state.edu/~wang.77/pubs_year.html" title="http:&#x2F;&#x2F;web.cse.ohio-state.edu&#x2F;~wang.77&#x2F;pubs_year.html" rel="noopener" target="_blank">Deliang Wang</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/view/shinjiwatanabe/publications" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;shinjiwatanabe&#x2F;publications" rel="noopener" target="_blank">Shinji Watanabe</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/site/dongyu888/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;dongyu888&#x2F;" rel="noopener" target="_blank">Dong Yu</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.citi.sinica.edu.tw/pages/yu.tsao/publications_en.html" title="https:&#x2F;&#x2F;www.citi.sinica.edu.tw&#x2F;pages&#x2F;yu.tsao&#x2F;publications_en.html" rel="noopener" target="_blank">Yu Tsao</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/site/tsainath/" title="https:&#x2F;&#x2F;sites.google.com&#x2F;site&#x2F;tsainath&#x2F;" rel="noopener" target="_blank">Tara N.</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://www.jonathanleroux.org/" title="http:&#x2F;&#x2F;www.jonathanleroux.org" rel="noopener" target="_blank">Jonathan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://speechlab.sjtu.edu.cn/members/yanmin_qian" title="https:&#x2F;&#x2F;speechlab.sjtu.edu.cn&#x2F;members&#x2F;yanmin_qian" rel="noopener" target="_blank">Yanmin Qian</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.microsoft.com/en-us/research/people/tayoshio/" title="https:&#x2F;&#x2F;www.microsoft.com&#x2F;en-us&#x2F;research&#x2F;people&#x2F;tayoshio&#x2F;" rel="noopener" target="_blank">Takuya Yoshioka</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://scholar.google.com/citations?user=QG8aWfIAAAAJ&hl=zh-CN" title="https:&#x2F;&#x2F;scholar.google.com&#x2F;citations?user&#x3D;QG8aWfIAAAAJ&amp;hl&#x3D;zh-CN" rel="noopener" target="_blank">Marc Delcroix</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://sites.google.com/view/xuyong/home" title="https:&#x2F;&#x2F;sites.google.com&#x2F;view&#x2F;xuyong&#x2F;home" rel="noopener" target="_blank">Yong Xu</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://staff.ustc.edu.cn/~jundu/Publications.html" title="http:&#x2F;&#x2F;staff.ustc.edu.cn&#x2F;~jundu&#x2F;Publications.html" rel="noopener" target="_blank">Jun Du</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="noopener" target="_blank">陕ICP备 17010872号-1 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2017 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">WJ</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">407k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">6:10</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.2.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.7.1
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
